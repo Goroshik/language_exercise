@@ -1,46 +1,104 @@
-# Getting Started with Create React App
+# Изучение английского языка
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Интерактивное приложение для изучения английской грамматики с помощью упражнений, созданных с использованием AI.
 
-## Available Scripts
+## 🚀 Возможности
 
-In the project directory, you can run:
+- Генерация тем английской грамматики
+- Создание интерактивных упражнений
+- Проверка ответов с помощью AI
+- Чат-помощник для изучения польского языка
+- Современный и красивый UI
 
-### `npm start`
+## 🏗️ Архитектура проекта
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Проект реорганизован для лучшей модульности и удобства модернизации:
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### 📁 Структура папок
 
-### `npm test`
+```
+src/
+├── components/          # React компоненты
+│   ├── Header.tsx      # Заголовок приложения
+│   ├── LoadingSpinner.tsx # Компонент загрузки
+│   ├── TopicSelection.tsx # Выбор темы
+│   ├── ExerciseBlock.tsx  # Блок упражнений
+│   ├── ExercisesView.tsx  # Представление упражнений
+│   └── index.ts        # Экспорт компонентов
+├── hooks/              # Кастомные хуки
+│   └── useAppState.ts  # Хук управления состоянием
+├── prompts/            # Промты для AI
+│   ├── grammarPrompts.ts # Промты для грамматики
+│   ├── chatPrompts.ts  # Промты для чата
+│   └── index.ts        # Экспорт промтов
+├── types/              # TypeScript типы
+│   └── index.ts        # Интерфейсы и типы
+├── constants/          # Константы
+│   └── styles.ts       # Стили компонентов
+├── services/           # Сервисы
+│   └── googleAI.ts     # Сервис для работы с Google AI
+└── App.tsx             # Главный компонент
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### 🔧 Основные компоненты
 
-### `npm run build`
+#### `useAppState` хук
+Централизованное управление состоянием приложения:
+- Генерация тем
+- Создание упражнений
+- Проверка ответов
+- Обработка ошибок
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### Промты
+Вынесены в отдельные файлы для удобной модернизации:
+- `grammarPrompts.ts` - промты для грамматических упражнений
+- `chatPrompts.ts` - промты для чат-помощника
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+#### Стили
+Централизованные стили в `constants/styles.ts` для консистентности дизайна.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## 🎨 Дизайн
 
-### `npm run eject`
+- Современный Material-UI дизайн
+- Градиентные кнопки и заголовки
+- Тени и скругленные углы
+- Адаптивная верстка
+- Красивые анимации загрузки
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## 🚀 Запуск
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+# Установка зависимостей
+npm install
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+# Запуск в режиме разработки
+npm start
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+# Сборка для продакшена
+npm run build
+```
 
-## Learn More
+## 🔄 Модернизация
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Добавление новых промтов
+1. Создайте новый файл в папке `prompts/`
+2. Экспортируйте промты
+3. Добавьте в `prompts/index.ts`
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Создание новых компонентов
+1. Создайте компонент в папке `components/`
+2. Добавьте в `components/index.ts`
+3. Используйте в нужном месте
+
+### Изменение стилей
+1. Обновите `constants/styles.ts`
+2. Все компоненты автоматически получат новые стили
+
+## 📱 Технологии
+
+- React 18
+- TypeScript
+- Material-UI (MUI)
+- Google AI API
+- Custom Hooks
+- Modular Architecture
