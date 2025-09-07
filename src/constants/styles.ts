@@ -1,5 +1,5 @@
-import { styled } from '@mui/material/styles';
-import { Box, Paper, Typography, Button } from '@mui/material';
+import {styled} from '@mui/material/styles';
+import {Box, Button, Paper, Stack, Typography} from '@mui/material';
 
 // Header styled components
 export const StyledHeader = styled(Box)({
@@ -21,7 +21,9 @@ export const StyledExerciseBlock = styled(Box)({
   boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
 });
 
-export const StyledExerciseItem = styled(Box)({
+export const StyledExerciseItem = styled(Stack)({
+  flexDirection: 'row',
+  alignItems: 'center',
   marginBottom: 16,
   padding: 16,
   border: '1px solid #e0e0e0',

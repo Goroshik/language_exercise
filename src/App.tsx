@@ -13,7 +13,7 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <Router>
-        <Container maxWidth="md" sx={{mt: 4}}>
+        <Container maxWidth="lg" sx={{mt: 4}}>
           <Header/>
 
           <Routes>
