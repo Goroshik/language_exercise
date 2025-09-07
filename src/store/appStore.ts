@@ -1,32 +1,51 @@
-import {useCallback, useState} from 'react';
+import {create} from 'zustand';
+import {devtools} from "zustand/middleware";
+
 import {AppState, ExerciseBlock, ValidationResults} from '../types';
 import {GRAMMAR_PROMPTS} from '../prompts';
 import GoogleAIService from '../services/googleAI';
 
-export const useAppState = () => {
-  const [state, setState] = useState<AppState>('loading-topics');
-  const [selectedTopic, setSelectedTopic] = useState<string>('');
-  const [exerciseBlocks, setExerciseBlocks] = useState<ExerciseBlock[]>([]);
-  const [error, setError] = useState<string>('');
-  const [validationResults, setValidationResults] = useState<ValidationResults>({});
+interface AppStore {
+  // State
+  state: AppState;
+  selectedTopic: string;
+  exerciseBlocks: ExerciseBlock[];
+  error: string;
+  validationResults: ValidationResults;
 
+  // Actions
+  handleTopicSelect: (topic: string, mode?: 'learn' | 'train', level?: string, selectedWords?: string[]) => Promise<void>;
+  generateMoreExercises: (mode?: 'learn' | 'train', level?: string, selectedWords?: string[]) => Promise<void>;
+  handleCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => Promise<void>;
+  clearError: () => void;
+}
 
-  const handleTopicSelect = useCallback(async (topic: string, mode: 'learn' | 'train' = 'train', level: string = 'A1') => {
-    setSelectedTopic(topic);
-    setState('loading-exercises');
-    setError('');
-    setValidationResults({});
+export const useAppStore = create<AppStore>()(devtools((set, get) => ({
+  // Initial state
+  state: 'loading-topics',
+  selectedTopic: '',
+  exerciseBlocks: [],
+  error: '',
+  validationResults: {},
+
+  // Actions
+  handleTopicSelect: async (topic: string, mode: 'learn' | 'train' = 'train', level: string = 'A1', selectedWords?: string[]) => {
+    set({
+      selectedTopic: topic,
+      state: 'loading-exercises',
+      error: '',
+      validationResults: {}
+    });
 
     try {
       const prompt = mode === 'learn'
-        ? GRAMMAR_PROMPTS.generateTeacherSentences(topic, level)
-        : GRAMMAR_PROMPTS.generateExercises(topic);
+        ? GRAMMAR_PROMPTS.generateTeacherSentences(topic, level, selectedWords)
+        : GRAMMAR_PROMPTS.generateExercises(topic, selectedWords);
 
       const response = await GoogleAIService.generateText(prompt);
 
       if (response.error) {
-        setError(response.error);
-        setState('topic-selection');
+        set({error: response.error, state: 'topic-selection'});
       } else {
         let sentencesList;
 
@@ -49,29 +68,34 @@ export const useAppState = () => {
           isChecking: false
         };
 
-        setExerciseBlocks(prevBlocks => [...prevBlocks, newBlock]);
-        setState('exercises');
+        set(state => ({
+          exerciseBlocks: [...state.exerciseBlocks, newBlock],
+          state: 'exercises'
+        }));
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
-      setError(`Ошибка при загрузке упражнений: ${errorMessage}`);
-      setState('topic-selection');
+      set({
+        error: `Ошибка при загрузке упражнений: ${errorMessage}`,
+        state: 'topic-selection'
+      });
     }
-  }, []);
+  },
 
-  const generateMoreExercises = useCallback(async (mode: 'learn' | 'train' = 'train', level: string = 'A1') => {
-    setState('loading-exercises');
-    setError('');
+  generateMoreExercises: async (mode: 'learn' | 'train' = 'train', level: string = 'A1', selectedWords?: string[]) => {
+    const {selectedTopic} = get();
+
+    set({state: 'loading-exercises', error: ''});
 
     try {
       const prompt = mode === 'learn'
-        ? GRAMMAR_PROMPTS.generateTeacherSentences(selectedTopic, level)
-        : GRAMMAR_PROMPTS.generateMoreExercises(selectedTopic);
+        ? GRAMMAR_PROMPTS.generateTeacherSentences(selectedTopic, level, selectedWords)
+        : GRAMMAR_PROMPTS.generateMoreExercises(selectedTopic, selectedWords);
 
       const response = await GoogleAIService.generateText(prompt);
 
       if (response.error) {
-        setError(response.error);
+        set({error: response.error});
       } else {
         let newSentencesList;
 
@@ -94,23 +118,28 @@ export const useAppState = () => {
           isChecking: false
         };
 
-        setExerciseBlocks(prevBlocks => [...prevBlocks, newBlock]);
+        set(state => ({
+          exerciseBlocks: [...state.exerciseBlocks, newBlock]
+        }));
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
-      setError(`Ошибка при загрузке дополнительных упражнений: ${errorMessage}`);
+      set({error: `Ошибка при загрузке дополнительных упражнений: ${errorMessage}`});
     } finally {
-      setState('exercises');
+      set({state: 'exercises'});
     }
-  }, [selectedTopic]);
+  },
 
-  const handleCheckAnswers = useCallback(async (blockId: string, userAnswers: { [key: string]: string }) => {
-    setExerciseBlocks(prevBlocks =>
-      prevBlocks.map(block =>
+  handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string }) => {
+    const {exerciseBlocks, selectedTopic} = get();
+
+    // Set checking state for specific block
+    set(state => ({
+      exerciseBlocks: state.exerciseBlocks.map(block =>
         block.id === blockId ? {...block, isChecking: true} : block
-      )
-    );
-    setError('');
+      ),
+      error: ''
+    }));
 
     try {
       const block = exerciseBlocks.find(b => b.id === blockId);
@@ -133,7 +162,7 @@ export const useAppState = () => {
       );
 
       if (response.error) {
-        setError(response.error);
+        set({error: response.error});
       } else {
         const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
         const lines = response.text.split('\n').filter(line => line.trim());
@@ -155,36 +184,27 @@ export const useAppState = () => {
           });
         });
 
-        setValidationResults(prev => ({
-          ...prev,
-          [blockId]: results
+        set(state => ({
+          validationResults: {
+            ...state.validationResults,
+            [blockId]: results
+          }
         }));
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
-      setError(`Ошибка при проверке ответов: ${errorMessage}`);
+      set({error: `Ошибка при проверке ответов: ${errorMessage}`});
     } finally {
-      setExerciseBlocks(prevBlocks =>
-        prevBlocks.map(block =>
+      // Remove checking state for specific block
+      set(state => ({
+        exerciseBlocks: state.exerciseBlocks.map(block =>
           block.id === blockId ? {...block, isChecking: false} : block
         )
-      );
+      }));
     }
-  }, [exerciseBlocks, selectedTopic]);
+  },
 
-  const clearError = useCallback(() => {
-    setError('');
-  }, []);
-
-  return {
-    state,
-    selectedTopic,
-    exerciseBlocks,
-    error,
-    validationResults,
-    handleTopicSelect,
-    generateMoreExercises,
-    handleCheckAnswers,
-    clearError
-  };
-};
+  clearError: () => {
+    set({error: ''});
+  }
+})));
