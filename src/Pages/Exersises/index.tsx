@@ -7,7 +7,7 @@ import {StyledTopicHeader} from '../../constants/styles';
 import {useAppStore} from '../../store/appStore';
 
 import ExerciseBlock from './ExerciseBlock';
-import WordSelector from '../../components/WordSelector';
+import WordSelector from './WordSelector';
 
 
 interface ExercisesViewProps {

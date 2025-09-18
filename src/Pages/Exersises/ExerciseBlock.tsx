@@ -1,6 +1,6 @@
 import React from 'react';
 import {Box, Button, CircularProgress, Typography} from '@mui/material';
-import TextWithInputs from '../../TextWithInputs';
+import TextWithInputs from '../../components/TextWithInputs';
 import LearnModeText from './LearnModeText';
 import {StyledExerciseBlock} from '../../constants/styles';
 

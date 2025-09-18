@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
 import {Box, Checkbox, Paper, Stack, TextField, Typography} from '@mui/material';
-import dictionaryData from '../constants/dictionary_eng';
+import dictionaryData from '../../constants/dictionary_eng';
 
 interface WordSelectorProps {
   selectedWords: string[];

@@ -1,27 +1,25 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Box,
-  TextField,
-  Button,
-  Typography,
-  Paper,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   IconButton,
-  CircularProgress
+  Paper,
+  TextField,
+  Typography
 } from '@mui/material';
 
 import GoogleAIService from './services/googleAI';
-import { CHAT_PROMPTS } from './prompts/chatPrompts';
-import { 
-  StyledChatDialog, 
-  StyledMessagesContainer, 
-  StyledMessageBubble, 
-  StyledMessageTimestamp, 
-  StyledInputContainer, 
-  StyledSendButton 
+import {CHAT_PROMPTS} from './prompts/chatPrompts';
+import {
+  StyledChatDialog,
+  StyledInputContainer,
+  StyledMessageBubble,
+  StyledMessagesContainer,
+  StyledMessageTimestamp,
+  StyledSendButton
 } from './constants/styles';
 
 interface Message {
@@ -37,8 +35,7 @@ interface ChatProps {
 }
 
 
-
-const Chat: React.FC<ChatProps> = ({ open, onClose }) => {
+const Chat: React.FC<ChatProps> = ({open, onClose}) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -93,89 +90,89 @@ const Chat: React.FC<ChatProps> = ({ open, onClose }) => {
         maxWidth="md"
         fullWidth
       >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6">
-          Чат-помощник по польскому языку
-        </Typography>
-        <IconButton onClick={onClose} size="small">
-          Close
-        </IconButton>
-      </DialogTitle>
+        <DialogTitle sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+          <Typography variant="h6">
+            Чат-помощник по польскому языку
+          </Typography>
+          <IconButton onClick={onClose} size="small">
+            Close
+          </IconButton>
+        </DialogTitle>
 
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', p: 0 }}>
-        {/* Messages area */}
-        <StyledMessagesContainer>
-          {messages.length === 0 && (
-            <Box sx={{ textAlign: 'center', color: 'text.secondary', mt: 4 }}>
-              <Typography variant="body2">
-                Привет! Я помогу вам с изучением польского языка.
-              </Typography>
-              <Typography variant="body2">
-                Задавайте вопросы о грамматике, словах, произношении или культуре Польши.
-              </Typography>
-            </Box>
-          )}
+        <DialogContent sx={{display: 'flex', flexDirection: 'column', p: 0}}>
+          {/* Messages area */}
+          <StyledMessagesContainer>
+            {messages.length === 0 && (
+              <Box sx={{textAlign: 'center', color: 'text.secondary', mt: 4}}>
+                <Typography variant="body2">
+                  Привет! Я помогу вам с изучением польского языка.
+                </Typography>
+                <Typography variant="body2">
+                  Задавайте вопросы о грамматике, словах, произношении или культуре Польши.
+                </Typography>
+              </Box>
+            )}
 
-          {messages.map((message) => (
-            <Box
-              key={message.id}
-              sx={{
-                display: 'flex',
-                justifyContent: message.isUser ? 'flex-end' : 'flex-start',
-                mb: 1
-              }}
-            >
-              <StyledMessageBubble
-                className={message.isUser ? 'user-message' : 'bot-message'}
+            {messages.map((message) => (
+              <Box
+                key={message.id}
+                sx={{
+                  display: 'flex',
+                  justifyContent: message.isUser ? 'flex-end' : 'flex-start',
+                  mb: 1
+                }}
               >
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {message.text}
-                </Typography>
-                <StyledMessageTimestamp variant="caption">
-                  {message.timestamp.toLocaleTimeString('ru-RU', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
-                </StyledMessageTimestamp>
-              </StyledMessageBubble>
-            </Box>
-          ))}
+                <StyledMessageBubble
+                  className={message.isUser ? 'user-message' : 'bot-message'}
+                >
+                  <Typography variant="body2" sx={{whiteSpace: 'pre-wrap'}}>
+                    {message.text}
+                  </Typography>
+                  <StyledMessageTimestamp variant="caption">
+                    {message.timestamp.toLocaleTimeString('ru-RU', {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </StyledMessageTimestamp>
+                </StyledMessageBubble>
+              </Box>
+            ))}
 
-          {isLoading && (
-            <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 1 }}>
-              <Paper sx={{ p: 2, backgroundColor: '#f5f5f5' }}>
-                <CircularProgress size={20} />
-                <Typography variant="body2" sx={{ ml: 1, display: 'inline' }}>
-                  Печатаю...
-                </Typography>
-              </Paper>
-            </Box>
-          )}
-        </StyledMessagesContainer>
+            {isLoading && (
+              <Box sx={{display: 'flex', justifyContent: 'flex-start', mb: 1}}>
+                <Paper sx={{p: 2, backgroundColor: '#f5f5f5'}}>
+                  <CircularProgress size={20}/>
+                  <Typography variant="body2" sx={{ml: 1, display: 'inline'}}>
+                    Печатаю...
+                  </Typography>
+                </Paper>
+              </Box>
+            )}
+          </StyledMessagesContainer>
 
-        {/* Input area */}
-        <StyledInputContainer>
-          <TextField
-            fullWidth
-            multiline
-            maxRows={3}
-            placeholder="Задайте вопрос о польском языке..."
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            onKeyPress={handleKeyPress}
-            disabled={isLoading}
-            variant="outlined"
-            size="small"
-          />
-          <StyledSendButton
-            variant="contained"
-            onClick={handleSendMessage}
-            disabled={!inputText.trim() || isLoading}
-          >
-            Send
-          </StyledSendButton>
-        </StyledInputContainer>
-      </DialogContent>
+          {/* Input area */}
+          <StyledInputContainer>
+            <TextField
+              fullWidth
+              multiline
+              maxRows={3}
+              placeholder="Задайте вопрос о польском языке..."
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              onKeyPress={handleKeyPress}
+              disabled={isLoading}
+              variant="outlined"
+              size="small"
+            />
+            <StyledSendButton
+              variant="contained"
+              onClick={handleSendMessage}
+              disabled={!inputText.trim() || isLoading}
+            >
+              Send
+            </StyledSendButton>
+          </StyledInputContainer>
+        </DialogContent>
       </Dialog>
     </StyledChatDialog>
   );

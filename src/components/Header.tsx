@@ -1,24 +1,33 @@
 import React from 'react';
-import { Typography } from '@mui/material';
-import { StyledHeader } from '../constants/styles';
+import {AppBar, Box, Button, Toolbar, Typography} from '@mui/material';
+import {Link as RouterLink} from 'react-router-dom';
 
 const Header: React.FC = () => {
   return (
-    <StyledHeader sx={{ textAlign: 'center' }}>
-      <Typography 
-        variant="h4" 
-        component="h1" 
-        gutterBottom
-        className="header-title"
-      >
-        Изучение английского языка
-      </Typography>
-      <Typography 
-        variant="subtitle1"
-      >
-        Практикуйте английскую грамматику с помощью интерактивных упражнений
-      </Typography>
-    </StyledHeader>
+    <AppBar position="static" color="primary">
+      <Toolbar>
+        <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
+          Изучение английского языка
+        </Typography>
+        <Box>
+          <Button
+            color="inherit"
+            component={RouterLink}
+            to="/"
+            sx={{mr: 2}}
+          >
+            Главная
+          </Button>
+          <Button
+            color="inherit"
+            component={RouterLink}
+            to="/dictionary"
+          >
+            Словарь
+          </Button>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 };
 

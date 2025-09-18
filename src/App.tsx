@@ -5,6 +5,7 @@ import {theme} from './theme';
 
 import {ExercisesView, Header, TopicSelection} from './components';
 import Chat from './Chat';
+import DictionaryPage from './Pages/Dictionary';
 import topicsData from './constants/topics_eng';
 
 function App() {
@@ -13,12 +14,13 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <Router>
+        <Header/>
+        
         <Container maxWidth="lg" sx={{mt: 4}}>
-          <Header/>
-
           <Routes>
             <Route path="/" element={<TopicSelection topics={topicsData}/>}/>
             <Route path="/topic/:topicName" element={<ExercisesView/>}/>
+            <Route path="/dictionary" element={<DictionaryPage/>}/>
           </Routes>
 
           {/* Floating Chat Button */}
