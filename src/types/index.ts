@@ -20,3 +20,18 @@ export interface ValidationResult {
 export interface ValidationResults {
   [key: string]: { [key: string]: ValidationResult };
 }
+
+export interface DictionaryWord {
+  id: string;
+  word: string;
+  translate: string;
+  tags: string[];
+  createdAt: Date;
+  isUserAdded: boolean;
+}
+
+export interface DictionaryState {
+  words: DictionaryWord[];
+  selectedTags: string[];
+  allTags: string[];
+}

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { TextField } from '@mui/material';
-import { StyledTextContainer, StyledInputContainerWrapper, StyledErrorMessage } from './constants/styles';
+import React, {useState} from 'react';
+import {TextField} from '@mui/material';
+import {StyledErrorMessage, StyledInputContainerWrapper, StyledTextContainer} from '../constants/styles';
 
 interface TextWithInputsProps {
   text: string;
@@ -14,8 +14,7 @@ interface InputData {
 }
 
 
-
-const TextWithInputs: React.FC<TextWithInputsProps> = ({ text, exerciseIndex = 0, validationResults = {} }) => {
+const TextWithInputs: React.FC<TextWithInputsProps> = ({text, exerciseIndex = 0, validationResults = {}}) => {
   const [inputs, setInputs] = useState<InputData[]>([]);
 
   // Парсим текст и находим все триггеры вида {{input}}
@@ -34,11 +33,11 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({ text, exerciseIndex = 0
 
       // Добавляем маркер инпута с индексом упражнения
       const inputId = `input_${exerciseIndex}_${inputCounter++}`;
-      parts.push({ type: 'input', id: inputId });
+      parts.push({type: 'input', id: inputId});
 
       // Инициализируем значение инпута если его еще нет
       if (!inputs.find(input => input.id === inputId)) {
-        setInputs(prev => [...prev, { id: inputId, value: '' }]);
+        setInputs(prev => [...prev, {id: inputId, value: ''}]);
       }
 
       lastIndex = regex.lastIndex;
@@ -55,7 +54,7 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({ text, exerciseIndex = 0
   const handleInputChange = (id: string, value: string) => {
     setInputs(prev =>
       prev.map(input =>
-        input.id === id ? { ...input, value } : input
+        input.id === id ? {...input, value} : input
       )
     );
   };
@@ -72,7 +71,7 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({ text, exerciseIndex = 0
       {parsedParts.map((part, index) => {
         if (typeof part === 'string') {
           return (
-            <span key={index} style={{ whiteSpace: 'pre-wrap' }}>
+            <span key={index} style={{whiteSpace: 'pre-wrap'}}>
               {part}
             </span>
           );
