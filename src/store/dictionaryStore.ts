@@ -1,6 +1,5 @@
 import {create} from 'zustand';
 import {DictionaryState, DictionaryWord} from '../types';
-import dictionaryData from '../constants/dictionary_eng';
 import {indexedDBService, TagItem} from '../services/indexedDBService';
 
 interface DictionaryStore extends DictionaryState {
@@ -21,15 +20,6 @@ interface DictionaryStore extends DictionaryState {
   loadAllTags: () => Promise<void>;
 }
 
-// Преобразуем существующие слова в новый формат для миграции
-const getInitialWords = (): DictionaryWord[] => dictionaryData.map((item, index) => ({
-  id: `default_${index}`,
-  word: item.word,
-  translate: item.translate,
-  tags: ['default'], // Все существующие слова помечаем тегом 'default'
-  createdAt: new Date(),
-  isUserAdded: false
-}));
 
 export const useDictionaryStore = create<DictionaryStore>((set, get) => ({
   // Initial state
@@ -43,17 +33,26 @@ export const useDictionaryStore = create<DictionaryStore>((set, get) => ({
     try {
       await indexedDBService.init();
 
-      // Проверяем есть ли уже данные в IndexedDB
-      const existingWords = await indexedDBService.getAllWords();
-
-      if (existingWords.length === 0) {
-        // Если данных нет, импортируем начальные данные
-        const initialWords = getInitialWords();
-        await indexedDBService.importWords(initialWords);
-      }
 
       // Загружаем слова из IndexedDB
       await get().loadWords();
+
+      // NOTE: Check if tags table is empty and populate with unique tags from words
+      const existingTags = await indexedDBService.getAllTags();
+      if (existingTags.length === 0) {
+        // NOTE: Extract unique tags from all words
+        const words = await indexedDBService.getAllWords();
+        const allTags = new Set<string>();
+        words.forEach(word => {
+          word.tags.forEach(tag => allTags.add(tag));
+        });
+
+        // NOTE: Save unique tags to database
+        const uniqueTags = Array.from(allTags);
+        if (uniqueTags.length > 0) {
+          await get().saveTags(uniqueTags);
+        }
+      }
 
       // Загружаем все теги
       await get().loadAllTags();
@@ -63,7 +62,7 @@ export const useDictionaryStore = create<DictionaryStore>((set, get) => ({
       console.error('Failed to initialize IndexedDB:', error);
       // Fallback to initial data in memory
       set({
-        words: getInitialWords(),
+        words: [],
         isInitialized: true
       });
     }
