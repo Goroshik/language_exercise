@@ -1,13 +1,15 @@
-import {Add as AddIcon} from '@mui/icons-material';
+import {Add as AddIcon, FileUpload as ImportIcon} from '@mui/icons-material';
 import {Box, Button, Container, Paper, Stack, Typography} from '@mui/material';
 import React, {useEffect, useState} from 'react';
 import {useDictionaryStore} from '../../store/dictionaryStore';
 import WordCard from "./WordCard";
 import AddWordModal from "./AddWordModal";
+import ImportWordsModal from "./ImportWordsModal";
 import TagFilter from "./TagFilter";
 
 const DictionaryPage: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [filteredWords, setFilteredWords] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const {getFilteredWords, words, initializeDB, isInitialized, selectedTags} = useDictionaryStore();
@@ -36,14 +38,24 @@ const DictionaryPage: React.FC = () => {
         <Typography variant="h4" component="h1">
           Словарь
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon/>}
-          onClick={() => setIsAddModalOpen(true)}
-          size="large"
-        >
-          Добавить слово
-        </Button>
+        <Box display="flex" gap={2}>
+          <Button
+            variant="outlined"
+            startIcon={<ImportIcon/>}
+            onClick={() => setIsImportModalOpen(true)}
+            size="large"
+          >
+            Импорт слов
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddIcon/>}
+            onClick={() => setIsAddModalOpen(true)}
+            size="large"
+          >
+            Добавить слово
+          </Button>
+        </Box>
       </Box>
 
       <Box display="flex" gap={3}>
@@ -82,6 +94,11 @@ const DictionaryPage: React.FC = () => {
       <AddWordModal
         open={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
+      />
+
+      <ImportWordsModal
+        open={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
       />
     </Container>
   );
