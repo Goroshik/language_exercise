@@ -1,6 +1,5 @@
 import React from 'react';
-import { CircularProgress, Typography } from '@mui/material';
-import { StyledLoadingSpinner } from '../constants/styles';
+import {Box, CircularProgress, Typography} from '@mui/material';
 
 interface LoadingSpinnerProps {
   message: string;
@@ -8,10 +7,12 @@ interface LoadingSpinnerProps {
 
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ message }) => {
   return (
-    <StyledLoadingSpinner>
+    <Box sx={{textAlign: 'center',
+      paddingTop: 32,
+      paddingBottom: 32}}>
       <CircularProgress />
       <Typography sx={{ mt: 2 }}>{message}</Typography>
-    </StyledLoadingSpinner>
+    </Box>
   );
 };
 

@@ -1,104 +1,36 @@
-# Изучение английского языка
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Интерактивное приложение для изучения английской грамматики с помощью упражнений, созданных с использованием AI.
+## Getting Started
 
-## 🚀 Возможности
-
-- Генерация тем английской грамматики
-- Создание интерактивных упражнений
-- Проверка ответов с помощью AI
-- Чат-помощник для изучения польского языка
-- Современный и красивый UI
-
-## 🏗️ Архитектура проекта
-
-Проект реорганизован для лучшей модульности и удобства модернизации:
-
-### 📁 Структура папок
-
-```
-src/
-├── components/          # React компоненты
-│   ├── Header.tsx      # Заголовок приложения
-│   ├── LoadingSpinner.tsx # Компонент загрузки
-│   ├── TopicSelection.tsx # Выбор темы
-│   ├── ExerciseBlock.tsx  # Блок упражнений
-│   ├── ExercisesView.tsx  # Представление упражнений
-│   └── index.ts        # Экспорт компонентов
-├── hooks/              # Кастомные хуки
-│   └── useAppState.ts  # Хук управления состоянием
-├── prompts/            # Промты для AI
-│   ├── grammarPrompts.ts # Промты для грамматики
-│   ├── chatPrompts.ts  # Промты для чата
-│   └── index.ts        # Экспорт промтов
-├── types/              # TypeScript типы
-│   └── index.ts        # Интерфейсы и типы
-├── constants/          # Константы
-│   └── styles.ts       # Стили компонентов
-├── services/           # Сервисы
-│   └── googleAI.ts     # Сервис для работы с Google AI
-└── App.tsx             # Главный компонент
-```
-
-### 🔧 Основные компоненты
-
-#### `useAppState` хук
-Централизованное управление состоянием приложения:
-- Генерация тем
-- Создание упражнений
-- Проверка ответов
-- Обработка ошибок
-
-#### Промты
-Вынесены в отдельные файлы для удобной модернизации:
-- `grammarPrompts.ts` - промты для грамматических упражнений
-- `chatPrompts.ts` - промты для чат-помощника
-
-#### Стили
-Централизованные стили в `constants/styles.ts` для консистентности дизайна.
-
-## 🎨 Дизайн
-
-- Современный Material-UI дизайн
-- Градиентные кнопки и заголовки
-- Тени и скругленные углы
-- Адаптивная верстка
-- Красивые анимации загрузки
-
-## 🚀 Запуск
+First, run the development server:
 
 ```bash
-# Установка зависимостей
-npm install
-
-# Запуск в режиме разработки
-npm start
-
-# Сборка для продакшена
-npm run build
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## 🔄 Модернизация
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-### Добавление новых промтов
-1. Создайте новый файл в папке `prompts/`
-2. Экспортируйте промты
-3. Добавьте в `prompts/index.ts`
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-### Создание новых компонентов
-1. Создайте компонент в папке `components/`
-2. Добавьте в `components/index.ts`
-3. Используйте в нужном месте
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-### Изменение стилей
-1. Обновите `constants/styles.ts`
-2. Все компоненты автоматически получат новые стили
+## Learn More
 
-## 📱 Технологии
+To learn more about Next.js, take a look at the following resources:
 
-- React 18
-- TypeScript
-- Material-UI (MUI)
-- Google AI API
-- Custom Hooks
-- Modular Architecture
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
