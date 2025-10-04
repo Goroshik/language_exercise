@@ -1,9 +1,9 @@
 import {create} from 'zustand';
 import {devtools} from "zustand/middleware";
 
-import {AppState, ExerciseBlock, ValidationResults} from '../types';
-import {GRAMMAR_PROMPTS} from '../prompts';
-import GoogleAIService from '../services/googleAI';
+import {AppState, ExerciseBlock, ValidationResults} from 'src/types';
+import {GRAMMAR_PROMPTS} from 'src/prompts';
+import GoogleAIService from 'src/services/googleAI';
 
 interface AppStore {
   // State
