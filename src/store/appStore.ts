@@ -3,7 +3,6 @@ import {devtools} from "zustand/middleware";
 
 import {AppState, ExerciseBlock, ValidationResults} from 'src/types';
 import {GRAMMAR_PROMPTS} from 'src/prompts';
-import GoogleAIService from 'src/services/googleAI';
 
 interface AppStore {
   // State
@@ -42,21 +41,26 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
         ? GRAMMAR_PROMPTS.generateTeacherSentences(topic, level, selectedWords)
         : GRAMMAR_PROMPTS.generateExercises(topic, selectedWords);
 
-      const response = await GoogleAIService.generateText(prompt);
+      const apiResponse = await fetch('/api/ai/generate-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const responseJson = await apiResponse.json();
 
-      if (response.error) {
-        set({error: response.error, state: 'topic-selection'});
+      if (!responseJson.success || responseJson.data?.error) {
+        set({error: responseJson.data?.error || 'Ошибка генерации текста', state: 'topic-selection'});
       } else {
         let sentencesList;
 
         if (mode === 'learn') {
           // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
-          sentencesList = response.text.split('\n')
+          sentencesList = responseJson.data.text.split('\n')
             .filter(line => line.trim())
             .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
         } else {
           // For train mode, filter sentences with {{input}} placeholders
-          sentencesList = response.text.split('\n')
+          sentencesList = responseJson.data.text.split('\n')
             .filter(line => line.trim() && line.includes('{{input}}'))
             .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
         }
@@ -92,21 +96,26 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
         ? GRAMMAR_PROMPTS.generateTeacherSentences(selectedTopic, level, selectedWords)
         : GRAMMAR_PROMPTS.generateMoreExercises(selectedTopic, selectedWords);
 
-      const response = await GoogleAIService.generateText(prompt);
+      const apiResponse = await fetch('/api/ai/generate-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      const responseJson = await apiResponse.json();
 
-      if (response.error) {
-        set({error: response.error});
+      if (!responseJson.success || responseJson.data?.error) {
+        set({error: responseJson.data?.error || 'Ошибка генерации текста'});
       } else {
         let newSentencesList;
 
         if (mode === 'learn') {
           // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
-          newSentencesList = response.text.split('\n')
+          newSentencesList = responseJson.data.text.split('\n')
             .filter(line => line.trim())
             .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
         } else {
           // For train mode, filter sentences with {{input}} placeholders
-          newSentencesList = response.text.split('\n')
+          newSentencesList = responseJson.data.text.split('\n')
             .filter(line => line.trim() && line.includes('{{input}}'))
             .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
         }
@@ -157,15 +166,19 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
         return `${index + 1}. ${filledSentence}`;
       }).join('\n');
 
-      const response = await GoogleAIService.generateText(
-        GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText)
-      );
+      const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
+      const apiResponse = await fetch('/api/ai/generate-text', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: validatePrompt })
+      });
+      const responseJson = await apiResponse.json();
 
-      if (response.error) {
-        set({error: response.error});
+      if (!responseJson.success || responseJson.data?.error) {
+        set({error: responseJson.data?.error || 'Ошибка проверки ответов'});
       } else {
         const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
-        const lines = response.text.split('\n').filter(line => line.trim());
+        const lines = responseJson.data.text.split('\n').filter(line => line.trim());
 
         lines.forEach((line, index) => {
           const isCorrect = line.includes('CORRECT');

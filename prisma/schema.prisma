@@ -10,18 +10,18 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model Tag {
-  id             String   @id @default(cuid())
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
   name           String   @unique
   createdAt      DateTime @default(now())
   color          String?
   backgroudColor String?
   borderColor    String?
-  ownerId        String?
+  ownerId        String?  @db.ObjectId
 
   // NOTE: Relation to words through many-to-many
   owner     User?       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
@@ -31,43 +31,39 @@ model Tag {
 }
 
 model Word {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   word      String
   translate String
   createdAt DateTime @default(now())
-  ownerId   String?
+  ownerId   String?  @db.ObjectId
   shared    Boolean  @default(false)
 
   // NOTE: Many-to-many relation with tags
 
-  owner User?       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  tags  EntityTag[] @relation("EntityWord")
+  owner User? @relation(fields: [ownerId], references: [id], onDelete: Cascade)
 
   @@map("dictionary_words")
 }
 
 model EntityTag {
-  id         String @id @default(cuid())
+  id         String @id @default(auto()) @map("_id") @db.ObjectId
   entityType String
   entityId   String
-  tagId      String
+  tagId      String @db.ObjectId
 
-  tag  Tag   @relation(fields: [tagId], references: [id], map: "entity_tag_tag_fkey")
-  user User? @relation("EntityUser", fields: [entityId], references: [id], map: "entity_tag_user_fkey")
-  word Word? @relation("EntityWord", fields: [entityId], references: [id], map: "entity_tag_word_fkey")
+  tag Tag @relation(fields: [tagId], references: [id])
 
   @@map("word_tags")
 }
 
 model User {
-  id        String   @id @default(cuid())
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
 
   Tag      Tag[]
   Word     Word[]
-  tags     EntityTag[]   @relation("EntityUser")
   tokens   UserToken[]
   settings UserSettings?
 
@@ -75,12 +71,12 @@ model User {
 }
 
 model UserToken {
-  id            String   @id @default(cuid())
-  userId        String
-  service       String   // 'gemini', 'deepl', etc.
-  encryptedToken String  // encrypted token value
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId
+  service        String // 'gemini', 'deepl', 'auth', etc.
+  encryptedToken String // encrypted token value
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -89,13 +85,13 @@ model UserToken {
 }
 
 model UserSettings {
-  id              String   @id @default(cuid())
-  userId          String   @unique
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId          String   @unique @db.ObjectId
   theme           String?  @default("light") // 'light', 'dark'
   aiModel         String?  @default("gemini-2.5-flash") // selected AI model
   language        String?  @default("en") // interface language
   translationLang String?  @default("RU") // target translation language
-  customSettings  Json?    // for additional flexible settings storage
+  customSettings  Json? // for additional flexible settings storage
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 

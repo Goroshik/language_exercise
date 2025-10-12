@@ -1,51 +1,29 @@
 import {NextRequest, NextResponse} from 'next/server';
-import prisma from 'src/utils/prismaClient';
+
+import {userSettingsRepository} from 'src/repository/userSettings';
+import {getUserIdFromRequest, createUnauthorizedResponse} from 'src/utils/auth';
 
 
 // NOTE: Type definitions for API requests
-interface SettingsCreateRequest {
-  userId: string;
-  theme?: string;
-  aiModel?: string;
-  language?: string;
-  translationLang?: string;
-  customSettings?: Record<string, any>;
+interface SettingsRequest {
+  theme: string;
+  aiModel: string;
+  language: string;
+  translationLang: string;
+  customSettings: Record<string, any>;
 }
 
-interface SettingsUpdateRequest {
-  theme?: string;
-  aiModel?: string;
-  language?: string;
-  translationLang?: string;
-  customSettings?: Record<string, any>;
-}
 
 // GET /api/settings - Get user settings
 export async function GET(request: NextRequest) {
   try {
-    const {searchParams} = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json(
-        {error: 'User ID is required'},
-        {status: 400}
-      );
+    // Проверяем аутентификацию
+    const { userId, error } = getUserIdFromRequest(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
     }
 
-    const userSettings = await prisma.userSettings.findUnique({
-      where: {userId},
-      select: {
-        id: true,
-        theme: true,
-        aiModel: true,
-        language: true,
-        translationLang: true,
-        customSettings: true,
-        createdAt: true,
-        updatedAt: true
-      }
-    });
+    const userSettings = await userSettingsRepository.findByUserId(userId);
 
     if (!userSettings) {
       // Return default settings if none exist
@@ -71,54 +49,18 @@ export async function GET(request: NextRequest) {
 // POST /api/settings - Create or update user settings
 export async function POST(request: NextRequest) {
   try {
-    const body: SettingsCreateRequest = await request.json();
-    const {userId, theme, aiModel, language, translationLang, customSettings} = body;
-
-    if (!userId) {
-      return NextResponse.json(
-        {error: 'User ID is required'},
-        {status: 400}
-      );
+    // Проверяем аутентификацию
+    const { userId, error } = getUserIdFromRequest(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
     }
 
-    // Prepare update data (only include defined fields)
-    const updateData: any = {
-      updatedAt: new Date()
-    };
+    const body: SettingsRequest = await request.json();
+    const {theme, aiModel, language, translationLang, customSettings} = body;
 
-    if (theme !== undefined) updateData.theme = theme;
-    if (aiModel !== undefined) updateData.aiModel = aiModel;
-    if (language !== undefined) updateData.language = language;
-    if (translationLang !== undefined) updateData.translationLang = translationLang;
-    if (customSettings !== undefined) updateData.customSettings = customSettings;
+    const result = await userSettingsRepository.upsert(userId, body);
 
-    console.log(body)
-
-
-    // Use upsert to create or update settings
-    const userSettings = await prisma.userSettings.upsert({
-      where: {userId},
-      update: updateData,
-      create: {
-        userId,
-        theme: theme || 'light',
-        aiModel: aiModel || 'gemini-2.5-flash',
-        language: language || 'en',
-        translationLang: translationLang || 'RU',
-        customSettings: customSettings || {}
-      }
-    });
-
-    return NextResponse.json({
-      id: userSettings.id,
-      theme: userSettings.theme,
-      aiModel: userSettings.aiModel,
-      language: userSettings.language,
-      translationLang: userSettings.translationLang,
-      customSettings: userSettings.customSettings,
-      createdAt: userSettings.createdAt,
-      updatedAt: userSettings.updatedAt
-    });
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error creating/updating user settings:', error);
     return NextResponse.json(
@@ -131,17 +73,13 @@ export async function POST(request: NextRequest) {
 // PATCH /api/settings - Partially update user settings
 export async function PATCH(request: NextRequest) {
   try {
-    const {searchParams} = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json(
-        {error: 'User ID is required'},
-        {status: 400}
-      );
+    // Проверяем аутентификацию
+    const { userId, error } = getUserIdFromRequest(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
     }
 
-    const body: SettingsUpdateRequest = await request.json();
+    const body: SettingsRequest = await request.json();
     const {theme, aiModel, language, translationLang, customSettings} = body;
 
     // Prepare update data (only include defined fields)
@@ -155,10 +93,7 @@ export async function PATCH(request: NextRequest) {
     if (translationLang !== undefined) updateData.translationLang = translationLang;
     if (customSettings !== undefined) updateData.customSettings = customSettings;
 
-    const userSettings = await prisma.userSettings.update({
-      where: {userId},
-      data: updateData
-    });
+    const userSettings = await userSettingsRepository.update(userId, updateData);
 
     return NextResponse.json({
       id: userSettings.id,
@@ -181,19 +116,13 @@ export async function PATCH(request: NextRequest) {
 // DELETE /api/settings - Reset user settings to defaults
 export async function DELETE(request: NextRequest) {
   try {
-    const {searchParams} = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json(
-        {error: 'User ID is required'},
-        {status: 400}
-      );
+    // Проверяем аутентификацию
+    const { userId, error } = getUserIdFromRequest(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
     }
 
-    await prisma.userSettings.delete({
-      where: {userId}
-    });
+    await userSettingsRepository.delete(userId);
 
     return NextResponse.json({message: 'User settings reset to defaults'});
   } catch (error) {

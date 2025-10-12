@@ -11,20 +11,23 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@google/generative-ai": "^0.24.1",
     "@mui/icons-material": "^7.3.2",
-    "@mui/material": "^7.3.2",
-    "@mui/material-nextjs": "^7.3.2",
-    "@prisma/client": "^6.16.2",
+    "@mui/material": "^7.3.4",
+    "@mui/material-nextjs": "^7.3.3",
+    "@prisma/client": "^6.16.3",
     "bcryptjs": "^3.0.2",
+    "jose": "^5.9.6",
     "next": "15.5.4",
     "next-auth": "^4.24.11",
+    "openai": "^6.3.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "react-hook-form": "^7.63.0",
+    "react-hook-form": "^7.64.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
@@ -34,7 +37,9 @@
     "@types/react-dom": "19.0.4",
     "eslint": "9.36.0",
     "eslint-config-next": "15.5.4",
-    "prisma": "^6.16.2",
+    "eslint-plugin-prettier": "^5.5.4",
+    "eslint-plugin-react-refresh": "^0.4.23",
+    "prisma": "^6.16.3",
     "typescript": "5.9.2"
   }
 }

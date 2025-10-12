@@ -21,7 +21,6 @@ const WordSelector: React.FC<WordSelectorProps> = ({
 
   useEffect(() => {
     loadWords();
-    loadTags();
   }, []);
 
   const loadWords = async () => {
@@ -30,7 +29,16 @@ const WordSelector: React.FC<WordSelectorProps> = ({
       const data = await response.json();
 
       if (data.success) {
-        setWords(data.words);
+        const loadedWords: DictionaryWord[] = data.words;
+        setWords(loadedWords);
+        // Собираем уникальные теги из слов
+        const tagSet = new Set<string>();
+        loadedWords.forEach(w => {
+          if (Array.isArray(w.tags)) {
+            w.tags.forEach(t => tagSet.add(t));
+          }
+        });
+        setAllTags(Array.from(tagSet).sort());
         setIsInitialized(true);
       }
     } catch (error) {
@@ -39,18 +47,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
     }
   };
 
-  const loadTags = async () => {
-    try {
-      const response = await fetch('/api/dictionary/tags');
-      const data = await response.json();
-
-      if (data.success) {
-        setAllTags(data.tags);
-      }
-    } catch (error) {
-      console.error('Failed to load tags:', error);
-    }
-  };
+  // Теги вычисляются из загруженных слов, отдельный запрос не нужен
 
   const getFilteredWords = (searchQuery: string = '') => {
     return words.filter(word => {

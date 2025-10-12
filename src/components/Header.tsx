@@ -1,8 +1,8 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {AppBar, Box, Button, Toolbar, Typography, IconButton} from '@mui/material';
-import { useRouter } from "next/navigation";
+import {useRouter} from "next/navigation";
 import SettingsIcon from '@mui/icons-material/Settings';
 import SettingsModal from './SettingsModal';
 
@@ -26,8 +26,8 @@ const Header: React.FC = () => {
             Изучение английского языка
           </Typography>
           <Box>
-            <Button variant="outlined" onClick={() => route.push('/exercises')} sx={{mr: 2, backgroundColor: "white"}}>
-              Главная
+            <Button variant="outlined" onClick={() => route.push('/topics')} sx={{mr: 2, backgroundColor: "white"}}>
+              Темы
             </Button>
             <Button variant="outlined" onClick={() => route.push('/dictionary')} sx={{mr: 2, backgroundColor: "white"}}>
               Словарь
@@ -35,10 +35,10 @@ const Header: React.FC = () => {
             <IconButton
               color="inherit"
               onClick={handleSettingsOpen}
-              sx={{ ml: 1, backgroundColor: "white", color: "primary.main", "&:hover": { backgroundColor: "#f5f5f5" } }}
+              sx={{ml: 1, backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
               aria-label="settings"
             >
-              <SettingsIcon />
+              <SettingsIcon/>
             </IconButton>
           </Box>
         </Toolbar>
@@ -47,7 +47,6 @@ const Header: React.FC = () => {
       <SettingsModal
         open={settingsOpen}
         onClose={handleSettingsClose}
-        userId="default-user" // TODO: Replace with actual user ID from authentication
       />
     </>
   );

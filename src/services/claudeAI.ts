@@ -1,8 +1,9 @@
-import {GoogleGenerativeAI} from '@google/generative-ai';
+import Anthropic from '@anthropic-ai/sdk';
 import { BaseAIService, AIResponse, ParsedWord } from './baseAI';
 
-export class GoogleAIService extends BaseAIService {
-  serviceName = 'gemini';
+export class ClaudeAIService extends BaseAIService {
+  serviceName = 'anthropic';
+
   /**
    * Parse text and extract English words with Russian translations
    * @param text - The input text to parse
@@ -12,13 +13,12 @@ export class GoogleAIService extends BaseAIService {
   async parseWordsFromText(text: string, userId: string): Promise<ParsedWord[]> {
     try {
       const token = await this.validateAndGetToken(userId);
-      const genAI = new GoogleGenerativeAI(token);
-      
-      // Get user's selected model from settings, default to gemini-2.5-flash for parsing
-      const modelName = await this.getUserModel(userId) || 'gemini-2.5-flash';
-      const model = genAI.getGenerativeModel({model: modelName});
+      const anthropic = new Anthropic({ apiKey: token });
 
-      console.log(`Using Gemini model ${modelName} for parsing words`);
+      // Get user's selected model from settings, default to claude-3-haiku-20240307 for parsing
+      const model = await this.getUserModel(userId) || 'claude-3-haiku-20240307';
+
+      console.log(`Using Claude model ${model} for parsing words`);
 
       const prompt = `Parse the following text and extract English words or phrases with their Russian translations. 
 Return ONLY a valid JSON array with format: [{"word": "english_word", "translate": "russian_translation"}].
@@ -30,13 +30,22 @@ Skip empty lines and non-word content.
 Text to parse:
 ${text}`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const responseText = response.text();
+      const response = await anthropic.messages.create({
+        model: model,
+        max_tokens: 4000,
+        temperature: 0.3,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      });
 
-      console.log('AI response:', responseText)
+      const responseText = response.content[0]?.type === 'text' ? response.content[0].text : '';
+      console.log('Claude response:', responseText);
 
-      // NOTE: Clean response and extract JSON
+      // Clean response and extract JSON
       const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
 
       try {
@@ -46,17 +55,17 @@ ${text}`;
         }
         return [];
       } catch (parseError) {
-        console.error('Failed to parse AI response as JSON:', cleanedResponse);
+        console.error('Failed to parse Claude response as JSON:', cleanedResponse);
         return [];
       }
     } catch (error) {
-      console.error('Error parsing words with AI:', error);
+      console.error('Error parsing words with Claude:', error);
       return [];
     }
   }
 
   /**
-   * Generate text using Gemini Lite model
+   * Generate text using Claude model
    * @param prompt - The input prompt for AI generation
    * @param userId - User ID from middleware
    * @returns Promise with generated text or error
@@ -64,20 +73,30 @@ ${text}`;
   async generateText(prompt: string, userId: string): Promise<AIResponse> {
     try {
       const token = await this.validateAndGetToken(userId);
-      const genAI = new GoogleGenerativeAI(token);
-      
+      const anthropic = new Anthropic({ apiKey: token });
+
       // Get user's selected model from settings
-      const modelName = await this.getUserModel(userId) || 'gemini-2.5-flash';
-      const model = genAI.getGenerativeModel({model: modelName});
+      const model = await this.getUserModel(userId) || 'claude-3-5-sonnet-20241022';
 
+      console.log(`Using Claude model ${model} for text generation`);
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+      const response = await anthropic.messages.create({
+        model: model,
+        max_tokens: 4000,
+        temperature: 0.7,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ]
+      });
 
-      return {text};
+      const text = response.content[0]?.type === 'text' ? response.content[0].text : '';
+
+      return { text };
     } catch (error) {
-      console.error('Google AI API Error:', error);
+      console.error('Claude API Error:', error);
       return {
         text: '',
         error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -93,19 +112,31 @@ ${text}`;
    */
   async generateTextStream(prompt: string, userId: string): Promise<AsyncIterable<string>> {
     const token = await this.validateAndGetToken(userId);
-    const genAI = new GoogleGenerativeAI(token);
-    
+    const anthropic = new Anthropic({ apiKey: token });
+
     // Get user's selected model from settings
-    const modelName = await this.getUserModel(userId) || 'gemini-2.5-flash';
-    const model = genAI.getGenerativeModel({model: modelName});
+    const model = await this.getUserModel(userId) || 'claude-3-5-sonnet-20241022';
 
+    console.log(`Using Claude model ${model} for streaming text generation`);
 
-    const result = await model.generateContentStream(prompt);
+    const stream = await anthropic.messages.create({
+      model: model,
+      max_tokens: 4000,
+      temperature: 0.7,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      stream: true
+    });
 
     async function* textGenerator() {
-      for await (const chunk of result.stream) {
-        const chunkText = chunk.text();
-        yield chunkText;
+      for await (const chunk of stream) {
+        if (chunk.type === 'content_block_delta' && chunk.delta.type === 'text_delta') {
+          yield chunk.delta.text;
+        }
       }
     }
 
@@ -122,8 +153,8 @@ ${text}`;
       const { userSettingsRepository } = await import('src/repository/userSettings');
       const settings = await userSettingsRepository.findByUserId(userId);
       
-      // Only return the model if it's a Gemini model
-      if (settings?.aiModel && this.isGeminiModel(settings.aiModel)) {
+      // Only return the model if it's a Claude model
+      if (settings?.aiModel && this.isClaudeModel(settings.aiModel)) {
         return settings.aiModel;
       }
       
@@ -135,19 +166,19 @@ ${text}`;
   }
 
   /**
-   * Check if model name is a Gemini model
+   * Check if model name is a Claude model
    * @param modelName - Model name to check
    * @returns boolean
    */
-  private isGeminiModel(modelName: string): boolean {
-    const geminiModels = [
-      'gemini-2.0-flash-exp',
-      'gemini-2.5-flash',
-      'gemini-1.5-pro',
-      'gemini-1.0-pro'
+  private isClaudeModel(modelName: string): boolean {
+    const claudeModels = [
+      'claude-3-5-sonnet-20241022',
+      'claude-3-opus-20240229',
+      'claude-3-sonnet-20240229',
+      'claude-3-haiku-20240307'
     ];
-    return geminiModels.includes(modelName);
+    return claudeModels.includes(modelName);
   }
 }
 
-export default GoogleAIService;
+export default ClaudeAIService;

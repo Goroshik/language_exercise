@@ -1,9 +1,9 @@
 import {NextRequest, NextResponse} from 'next/server';
-import prisma from 'src/utils/prismaClient';
+import {userTokenRepository} from 'src/repository/userToken';
+import {getUserIdFromRequest, createUnauthorizedResponse} from 'src/utils/auth';
 
 // NOTE: Type definitions for API requests
 interface TokenCreateRequest {
-  userId: string;
   service: string;
   token: string;
 }
@@ -16,26 +16,13 @@ interface TokenUpdateRequest {
 // GET /api/tokens - Get all tokens for a user (decrypted)
 export async function GET(request: NextRequest) {
   try {
-    const {searchParams} = new URL(request.url);
-    const userId = searchParams.get('userId');
-
-    if (!userId) {
-      return NextResponse.json(
-        {error: 'User ID is required'},
-        {status: 400}
-      );
+    // Проверяем аутентификацию
+    const { userId, error } = getUserIdFromRequest(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
     }
 
-    const userTokens = await prisma.userToken.findMany({
-      where: {userId},
-      select: {
-        id: true,
-        service: true,
-        createdAt: true,
-        updatedAt: true,
-        encryptedToken: true
-      }
-    });
+    const userTokens = await userTokenRepository.findMany(userId);
 
     // Decrypt tokens for response
     const decryptedTokens = userTokens.map(token => ({
@@ -59,37 +46,24 @@ export async function GET(request: NextRequest) {
 // POST /api/tokens - Create or update a token for a service
 export async function POST(request: NextRequest) {
   try {
-    const body: TokenCreateRequest = await request.json();
-    const {userId, service, token} = body;
+    // Проверяем аутентификацию
+    const { userId, error } = getUserIdFromRequest(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
+    }
 
-    if (!userId || !service || !token) {
+    const body: TokenCreateRequest = await request.json();
+    const {service, token} = body;
+
+    if (!service || !token) {
       return NextResponse.json(
-        {error: 'User ID, service, and token are required'},
+        {error: 'Service and token are required'},
         {status: 400}
       );
     }
 
-
-    console.log('=================', userId, service, token)
-
     // Use upsert to create or update the token
-    const userToken = await prisma.userToken.upsert({
-      where: {
-        userId_service: {
-          userId,
-          service
-        }
-      },
-      update: {
-        encryptedToken: token,
-        updatedAt: new Date()
-      },
-      create: {
-        service,
-        encryptedToken: token,
-        userId
-      }
-    });
+    const userToken = await userTokenRepository.upsert(userId, service, token);
 
     return NextResponse.json({
       id: userToken.id,
@@ -109,25 +83,23 @@ export async function POST(request: NextRequest) {
 // DELETE /api/tokens - Delete a token for a specific service
 export async function DELETE(request: NextRequest) {
   try {
+    // Проверяем аутентификацию
+    const { userId, error } = getUserIdFromRequest(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
+    }
+
     const {searchParams} = new URL(request.url);
-    const userId = searchParams.get('userId');
     const service = searchParams.get('service');
 
-    if (!userId || !service) {
+    if (!service) {
       return NextResponse.json(
-        {error: 'User ID and service are required'},
+        {error: 'Service is required'},
         {status: 400}
       );
     }
 
-    await prisma.userToken.delete({
-      where: {
-        userId_service: {
-          userId,
-          service
-        }
-      }
-    });
+    await userTokenRepository.delete(userId, service);
 
     return NextResponse.json({message: 'Token deleted successfully'});
   } catch (error) {

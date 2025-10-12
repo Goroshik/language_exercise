@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GoogleAIService } from 'src/services/googleAI';
-import { TokenService } from 'src/utils/tokenService';
+import { AIFactory } from 'src/services/aiFactory';
+import { getUserIdFromRequest, createUnauthorizedResponse } from 'src/utils/auth';
 
 interface GenerateTextStreamRequest {
   prompt: string;
@@ -9,14 +9,10 @@ interface GenerateTextStreamRequest {
 // POST /api/ai/generate-text-stream - Generate text using AI with streaming response
 export async function POST(request: NextRequest) {
   try {
-    // Get user ID from middleware headers
-    const userId = TokenService.getUserIdFromRequest(request);
-
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Authentication required' },
-        { status: 401 }
-      );
+    // Проверяем аутентификацию
+    const { userId, error } = getUserIdFromRequest(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
     }
 
     // Parse request body
@@ -31,8 +27,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create service instance and get streaming response
-    const googleAI = new GoogleAIService();
-    const textStream = await googleAI.generateTextStream(prompt, userId);
+    const aiService = await AIFactory.getAIService(userId);
+    const textStream = await aiService.generateTextStream!(prompt, userId);
 
     // Create streaming response
     const encoder = new TextEncoder();
@@ -75,7 +71,7 @@ export async function POST(request: NextRequest) {
     // Handle specific token errors
     if (error instanceof Error && error.message.includes('No token found')) {
       return NextResponse.json(
-        { error: 'Google AI token not configured for user' },
+        { error: 'AI service token not configured for user' },
         { status: 402 } // Payment Required - indicates missing token
       );
     }

@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server';
-import {GoogleAIService} from 'src/services/googleAI';
-import {TokenService} from 'src/utils/tokenService';
+import {AIFactory} from 'src/services/aiFactory';
+import {getUserIdFromRequest, createUnauthorizedResponse} from 'src/utils/auth';
 
 interface ParseWordsRequest {
   text: string;
@@ -9,9 +9,11 @@ interface ParseWordsRequest {
 // POST /api/ai/parse-words - Parse text and extract words with translations
 export async function POST(request: NextRequest) {
   try {
-    // Get user ID from middleware headers
-    const userId = TokenService.getUserIdFromRequest(request);
-
+    // Проверяем аутентификацию
+    const { userId, error } = getUserIdFromRequest(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
+    }
 
     // Parse request body
     const body: ParseWordsRequest = await request.json();
@@ -25,8 +27,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Create service instance and parse words
-    const googleAI = new GoogleAIService();
-    const parsedWords = await googleAI.parseWordsFromText(text, userId || 'qwe');
+    const aiService = await AIFactory.getAIService(userId);
+    const parsedWords = await aiService.parseWordsFromText!(text, userId);
 
     return NextResponse.json({
       success: true,
@@ -39,7 +41,7 @@ export async function POST(request: NextRequest) {
     // Handle specific token errors
     if (error instanceof Error && error.message.includes('No token found')) {
       return NextResponse.json(
-        {error: 'Google AI token not configured for user'},
+        {error: 'AI service token not configured for user'},
         {status: 402} // Payment Required - indicates missing token
       );
     }

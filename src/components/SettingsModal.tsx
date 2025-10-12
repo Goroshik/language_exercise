@@ -18,14 +18,14 @@ import {
   Typography,
   Divider,
   Alert,
-  CircularProgress
+  CircularProgress,
+  ListSubheader
 } from '@mui/material';
 import {SelectChangeEvent} from '@mui/material/Select';
 
 interface SettingsModalProps {
   open: boolean;
   onClose: () => void;
-  userId?: string;
 }
 
 interface UserToken {
@@ -44,7 +44,7 @@ interface UserSettings {
   customSettings: Record<string, any>;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose, userId = 'qwe'}) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -53,6 +53,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose, userId = 'q
   // Token management state
   const [tokens, setTokens] = useState<Record<string, string>>({
     gemini: '',
+    openai: '',
+    anthropic: '',
     deepl: ''
   });
 
@@ -67,10 +69,34 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose, userId = 'q
 
   // Available options
   const aiModels = [
-    {value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash'},
-    {value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro'},
-    {value: 'gemini-1.0-pro', label: 'Gemini 1.0 Pro'}
+    // Gemini models
+    {value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash (Experimental)', group: 'Gemini'},
+    {value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', group: 'Gemini'},
+    {value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', group: 'Gemini'},
+    {value: 'gemini-1.0-pro', label: 'Gemini 1.0 Pro', group: 'Gemini'},
+    
+    // OpenAI models
+    {value: 'gpt-4o', label: 'GPT-4o', group: 'OpenAI'},
+    {value: 'gpt-4o-mini', label: 'GPT-4o Mini', group: 'OpenAI'},
+    {value: 'gpt-4-turbo', label: 'GPT-4 Turbo', group: 'OpenAI'},
+    {value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', group: 'OpenAI'},
+    
+    // Claude models
+    {value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet', group: 'Claude'},
+    {value: 'claude-3-opus-20240229', label: 'Claude 3 Opus', group: 'Claude'},
+    {value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet', group: 'Claude'},
+    {value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku', group: 'Claude'}
   ];
+
+  // Group models by provider for better UX
+  const groupedModels = aiModels.reduce((acc, model) => {
+    const group = model.group || 'Other';
+    if (!acc[group]) {
+      acc[group] = [];
+    }
+    acc[group].push(model);
+    return acc;
+  }, {} as Record<string, typeof aiModels>);
 
   const themes = [
     {value: 'light', label: 'Light'},
@@ -92,15 +118,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose, userId = 'q
 
   // Load user data when modal opens
   useEffect(() => {
-    if (open && userId) {
+    if (open) {
       loadUserTokens();
       loadUserSettings();
     }
-  }, [open, userId]);
+  }, [open]);
 
   const loadUserTokens = async () => {
     try {
-      const response = await fetch(`/api/tokens?userId=${userId}`);
+      const response = await fetch('/api/tokens');
       if (response.ok) {
         const tokenData: UserToken[] = await response.json();
         const tokenMap: Record<string, string> = {};
@@ -116,7 +142,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose, userId = 'q
 
   const loadUserSettings = async () => {
     try {
-      const response = await fetch(`/api/settings?userId=${userId}`);
+      const response = await fetch('/api/settings');
       if (response.ok) {
         const settingsData = await response.json();
         setSettings(prev => ({...prev, ...settingsData}));
@@ -154,7 +180,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose, userId = 'q
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              userId: 'qwe',
               service,
               token: token.trim()
             })
@@ -181,10 +206,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose, userId = 'q
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          userId: 'qwe',
-          ...settings
-        })
+        body: JSON.stringify(settings)
       });
 
       if (response.ok) {
@@ -255,6 +277,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose, userId = 'q
             />
 
             <TextField
+              label="OpenAI API Token"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              type="password"
+              value={tokens.openai}
+              onChange={(e) => handleTokenChange('openai', e.target.value)}
+              placeholder="Enter your OpenAI API token"
+              helperText="Get your token from OpenAI API dashboard"
+            />
+
+            <TextField
+              label="Anthropic API Token"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              type="password"
+              value={tokens.anthropic}
+              onChange={(e) => handleTokenChange('anthropic', e.target.value)}
+              placeholder="Enter your Anthropic API token"
+              helperText="Get your token from Anthropic Console"
+            />
+
+            <TextField
               label="DeepL API Token"
               variant="outlined"
               fullWidth
@@ -295,11 +341,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose, userId = 'q
                 value={settings.aiModel}
                 onChange={(e: SelectChangeEvent) => handleSettingChange('aiModel', e.target.value)}
               >
-                {aiModels.map((model) => (
-                  <MenuItem key={model.value} value={model.value}>
-                    {model.label}
-                  </MenuItem>
-                ))}
+                {Object.entries(groupedModels).map(([groupName, models]) => [
+                  <ListSubheader key={groupName}>{groupName}</ListSubheader>,
+                  ...models.map((model) => (
+                    <MenuItem key={model.value} value={model.value} sx={{ pl: 2 }}>
+                      {model.label}
+                    </MenuItem>
+                  ))
+                ])}
               </Select>
             </FormControl>
 
