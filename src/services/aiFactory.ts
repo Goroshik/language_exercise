@@ -2,6 +2,7 @@ import { GoogleAIService } from './googleAI';
 import { OpenAIService } from './openAI';
 import { ClaudeAIService } from './claudeAI';
 import { IAIService } from './baseAI';
+import { userSettingsRepository } from 'src/repository/client';
 
 /**
  * AI Factory for dynamically selecting AI service based on user settings
@@ -14,11 +15,10 @@ export class AIFactory {
    */
   static async getAIService(userId: string): Promise<IAIService> {
     try {
-      const { userSettingsRepository } = await import('src/repository/userSettings');
       const settings = await userSettingsRepository.findByUserId(userId);
-      
+
       const selectedModel = settings?.aiModel || 'gemini-2.5-flash';
-      
+
       // Determine service based on model name
       if (this.isGeminiModel(selectedModel)) {
         return new GoogleAIService();

@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { BaseAIService, AIResponse, ParsedWord } from './baseAI';
+import { userSettingsRepository } from 'src/repository/client';
 
 export class ClaudeAIService extends BaseAIService {
   serviceName = 'anthropic';
@@ -150,14 +151,13 @@ ${text}`;
    */
   private async getUserModel(userId: string): Promise<string | null> {
     try {
-      const { userSettingsRepository } = await import('src/repository/userSettings');
       const settings = await userSettingsRepository.findByUserId(userId);
-      
+
       // Only return the model if it's a Claude model
       if (settings?.aiModel && this.isClaudeModel(settings.aiModel)) {
         return settings.aiModel;
       }
-      
+
       return null;
     } catch (error) {
       console.error('Error fetching user model settings:', error);

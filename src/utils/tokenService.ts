@@ -1,4 +1,4 @@
-import {userTokenRepository} from 'src/repository/userToken';
+import {userTokenRepository} from 'src/repository/client';
 
 export interface TokenResult {
   token: string | null;
@@ -17,17 +17,17 @@ export class TokenService {
    */
   static async getToken(userId: string, service: string): Promise<TokenResult> {
     try {
-      const token = await userTokenRepository.findByUserIdAndService(userId, service);
+      const tokenData = await userTokenRepository.findByUserAndService(userId, service);
 
-      if (!token) {
+      if (!tokenData) {
         return {
           token: null,
           error: `No token found for service: ${service}`
         };
       }
-
+      
       return {
-        token
+        token: tokenData.token
       };
     } catch (error) {
       console.error(`Error fetching token for service ${service}:`, error);
