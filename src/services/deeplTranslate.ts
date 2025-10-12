@@ -5,9 +5,6 @@ export interface TranslationResponse {
 }
 
 export class DeepLTranslateService {
-  private static readonly API_KEY = process.env.REACT_APP_DEEPL_TRANSLATE_API_KEY;
-
-  // NOTE: Alternative CORS-enabled translation API for browser usage
   private static readonly LIBRE_TRANSLATE_URL = 'https://api-free.deepl.com/v2/translate';
 
   /**
@@ -23,7 +20,13 @@ export class DeepLTranslateService {
     sourceLang: string = 'EN'
   ): Promise<TranslationResponse> {
     if (!text.trim()) {
-      return { text: '', error: 'Empty text provided for translation' };
+      return {text: '', error: 'Empty text provided for translation'};
+    }
+
+    // Получаем токен DeepL из БД через API
+    const apiKey = await this.getDeepLToken();
+    if (!apiKey) {
+      return {text: '', error: 'Токен DeepL не найден'};
     }
 
     // NOTE: Skip DeepL API in browser due to CORS restrictions, use LibreTranslate directly
@@ -37,42 +40,21 @@ export class DeepLTranslateService {
         mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `DeepL-Auth-Key ${this.API_KEY}`
+          Authorization: `DeepL-Auth-Key ${apiKey}`
         },
         body: JSON.stringify({
-          text: [text],
-          target_lang: targetLang
+          text,
+          target_lang: targetLang,
+          source_lang: sourceLang
         })
       });
-
-      if (!libreResponse.ok) {
-        throw new Error(
-          `LibreTranslate API error: ${libreResponse.status} ${libreResponse.statusText}`
-        );
+      const data = await libreResponse.json();
+      if (data.translations && data.translations[0]?.text) {
+        return {text: data.translations[0].text};
       }
-
-      const libreData = await libreResponse.json();
-
-      if (libreData.translatedText) {
-        return { text: libreData.translatedText };
-      } else {
-        return { text: '', error: 'No translation received from LibreTranslate API' };
-      }
-    } catch (error) {
-      console.error('Translation API Error:', error);
-
-      // NOTE: Enhanced error handling for CORS and network issues
-      if (error instanceof TypeError && error.message.includes('fetch')) {
-        return {
-          text: '',
-          error: 'Network error or CORS issue. Please check your internet connection.'
-        };
-      }
-
-      return {
-        text: '',
-        error: error instanceof Error ? error.message : 'Unknown translation error occurred'
-      };
+      return {text: '', error: data.message || 'Ошибка перевода'};
+    } catch (error: any) {
+      return {text: '', error: error?.message || 'Ошибка при переводе'};
     }
   }
 
@@ -97,6 +79,21 @@ export class DeepLTranslateService {
     }
 
     return results;
+  }
+
+  // NOTE: Получение токена DeepL из API токенов пользователя
+  private static async getDeepLToken(): Promise<string | null> {
+    try {
+      const response = await fetch('/api/tokens');
+      if (!response.ok) return null;
+      const tokens = await response.json();
+      const deeplTokenObj = Array.isArray(tokens)
+        ? tokens.find((t: any) => t.service === 'deepl')
+        : null;
+      return deeplTokenObj?.token || null;
+    } catch {
+      return null;
+    }
   }
 }
 

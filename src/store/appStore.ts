@@ -1,7 +1,7 @@
 import {create} from 'zustand';
 import {devtools} from "zustand/middleware";
 
-import {AppState, ExerciseBlock, ValidationResults} from 'src/types';
+import {AppState, DictionaryWord, ExerciseBlock, ValidationResults} from 'src/types';
 import {GRAMMAR_PROMPTS} from 'src/prompts';
 
 interface AppStore {
@@ -13,8 +13,8 @@ interface AppStore {
   validationResults: ValidationResults;
 
   // Actions
-  handleTopicSelect: (topic: string, mode?: 'learn' | 'train', level?: string, selectedWords?: string[]) => Promise<void>;
-  generateMoreExercises: (mode?: 'learn' | 'train', level?: string, selectedWords?: string[]) => Promise<void>;
+  handleTopicSelect: (language?: string, level?: string, selectedWords?: string[], mode?: 'learn' | 'train') => Promise<void>;
+  generateMoreExercises: (language?: string, level?: string, selectedWords?: DictionaryWord[], mode?: 'learn' | 'train') => Promise<void>;
   handleCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => Promise<void>;
   clearError: () => void;
 }
@@ -28,7 +28,17 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
   validationResults: {},
 
   // Actions
-  handleTopicSelect: async (topic: string, mode: 'learn' | 'train' = 'train', level: string = 'A1', selectedWords?: string[]) => {
+  handleTopicSelect: async ({language = 'English', level = 'A1', selectedWords = [], mode = 'train'}: {
+    language?: string;
+    level?: string;
+    selectedWords?: DictionaryWord[];
+    mode?: 'learn' | 'train';
+  } = {}) => {
+    // Получаем topic из URL
+    const urlPath = window.location.pathname;
+    // Предполагаем, что topic — последний сегмент после /exercises/
+    const topicRaw = urlPath.split('/').pop() || '';
+    const topic = topicRaw.replace(/_/g, ' ');
     set({
       selectedTopic: topic,
       state: 'loading-exercises',
@@ -37,31 +47,29 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     });
 
     try {
-      const prompt = mode === 'learn'
-        ? GRAMMAR_PROMPTS.generateTeacherSentences(topic, level, selectedWords)
-        : GRAMMAR_PROMPTS.generateExercises(topic, selectedWords);
-
       const apiResponse = await fetch('/api/ai/generate-text', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({mode, topic, language, level, selectedWords})
       });
       const responseJson = await apiResponse.json();
 
       if (!responseJson.success || responseJson.data?.error) {
-        set({error: responseJson.data?.error || 'Ошибка генерации текста', state: 'topic-selection'});
+        set({
+          error: responseJson.data?.error || '',
+          state: 'topic-selection'
+        });
       } else {
         let sentencesList;
 
         if (mode === 'learn') {
           // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
-          sentencesList = responseJson.data.text.split('\n')
-            .filter(line => line.trim())
+          sentencesList = responseJson.data
             .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
         } else {
           // For train mode, filter sentences with {{input}} placeholders
-          sentencesList = responseJson.data.text.split('\n')
-            .filter(line => line.trim() && line.includes('{{input}}'))
+          sentencesList = responseJson.data
+            .filter(sentence => sentence.includes('{{input}}'))
             .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
         }
 
@@ -86,37 +94,37 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     }
   },
 
-  generateMoreExercises: async (mode: 'learn' | 'train' = 'train', level: string = 'A1', selectedWords?: string[]) => {
-    const {selectedTopic} = get();
-
+  generateMoreExercises: async ({language = 'English', level = 'A1', selectedWords = [], mode = 'train'}: {
+    language?: string;
+    level?: string;
+    selectedWords?: DictionaryWord[];
+    mode?: 'learn' | 'train';
+  } = {}) => {
+    // Получаем topic из URL
+    const urlPath = window.location.pathname;
+    const topicRaw = urlPath.split('/').pop() || '';
+    const topic = topicRaw.replace(/_/g, ' ');
     set({state: 'loading-exercises', error: ''});
-
     try {
-      const prompt = mode === 'learn'
-        ? GRAMMAR_PROMPTS.generateTeacherSentences(selectedTopic, level, selectedWords)
-        : GRAMMAR_PROMPTS.generateMoreExercises(selectedTopic, selectedWords);
-
       const apiResponse = await fetch('/api/ai/generate-text', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({mode, topic, language, level, selectedWords})
       });
       const responseJson = await apiResponse.json();
-
       if (!responseJson.success || responseJson.data?.error) {
-        set({error: responseJson.data?.error || 'Ошибка генерации текста'});
+        set({error: responseJson.data?.error || 'Ошибка генерации дополнительных упражнений'});
       } else {
         let newSentencesList;
 
         if (mode === 'learn') {
           // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
-          newSentencesList = responseJson.data.text.split('\n')
-            .filter(line => line.trim())
+          newSentencesList = responseJson.data
             .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
         } else {
           // For train mode, filter sentences with {{input}} placeholders
-          newSentencesList = responseJson.data.text.split('\n')
-            .filter(line => line.trim() && line.includes('{{input}}'))
+          newSentencesList = responseJson.data
+            .filter(sentence => sentence.includes('{{input}}'))
             .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
         }
 
@@ -165,12 +173,11 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
         });
         return `${index + 1}. ${filledSentence}`;
       }).join('\n');
-
       const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
       const apiResponse = await fetch('/api/ai/generate-text', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: validatePrompt })
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({prompt: validatePrompt})
       });
       const responseJson = await apiResponse.json();
 
@@ -178,7 +185,7 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
         set({error: responseJson.data?.error || 'Ошибка проверки ответов'});
       } else {
         const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
-        const lines = responseJson.data.text.split('\n').filter(line => line.trim());
+        const lines = responseJson.data;
 
         lines.forEach((line, index) => {
           const isCorrect = line.includes('CORRECT');
