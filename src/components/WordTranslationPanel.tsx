@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {Box, Button, CircularProgress, IconButton, Paper, Typography,} from '@mui/material';
 import {Add as AddIcon, Close as CloseIcon} from '@mui/icons-material';
-import DeepLTranslateService from '../services/deeplTranslate';
 import ImportWordsModal from './ImportWordsModal';
 
 interface WordTranslationPanelProps {
@@ -24,16 +23,18 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({
     const getTranslation = async (word: string) => {
       setIsLoading(true);
       try {
-        // NOTE: Use DeepL API for accurate word translation
-        const response = await DeepLTranslateService.translateText(word);
-        if (response.error) {
-          console.error('Translation error:', response.error);
-          setTranslation('Ошибка при переводе');
+        const response = await fetch('/api/translate', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({word})
+        });
+        const data = await response.json();
+        if (data.text) {
+          setTranslation(data.text.trim() || 'Перевод не найден');
         } else {
-          setTranslation(response.text.trim() || 'Перевод не найден');
+          setTranslation(data.error || 'Ошибка при переводе');
         }
       } catch (error) {
-        console.error('Translation error:', error);
         setTranslation('Ошибка при переводе');
       } finally {
         setIsLoading(false);

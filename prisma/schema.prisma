@@ -62,10 +62,11 @@ model User {
   password  String
   createdAt DateTime @default(now())
 
-  Tag      Tag[]
-  Word     Word[]
-  tokens   UserToken[]
-  settings UserSettings?
+  tag             Tag[]
+  word            Word[]
+  tokens          UserToken[]
+  settings        UserSettings?
+  sentenceHistory GeneratedSentenceHistory[]
 
   @@map("users")
 }
@@ -98,4 +99,20 @@ model UserSettings {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_settings")
+}
+
+model GeneratedSentenceHistory {
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  sentence    String
+  language    String
+  usedWordIds String[] @db.ObjectId
+  level       String
+  ownerId     String   @db.ObjectId
+  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  // Связь с Word (неявная, через usedWordIds)
+  // Можно добавить ownerId, если нужна привязка к пользователю
+  @@map("generated_sentence_history")
 }

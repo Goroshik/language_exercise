@@ -41,13 +41,14 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
 
   return (
     <Stack
+      className="exercise-block-compact"
       sx={{
-        marginBottom: 32,
-        padding: 24,
-        border: '2px solid #1976d2',
-        borderRadius: 16,
-        backgroundColor: '#f8f9fa',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        marginBottom: 16,
+        padding: 0,
+        border: 'none',
+        borderRadius: 0,
+        backgroundColor: 'transparent',
+        boxShadow: 'none'
       }}
     >
       <Typography variant="h6" sx={{mb: 2, color: '#1976d2'}}>
@@ -56,7 +57,6 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
           (создан {block.createdAt.toLocaleTimeString()})
         </Typography>
       </Typography>
-
       <Box sx={{
         padding: 1,
         backgroundColor: 'white',

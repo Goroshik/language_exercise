@@ -1,7 +1,7 @@
 'use client';
 
 import React, {useState} from 'react';
-import { useRouter, useParams } from "next/navigation";
+import {useRouter, useParams} from "next/navigation";
 
 import {Box, Button, ButtonGroup, Stack, Typography} from '@mui/material';
 
@@ -9,15 +9,17 @@ import {useAppStore} from 'src/store/appStore';
 
 import ExerciseBlock from './ExerciseBlock';
 import WordSelector from './WordSelector';
+import {DictionaryWord} from "src/types";
 
 const Page: React.FC = () => {
   const {topicName} = useParams<{ topicName: string }>();
   const navigate = useRouter();
+  const selectedLanguage: string = 'English';
 
   // State for button selections
   const [selectedMode, setSelectedMode] = useState<'learn' | 'train'>('learn');
   const [selectedLevel, setSelectedLevel] = useState<string>('A1');
-  const [selectedWords, setSelectedWords] = useState<string[]>([]);
+  const [selectedWords, setSelectedWords] = useState<DictionaryWord[]>([]);
 
   // Decode the topic name from URL
   const selectedTopic = topicName ? decodeURIComponent(topicName) : '';
@@ -40,21 +42,33 @@ const Page: React.FC = () => {
   };
 
   const handleGenerateMore = () => {
-    generateMoreExercises(selectedMode, selectedLevel, selectedWords);
+    generateMoreExercises({
+      language: selectedLanguage,
+      level: selectedLevel,
+      selectedWords,
+      mode: selectedMode
+    });
   };
 
   const handleGenerateInitial = () => {
-    handleTopicSelect(selectedTopic, selectedMode, selectedLevel, selectedWords);
+    handleTopicSelect({
+      language: selectedLanguage,
+      level: selectedLevel,
+      selectedWords,
+      mode: selectedMode
+    });
   };
 
   return (
     <Box>
-      <Stack direction="row" sx={{ marginBottom: 2,
+      <Stack direction="row" sx={{
+        marginBottom: 2,
         alignItems: 'center',
         gap: 1,
         padding: 2,
         backgroundColor: '#f5f5f5',
-        borderRadius: 16}}>
+        borderRadius: 16
+      }}>
         <Typography variant="h6">
           Тема: {selectedTopic}
         </Typography>

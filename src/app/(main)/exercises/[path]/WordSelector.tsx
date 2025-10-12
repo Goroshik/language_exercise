@@ -1,10 +1,10 @@
-import React, { useState, useEffect} from 'react';
+import React, {useState, useEffect} from 'react';
 import {Box, Checkbox, Chip, FormControlLabel, Paper, Stack, TextField, Typography} from '@mui/material';
 import {DictionaryWord} from 'src/types';
 
 interface WordSelectorProps {
-  selectedWords: string[];
-  onWordsChange: (words: string[]) => void;
+  selectedWords: DictionaryWord[];
+  onWordsChange: (words: DictionaryWord[]) => void;
   maxWords?: number;
 }
 
@@ -33,11 +33,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
         setWords(loadedWords);
         // Собираем уникальные теги из слов
         const tagSet = new Set<string>();
-        loadedWords.forEach(w => {
-          if (Array.isArray(w.tags)) {
-            w.tags.forEach(t => tagSet.add(t));
-          }
-        });
+
         setAllTags(Array.from(tagSet).sort());
         setIsInitialized(true);
       }
@@ -52,8 +48,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   const getFilteredWords = (searchQuery: string = '') => {
     return words.filter(word => {
       // Filter by tags
-      const matchesTags = selectedTags.length === 0 ||
-        selectedTags.some(tag => word.tags.includes(tag));
+      const matchesTags = selectedTags.length === 0
 
       // Filter by search query
       const matchesSearch = searchQuery === '' ||
@@ -65,8 +60,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   };
 
 
-
-  const handleWordToggle = (word: string) => {
+  const handleWordToggle = (word: DictionaryWord) => {
     const currentIndex = selectedWords.indexOf(word);
     const newSelectedWords = [...selectedWords];
 
@@ -171,8 +165,8 @@ const WordSelector: React.FC<WordSelectorProps> = ({
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={selectedWords.includes(dictionaryWord.word)}
-                  onChange={() => handleWordToggle(dictionaryWord.word)}
+                  checked={selectedWords.some(w => w.id === dictionaryWord.id)}
+                  onChange={() => handleWordToggle(dictionaryWord)}
                   disabled={isWordDisabled(dictionaryWord.word)}
                   color="primary"
                 />
