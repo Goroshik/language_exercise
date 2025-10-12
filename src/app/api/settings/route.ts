@@ -1,6 +1,6 @@
 import {NextRequest, NextResponse} from 'next/server';
 
-import {userSettingsRepository} from 'src/repository/userSettings';
+import {userSettingsRepository} from 'src/repository/client';
 import {getUserIdFromRequest, createUnauthorizedResponse} from 'src/utils/auth';
 
 
@@ -18,7 +18,7 @@ interface SettingsRequest {
 export async function GET(request: NextRequest) {
   try {
     // Проверяем аутентификацию
-    const { userId, error } = getUserIdFromRequest(request);
+    const {userId, error} = getUserIdFromRequest(request);
     if (error) {
       return createUnauthorizedResponse(error);
     }
@@ -32,7 +32,6 @@ export async function GET(request: NextRequest) {
         aiModel: 'gemini-2.5-flash',
         language: 'en',
         translationLang: 'RU',
-        customSettings: {}
       });
     }
 
@@ -50,13 +49,12 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Проверяем аутентификацию
-    const { userId, error } = getUserIdFromRequest(request);
+    const {userId, error} = getUserIdFromRequest(request);
     if (error) {
       return createUnauthorizedResponse(error);
     }
 
     const body: SettingsRequest = await request.json();
-    const {theme, aiModel, language, translationLang, customSettings} = body;
 
     const result = await userSettingsRepository.upsert(userId, body);
 
@@ -74,7 +72,7 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   try {
     // Проверяем аутентификацию
-    const { userId, error } = getUserIdFromRequest(request);
+    const {userId, error} = getUserIdFromRequest(request);
     if (error) {
       return createUnauthorizedResponse(error);
     }
@@ -117,7 +115,7 @@ export async function PATCH(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     // Проверяем аутентификацию
-    const { userId, error } = getUserIdFromRequest(request);
+    const {userId, error} = getUserIdFromRequest(request);
     if (error) {
       return createUnauthorizedResponse(error);
     }

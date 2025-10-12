@@ -10,7 +10,7 @@ interface ParseWordsRequest {
 export async function POST(request: NextRequest) {
   try {
     // Проверяем аутентификацию
-    const { userId, error } = getUserIdFromRequest(request);
+    const {userId, error} = getUserIdFromRequest(request);
     if (error) {
       return createUnauthorizedResponse(error);
     }
@@ -28,7 +28,30 @@ export async function POST(request: NextRequest) {
 
     // Create service instance and parse words
     const aiService = await AIFactory.getAIService(userId);
-    const parsedWords = await aiService.parseWordsFromText!(text, userId);
+    let parsedWords;
+    try {
+      parsedWords = await aiService.parseWordsFromText!(text, userId);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes('No token found') || msg.includes('Failed to decrypt token') || msg.includes('Failed to retrieve token')) {
+        return NextResponse.json(
+          {error: 'AI service token error: ' + msg},
+          {status: 401}
+        );
+      }
+      return NextResponse.json(
+        {error: 'Internal server error: ' + msg},
+        {status: 500}
+      );
+    }
+
+    // Если сервис вернул ошибку
+    if (!parsedWords || (Array.isArray(parsedWords) && parsedWords.length === 0)) {
+      return NextResponse.json(
+        {error: 'AI did not return any words.'},
+        {status: 400}
+      );
+    }
 
     return NextResponse.json({
       success: true,

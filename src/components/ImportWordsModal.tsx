@@ -35,18 +35,18 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({open, onClose, preFi
   const [parsedWords, setParsedWords] = useState<ParsedWord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const addWord = async (word: string, translate: string) => {
+  const addWords = async (words: ParsedWord[]) => {
     const response = await fetch('/api/dictionary/words', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({word, translate}),
+      body: JSON.stringify({words}),
     });
 
     const data = await response.json();
     if (!data.success) {
-      throw new Error(data.error || 'Failed to add word');
+      throw new Error(data.error || 'Failed to add words');
     }
 
     return data.word;
@@ -119,11 +119,7 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({open, onClose, preFi
   const handleImportWords = async () => {
     setIsLoading(true);
     try {
-      for (const parsedWord of parsedWords) {
-        if (parsedWord.word.trim() && parsedWord.translate.trim()) {
-          await addWord(parsedWord.word.trim(), parsedWord.translate.trim());
-        }
-      }
+      await addWords(parsedWords);
       handleClose();
     } catch (error) {
       console.error('Error importing words:', error);

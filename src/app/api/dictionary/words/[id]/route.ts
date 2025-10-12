@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server';
-import {wordRepository} from 'src/repository/word';
+import {wordRepository} from 'src/repository/client';
 import {DictionaryWord} from 'src/types';
 import {getUserIdFromRequest, createUnauthorizedResponse} from 'src/utils/auth';
 

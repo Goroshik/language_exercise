@@ -1,5 +1,6 @@
 import {GoogleGenerativeAI} from '@google/generative-ai';
 import { BaseAIService, AIResponse, ParsedWord } from './baseAI';
+import { userSettingsRepository } from 'src/repository/client';
 
 export class GoogleAIService extends BaseAIService {
   serviceName = 'gemini';
@@ -119,14 +120,13 @@ ${text}`;
    */
   private async getUserModel(userId: string): Promise<string | null> {
     try {
-      const { userSettingsRepository } = await import('src/repository/userSettings');
       const settings = await userSettingsRepository.findByUserId(userId);
-      
+
       // Only return the model if it's a Gemini model
       if (settings?.aiModel && this.isGeminiModel(settings.aiModel)) {
         return settings.aiModel;
       }
-      
+
       return null;
     } catch (error) {
       console.error('Error fetching user model settings:', error);

@@ -2,13 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { SignJWT } from 'jose';
 import bcrypt from 'bcryptjs';
 
-import UserRepository from 'src/repository/user';
+import { userRepository } from 'src/repository/client';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || '***REMOVED***');
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 const JWT_COOKIE_NAME = process.env.JWT_COOKIE_NAME || 'app_token';
-
-const userRepository = new UserRepository();
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,8 +16,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Email и пароль обязательны' }, { status: 400 });
     }
 
-    
-    const user = await userRepository.getAuth(email);
+
+    const user = await userRepository.getUserByEmail(email);
 
     console.log(user)
 
@@ -28,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(email, bcrypt.hashSync(password, 10))
-    
+
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return NextResponse.json({ success: false, error: 'Неверные данные' }, { status: 401 });

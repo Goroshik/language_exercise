@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server';
-import {wordRepository} from 'src/repository/word';
+import {wordRepository} from 'src/repository/client';
 import {Prisma} from 'src/generated/prisma';
 import {getUserIdOrUnauthorized, createUnauthorizedResponse} from 'src/utils/auth';
 
@@ -8,7 +8,7 @@ export const runtime = 'nodejs';
 export async function GET(request: NextRequest) {
   try {
     // Проверяем аутентификацию
-    const { userId, error } = await getUserIdOrUnauthorized(request);
+    const {userId, error} = await getUserIdOrUnauthorized(request);
     if (error) {
       return createUnauthorizedResponse(error);
     }
@@ -31,27 +31,24 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Проверяем аутентификацию
-    const { userId, error } = await getUserIdOrUnauthorized(request);
+    const {userId, error} = await getUserIdOrUnauthorized(request);
     if (error) {
       return createUnauthorizedResponse(error);
     }
 
-    const {word, translate} = await request.json();
+    const {words} = await request.json();
 
-    if (!word || !translate) {
+    console.log(words);
+
+    if (!words.length) {
       return NextResponse.json({
         success: false,
         error: 'Word and translate are required'
       }, {status: 400});
     }
 
-    const newWord: Prisma.WordCreateInput = {
-      word: word.trim(),
-      translate: translate.trim(),
-      createdAt: new Date()
-    };
 
-    const createdWord = await wordRepository.addWord(userId, newWord);
+    const createdWord = await wordRepository.addManyWord(userId, words);
 
     return NextResponse.json({
       success: true,

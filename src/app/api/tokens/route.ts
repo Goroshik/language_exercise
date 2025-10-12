@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from 'next/server';
-import {userTokenRepository} from 'src/repository/userToken';
+import {userTokenRepository} from 'src/repository/client';
 import {getUserIdFromRequest, createUnauthorizedResponse} from 'src/utils/auth';
 
 // NOTE: Type definitions for API requests
@@ -17,20 +17,21 @@ interface TokenUpdateRequest {
 export async function GET(request: NextRequest) {
   try {
     // Проверяем аутентификацию
-    const { userId, error } = getUserIdFromRequest(request);
+    const {userId, error} = getUserIdFromRequest(request);
+
     if (error) {
       return createUnauthorizedResponse(error);
     }
 
-    const userTokens = await userTokenRepository.findMany(userId);
+    const userTokens = await userTokenRepository.findByUser(userId);
 
-    // Decrypt tokens for response
-    const decryptedTokens = userTokens.map(token => ({
-      id: token.id,
-      service: token.service,
-      token: token.encryptedToken,
-      createdAt: token.createdAt,
-      updatedAt: token.updatedAt
+    // Tokens are already decrypted by the repository
+    const decryptedTokens = userTokens.map(tokenData => ({
+      id: tokenData.id,
+      service: tokenData.service,
+      token: tokenData.token,
+      createdAt: tokenData.createdAt,
+      updatedAt: tokenData.updatedAt
     }));
 
     return NextResponse.json(decryptedTokens);
@@ -47,7 +48,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     // Проверяем аутентификацию
-    const { userId, error } = getUserIdFromRequest(request);
+    const {userId, error} = getUserIdFromRequest(request);
     if (error) {
       return createUnauthorizedResponse(error);
     }
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     // Проверяем аутентификацию
-    const { userId, error } = getUserIdFromRequest(request);
+    const {userId, error} = getUserIdFromRequest(request);
     if (error) {
       return createUnauthorizedResponse(error);
     }
@@ -99,7 +100,16 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await userTokenRepository.delete(userId, service);
+    // Find the token first, then delete by id
+    const token = await userTokenRepository.findByUserAndService(userId, service);
+    if (!token) {
+      return NextResponse.json(
+        {error: 'Token not found'},
+        {status: 404}
+      );
+    }
+
+    await userTokenRepository.delete(token.id);
 
     return NextResponse.json({message: 'Token deleted successfully'});
   } catch (error) {

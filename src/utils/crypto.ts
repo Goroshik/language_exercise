@@ -1,8 +1,9 @@
 import crypto from 'crypto';
 
 const ALGORITHM = 'aes-256-cbc';
+const TOKEN_ENCRYPTION_KEY = process.env.TOKEN_SECRET as string
 
-function encrypt(plaintext: string, key: string): string {
+function encrypt(plaintext: string, key: string = TOKEN_ENCRYPTION_KEY): string {
   const iv = crypto.randomBytes(16);
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-expect-error
@@ -13,7 +14,7 @@ function encrypt(plaintext: string, key: string): string {
   return iv.toString('base64') + ':' + encrypted;
 }
 
-function decrypt(cipherText: string, key: string): string {
+function decrypt(cipherText: string, key: string = TOKEN_ENCRYPTION_KEY): string {
   const [ivBase64, encrypted] = cipherText.split(':');
   const iv = Buffer.from(ivBase64, 'base64');
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
