@@ -1,64 +1,67 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prismaService, TagItem } from 'src/services/prismaService';
-import { DictionaryWord } from 'src/types';
+import {NextRequest, NextResponse} from 'next/server';
+import {wordRepository} from 'src/repository/word';
+import {Prisma} from 'src/generated/prisma';
+import {getUserIdOrUnauthorized, createUnauthorizedResponse} from 'src/utils/auth';
 
-export async function GET() {
+export const runtime = 'nodejs';
+
+export async function GET(request: NextRequest) {
   try {
-    const words = await prismaService.getAllWords();
-    return NextResponse.json({ success: true, words });
+    // Проверяем аутентификацию
+    const { userId, error } = await getUserIdOrUnauthorized(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
+    }
+
+    const searchParams = request.nextUrl.searchParams;
+    const query = searchParams.get('query') || '';
+
+    const words = await wordRepository.searchWords(userId, query);
+    return NextResponse.json({success: true, words});
   } catch (error) {
     console.error('Failed to load words:', error);
     return NextResponse.json({
       success: false,
       error: 'Failed to load words',
       words: []
-    }, { status: 500 });
+    }, {status: 500});
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { word, translate, tags } = await request.json();
-
-    const newWord: DictionaryWord = {
-      id: `user_${Date.now()}`,
-      word: word.trim(),
-      translate: translate.trim(),
-      tags: tags.filter((tag: string) => tag.trim()),
-      createdAt: new Date(),
-    };
-
-    // Save tags as TagItem entities
-    const existingTags = await prismaService.getAllTags();
-    const existingTagNames = existingTags.map(tag => tag.name);
-
-    for (const tagName of newWord.tags) {
-      if (!existingTagNames.includes(tagName)) {
-        const newTag: TagItem = {
-          id: `tag_${Date.now()}_${Math.random()}`,
-          name: tagName,
-          createdAt: new Date()
-        };
-        await prismaService.addTag(newTag);
-      }
+    // Проверяем аутентификацию
+    const { userId, error } = await getUserIdOrUnauthorized(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
     }
 
-    await prismaService.addWord(newWord);
+    const {word, translate} = await request.json();
 
-    // Return updated tags as well
-    const allTags = await prismaService.getAllTags();
-    const tagsArray = allTags.map(tagItem => tagItem.name).sort();
+    if (!word || !translate) {
+      return NextResponse.json({
+        success: false,
+        error: 'Word and translate are required'
+      }, {status: 400});
+    }
+
+    const newWord: Prisma.WordCreateInput = {
+      word: word.trim(),
+      translate: translate.trim(),
+      createdAt: new Date()
+    };
+
+    const createdWord = await wordRepository.addWord(userId, newWord);
 
     return NextResponse.json({
       success: true,
-      word: newWord,
-      allTags: tagsArray
+      word: createdWord,
     });
   } catch (error) {
     console.error('Failed to add word:', error);
     return NextResponse.json({
       success: false,
       error: 'Failed to add word'
-    }, { status: 500 });
+    }, {status: 500});
   }
 }

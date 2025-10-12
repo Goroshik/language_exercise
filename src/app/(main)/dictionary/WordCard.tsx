@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   CardContent,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -29,18 +28,16 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editWord, setEditWord] = useState(word.word);
   const [editTranslate, setEditTranslate] = useState(word.translate);
-  const [editTags, setEditTags] = useState(word.tags);
-  const [tagInput, setTagInput] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const updateWord = async (id: string, word: string, translate: string, tags: string[]) => {
+  const updateWord = async (id: string, word: string, translate: string) => {
     const response = await fetch(`/api/dictionary/words/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({word, translate, tags}),
+      body: JSON.stringify({word, translate}),
     });
 
     const data = await response.json();
@@ -94,23 +91,11 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
     handleMenuClose();
   };
 
-  const handleAddTag = () => {
-    const trimmedTag = tagInput.trim();
-    if (trimmedTag && !editTags.includes(trimmedTag)) {
-      setEditTags([...editTags, trimmedTag]);
-      setTagInput('');
-    }
-  };
-
-  const handleRemoveTag = (tagToRemove: string) => {
-    setEditTags(editTags.filter(tag => tag !== tagToRemove));
-  };
-
   const handleSaveEdit = async () => {
-    if (editWord.trim() && editTranslate.trim() && editTags.length > 0) {
+    if (editWord.trim() && editTranslate.trim()) {
       setIsUpdating(true);
       try {
-        await updateWord(word.id, editWord, editTranslate, editTags);
+        await updateWord(word.id, editWord, editTranslate);
         setEditDialogOpen(false);
         onWordUpdate?.();
       } catch (error) {
@@ -125,7 +110,6 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
   const handleCancelEdit = () => {
     setEditWord(word.word);
     setEditTranslate(word.translate);
-    setEditTags(word.tags);
     setEditDialogOpen(false);
   };
 
@@ -141,18 +125,6 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
               <Typography variant="body1" color="text.secondary" paragraph>
                 {word.translate}
               </Typography>
-
-              <Box display="flex" gap={1} flexWrap="wrap">
-                {word.tags.map((tag) => (
-                  <Chip
-                    key={tag}
-                    label={tag}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                  />
-                ))}
-              </Box>
 
               <Typography variant="caption" color="text.secondary" sx={{mt: 1, display: 'block'}}>
                 {new Date(word.createdAt).toLocaleDateString('ru-RU')}
@@ -208,48 +180,6 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
             margin="normal"
             required
           />
-
-          <Box mt={2}>
-            <Typography variant="subtitle2" gutterBottom>
-              Теги:
-            </Typography>
-
-            <Box display="flex" gap={1} mb={1} flexWrap="wrap">
-              {editTags.map((tag) => (
-                <Chip
-                  key={tag}
-                  label={tag}
-                  onDelete={() => handleRemoveTag(tag)}
-                  color="primary"
-                  variant="outlined"
-                  size="small"
-                />
-              ))}
-            </Box>
-
-            <Box display="flex" gap={1}>
-              <TextField
-                size="small"
-                placeholder="Введите тег"
-                value={tagInput}
-                onChange={(e) => setTagInput(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddTag();
-                  }
-                }}
-                sx={{flexGrow: 1}}
-              />
-              <Button
-                variant="outlined"
-                onClick={handleAddTag}
-                disabled={!tagInput.trim()}
-              >
-                Добавить
-              </Button>
-            </Box>
-          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCancelEdit} disabled={isUpdating}>Отмена</Button>

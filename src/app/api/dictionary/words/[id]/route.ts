@@ -1,14 +1,21 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prismaService, TagItem } from 'src/services/prismaService';
-import { DictionaryWord } from 'src/types';
+import {NextRequest, NextResponse} from 'next/server';
+import {wordRepository} from 'src/repository/word';
+import {DictionaryWord} from 'src/types';
+import {getUserIdFromRequest, createUnauthorizedResponse} from 'src/utils/auth';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, {params}: { params: { id: string } }) {
   try {
-    const { word, translate, tags } = await request.json();
-    const { id } = params;
+    // Проверяем аутентификацию
+    const { userId, error } = getUserIdFromRequest(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
+    }
 
-    // Get original word to preserve createdAt and isUserAdded
-    const originalWord = await prismaService.getAllWords().then(words =>
+    const {word, translate} = await request.json();
+    const {id} = params;
+
+    // Get original word to preserve createdAt
+    const originalWord = await wordRepository.getAllWords(userId).then(words =>
       words.find(w => w.id === id)
     );
 
@@ -16,50 +23,35 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       id,
       word: word.trim(),
       translate: translate.trim(),
-      tags: tags.filter((tag: string) => tag.trim()),
       createdAt: originalWord?.createdAt || new Date(),
     };
 
-    // Save tags as TagItem entities
-    const existingTags = await prismaService.getAllTags();
-    const existingTagNames = existingTags.map(tag => tag.name);
-
-    for (const tagName of updatedWord.tags) {
-      if (!existingTagNames.includes(tagName)) {
-        const newTag: TagItem = {
-          id: `tag_${Date.now()}_${Math.random()}`,
-          name: tagName,
-          createdAt: new Date()
-        };
-        await prismaService.addTag(newTag);
-      }
-    }
-
-    await prismaService.updateWord(updatedWord);
-
-    // Return updated tags as well
-    const allTags = await prismaService.getAllTags();
-    const tagsArray = allTags.map(tagItem => tagItem.name).sort();
+    await wordRepository.updateWord(userId, updatedWord);
 
     return NextResponse.json({
       success: true,
-      word: updatedWord,
-      allTags: tagsArray
+      word: updatedWord
     });
   } catch (error) {
     console.error('Failed to update word:', error);
     return NextResponse.json({
       success: false,
-      error: 'Failed to update word'
-    }, { status: 500 });
+      error: error instanceof Error ? error.message : 'Failed to update word'
+    }, {status: 500});
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, {params}: { params: { id: string } }) {
   try {
-    const { id } = params;
+    // Проверяем аутентификацию
+    const { userId, error } = getUserIdFromRequest(request);
+    if (error) {
+      return createUnauthorizedResponse(error);
+    }
 
-    await prismaService.deleteWord(id);
+    const {id} = params;
+
+    await wordRepository.deleteWord(userId, id);
 
     return NextResponse.json({
       success: true,
@@ -69,7 +61,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
     console.error('Failed to remove word:', error);
     return NextResponse.json({
       success: false,
-      error: 'Failed to remove word'
-    }, { status: 500 });
+      error: error instanceof Error ? error.message : 'Failed to remove word'
+    }, {status: 500});
   }
 }

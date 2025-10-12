@@ -25,14 +25,11 @@ export interface DictionaryWord {
   id: string;
   word: string;
   translate: string;
-  tags: string[];
   createdAt: Date;
 }
 
 export interface DictionaryState {
   words: DictionaryWord[];
-  selectedTags: string[];
-  allTags: string[];
 }
 
 export interface AppStore {
@@ -50,14 +47,10 @@ export interface AppStore {
 export interface DictionaryStore extends DictionaryState {
   isInitialized: boolean;
   initializeDB: () => Promise<void>;
-  addWord: (word: string, translate: string, tags: string[]) => Promise<void>;
+  addWord: (word: string, translate: string) => Promise<void>;
   removeWord: (id: string) => Promise<void>;
-  updateWord: (id: string, word: string, translate: string, tags: string[]) => Promise<void>;
+  updateWord: (id: string, word: string, translate: string) => Promise<void>;
   loadWords: () => Promise<void>;
-  setSelectedTags: (tags: string[]) => void;
   clearFilters: () => void;
   getFilteredWords: (searchQuery?: string) => DictionaryWord[];
-  getAllTags: () => Promise<string[]>;
-  saveTags: (tags: string[]) => Promise<void>;
-  loadAllTags: () => Promise<void>;
 }

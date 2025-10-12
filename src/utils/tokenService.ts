@@ -1,4 +1,4 @@
-import prisma from 'src/utils/prismaClient';
+import {userTokenRepository} from 'src/repository/userToken';
 
 export interface TokenResult {
   token: string | null;
@@ -17,28 +17,17 @@ export class TokenService {
    */
   static async getToken(userId: string, service: string): Promise<TokenResult> {
     try {
-      const userToken = await prisma.userToken.findUnique({
-        where: {
-          userId_service: {
-            userId,
-            service
-          }
-        },
-        select: {
-          encryptedToken: true
-        }
-      });
+      const token = await userTokenRepository.findByUserIdAndService(userId, service);
 
-      if (!userToken) {
+      if (!token) {
         return {
           token: null,
           error: `No token found for service: ${service}`
         };
       }
 
-      // Return the encrypted token (assuming it's stored as plain text based on the existing API)
       return {
-        token: userToken.encryptedToken
+        token
       };
     } catch (error) {
       console.error(`Error fetching token for service ${service}:`, error);
