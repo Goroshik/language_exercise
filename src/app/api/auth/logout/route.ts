@@ -1,18 +1,12 @@
-import { NextResponse } from 'next/server';
 
-const JWT_COOKIE_NAME = process.env.JWT_COOKIE_NAME || 'app_token';
+import { NextResponse } from 'next/server';
+import { logoutService } from 'src/services/logoutService';
+
 
 export async function POST() {
   const response = NextResponse.json({ success: true });
-  response.cookies.set(JWT_COOKIE_NAME, '', {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    maxAge: 0,
-  });
+  const { cookieName, cookieOptions } = logoutService();
+  response.cookies.set(cookieName, '', cookieOptions);
   return response;
 }
-
-
 

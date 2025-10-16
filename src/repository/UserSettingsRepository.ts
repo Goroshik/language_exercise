@@ -1,10 +1,10 @@
 import {PrismaClient} from '../generated/prisma';
 
 export class UserSettingsRepository {
-  private client: PrismaClient;
+  private client: PrismaClient['userSettings'];
 
   constructor(client: PrismaClient) {
-    this.client = client;
+    this.client = client.userSettings;
   }
 
   async create(data: {
@@ -15,15 +15,12 @@ export class UserSettingsRepository {
     translationLang?: string;
     customSettings?: any;
   }) {
-    return this.client.userSettings.create({data});
+    return this.client.create({data});
   }
 
-  async findById(id: string) {
-    return this.client.userSettings.findUnique({where: {id}});
-  }
 
   async findByUserId(userId: string) {
-    return this.client.userSettings.findUnique({
+    return this.client.findUnique({
       where: {userId},
     });
   }
@@ -38,7 +35,7 @@ export class UserSettingsRepository {
       customSettings?: any;
     }
   ) {
-    return this.client.userSettings.update({
+    return this.client.update({
       where: {userId},
       data,
     });
@@ -54,23 +51,23 @@ export class UserSettingsRepository {
       customSettings?: any;
     }
   ) {
-    const existing = await this.client.userSettings.findUnique({
-      where: {userId}
+    const settings = {
+      theme: data.theme,
+      aiModel: data.aiModel,
+      language: data.language,
+      translationLang: data.translationLang,
+
+    }
+    
+    return this.client.upsert({
+      where: {userId},
+      create: {userId, ...settings},
+      update: settings,
     })
 
-    if (existing) {
-      return this.client.userSettings.update({
-        where: {userId},
-        data,
-      })
-    } else {
-      return this.client.userSettings.create({
-        data: {userId, ...data}
-      })
-    }
   }
 
   async delete(userId: string) {
-    return this.client.userSettings.delete({where: {userId}});
+    return this.client.delete({where: {userId}});
   }
 }

@@ -1,64 +1,35 @@
-import {NextRequest, NextResponse} from 'next/server';
-import {wordRepository} from 'src/repository/client';
-import {Prisma} from 'src/generated/prisma';
-import {getUserIdOrUnauthorized, createUnauthorizedResponse} from 'src/utils/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { addManyWordService, searchWordsService } from 'src/services/wordsService';
+import { getUserIdFromRequest } from 'src/utils/auth';
+import { safeJson } from 'src/utils/jsonWrapper';
 
 export const runtime = 'nodejs';
 
+
 export async function GET(request: NextRequest) {
   try {
-    // Проверяем аутентификацию
-    const {userId, error} = await getUserIdOrUnauthorized(request);
-    if (error) {
-      return createUnauthorizedResponse(error);
-    }
-
+    const userId = getUserIdFromRequest(request);
+    
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('query') || '';
-
-    const words = await wordRepository.searchWords(userId, query);
-    return NextResponse.json({success: true, words});
+    const words = await searchWordsService(userId, query);
+    return NextResponse.json({ success: true, words });
   } catch (error) {
-    console.error('Failed to load words:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to load words',
-      words: []
-    }, {status: 500});
+    return NextResponse.json({ success: false, error: 'Failed to load words', words: [] }, { status: 500 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    // Проверяем аутентификацию
-    const {userId, error} = await getUserIdOrUnauthorized(request);
-    if (error) {
-      return createUnauthorizedResponse(error);
-    }
-
-    const {words} = await request.json();
-
-    console.log(words);
-
+    const userId = getUserIdFromRequest(request);
+    
+    const { words } = await safeJson(request);
     if (!words.length) {
-      return NextResponse.json({
-        success: false,
-        error: 'Word and translate are required'
-      }, {status: 400});
+      return NextResponse.json({ success: false, error: 'Word and translate are required' }, { status: 400 });
     }
-
-
-    const createdWord = await wordRepository.addManyWord(userId, words);
-
-    return NextResponse.json({
-      success: true,
-      word: createdWord,
-    });
+    const createdWord = await addManyWordService(userId, words);
+    return NextResponse.json({ success: true, word: createdWord });
   } catch (error) {
-    console.error('Failed to add word:', error);
-    return NextResponse.json({
-      success: false,
-      error: 'Failed to add word'
-    }, {status: 500});
+    return NextResponse.json({ success: false, error: 'Failed to add word' }, { status: 500 });
   }
 }

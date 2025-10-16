@@ -1,6 +1,8 @@
-import {NextRequest, NextResponse} from 'next/server';
-import {userTokenRepository} from 'src/repository/client';
-import {getUserIdFromRequest, createUnauthorizedResponse} from 'src/utils/auth';
+import { NextRequest, NextResponse } from 'next/server';
+import { userTokenRepository } from 'src/repository/client';
+import { getUserTokensService, upsertUserTokenService } from 'src/services/userTokenService';
+import { getUserIdFromRequest } from 'src/utils/auth';
+import { safeJson } from 'src/utils/jsonWrapper';
 
 // NOTE: Type definitions for API requests
 interface TokenCreateRequest {
@@ -16,79 +18,32 @@ interface TokenUpdateRequest {
 // GET /api/tokens - Get all tokens for a user (decrypted)
 export async function GET(request: NextRequest) {
   try {
-    // Проверяем аутентификацию
-    const {userId, error} = getUserIdFromRequest(request);
-
-    if (error) {
-      return createUnauthorizedResponse(error);
-    }
-
-    const userTokens = await userTokenRepository.findByUser(userId);
-
-    // Tokens are already decrypted by the repository
-    const decryptedTokens = userTokens.map(tokenData => ({
-      id: tokenData.id,
-      service: tokenData.service,
-      token: tokenData.token,
-      createdAt: tokenData.createdAt,
-      updatedAt: tokenData.updatedAt
-    }));
-
-    return NextResponse.json(decryptedTokens);
+    const userId = getUserIdFromRequest(request);
+    const tokens = await getUserTokensService(userId);
+    return NextResponse.json(tokens);
   } catch (error) {
-    console.error('Error fetching user tokens:', error);
-    return NextResponse.json(
-      {error: 'Failed to fetch user tokens'},
-      {status: 500}
-    );
+    return NextResponse.json({ error: 'Failed to fetch user tokens' }, { status: 500 });
   }
 }
 
 // POST /api/tokens - Create or update a token for a service
 export async function POST(request: NextRequest) {
-  try {
-    // Проверяем аутентификацию
-    const {userId, error} = getUserIdFromRequest(request);
-    if (error) {
-      return createUnauthorizedResponse(error);
+    try {
+      const userId = getUserIdFromRequest(request);
+      const body = await safeJson(request);
+      const { service, token } = body;
+      await upsertUserTokenService(userId, service, token);
+      return NextResponse.json({ success: true });
+    } catch (error) {
+      return NextResponse.json({ error: 'Failed to save token' }, { status: 500 });
     }
-
-    const body: TokenCreateRequest = await request.json();
-    const {service, token} = body;
-
-    if (!service || !token) {
-      return NextResponse.json(
-        {error: 'Service and token are required'},
-        {status: 400}
-      );
-    }
-
-    // Use upsert to create or update the token
-    const userToken = await userTokenRepository.upsert(userId, service, token);
-
-    return NextResponse.json({
-      id: userToken.id,
-      service: userToken.service,
-      createdAt: userToken.createdAt,
-      updatedAt: userToken.updatedAt
-    });
-  } catch (error) {
-    console.error('Error creating/updating user token:', error);
-    return NextResponse.json(
-      {error: 'Failed to save user token'},
-      {status: 500}
-    );
-  }
 }
 
 // DELETE /api/tokens - Delete a token for a specific service
 export async function DELETE(request: NextRequest) {
   try {
-    // Проверяем аутентификацию
-    const {userId, error} = getUserIdFromRequest(request);
-    if (error) {
-      return createUnauthorizedResponse(error);
-    }
+    const userId = getUserIdFromRequest(request);
+
 
     const {searchParams} = new URL(request.url);
     const service = searchParams.get('service');

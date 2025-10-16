@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Typography } from '@mui/material';
+import { LearnModeTextBold, LearnModeTextSpan, LearnModeTextTypography } from './LearnModeText.styled';
 
 import WordTranslationPanel from 'src/components/WordTranslationPanel';
 
@@ -91,31 +91,29 @@ const LearnModeText: React.FC<LearnModeTextProps> = ({ text }) => {
 
   return (
     <>
-      <Typography variant="body1" sx={{ lineHeight: 1.6, mb: 1 }}>
+      <LearnModeTextTypography variant="body1">
         {parsedParts.map((part, index) => {
           if (typeof part === 'string') {
             return (
-              <span
+              <LearnModeTextSpan
                 key={index}
-                style={{ cursor: 'text' }}
                 onDoubleClick={handleTextDoubleClick}
               >
                 {part}
-              </span>
+              </LearnModeTextSpan>
             );
           } else {
             return (
-              <strong
+              <LearnModeTextBold
                 key={index}
-                style={{ fontWeight: 'bold', color: '#1976d2', cursor: 'text' }}
                 onDoubleClick={handleTextDoubleClick}
               >
                 {part.text}
-              </strong>
+              </LearnModeTextBold>
             );
           }
         })}
-      </Typography>
+      </LearnModeTextTypography>
 
       {translationPanel && (
         <WordTranslationPanel

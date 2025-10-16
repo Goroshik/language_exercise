@@ -1,16 +1,21 @@
-import {PrismaClient} from '../generated/prisma/client';
+import {PrismaClient, Prisma} from 'src/generated/prisma/client';
 
-const prisma = new PrismaClient();
 
 export class GeneratedSentenceHistoryRepository {
-  static async addHistory({ownerId, sentence, language, usedWordIds, level}: {
+  private client: PrismaClient['generatedSentenceHistory'];
+
+  constructor(client: PrismaClient) {
+    this.client = client.generatedSentenceHistory;
+  }
+
+  async addHistory({ownerId, sentence, language, usedWordIds, level}: {
     ownerId: string;
     sentence: string;
     language: string;
     usedWordIds: string[];
     level: string;
   }) {
-    return prisma.generatedSentenceHistory.create({
+    return this.client.create({
       data: {
         ownerId,
         sentence,
@@ -21,18 +26,40 @@ export class GeneratedSentenceHistoryRepository {
     });
   }
 
-  static async getHistory({language, level, usedWordIds}: {
+  async addHistoryBatch(sentences: {
+    ownerId: string;
+    sentence: string;
+    language: string;
+    usedWordIds: string[];
+    level: string;
+  }[]) {
+    if (sentences.length === 0) return {count: 0};
+
+    return this.client.createMany({
+      data: sentences,
+    });
+  }
+
+  async getHistory({ownerId, language, level, usedWordIds, searchText}: {
+    ownerId: string;
     language?: string;
     level?: string;
     usedWordIds?: string[];
+    searchText?: string;
   }) {
-    const where: any = {};
+    const where: Prisma.GeneratedSentenceHistoryWhereInput = {
+      ownerId,
+    };
+
     if (language) where.language = language;
     if (level) where.level = level;
     if (usedWordIds && usedWordIds.length > 0) {
       where.usedWordIds = {hasSome: usedWordIds};
     }
-    return prisma.generatedSentenceHistory.findMany({
+    if (searchText) {
+      where.sentence = {contains: searchText, mode: 'insensitive'};
+    }
+    return this.client.findMany({
       where,
       orderBy: {createdAt: 'desc'},
     });

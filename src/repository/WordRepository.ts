@@ -1,32 +1,23 @@
 import {PrismaClient} from '../generated/prisma';
 
 export class WordRepository {
-  private client: PrismaClient;
+  private client: PrismaClient['word'];
 
   constructor(client: PrismaClient) {
-    this.client = client;
+    this.client = client.word;
   }
 
   async create(data: { word: string; translate: string; ownerId?: string; shared?: boolean }) {
-    return this.client.word.create({data});
+    return this.client.create({data});
   }
 
-  async findById(id: string) {
-    return this.client.word.findUnique({where: {id}});
-  }
-
-  async findAll(filters?: { ownerId?: string; shared?: boolean }) {
-    return this.client.word.findMany({
-      where: filters,
-    });
-  }
 
   async update(id: string, data: { word?: string; translate?: string; shared?: boolean }) {
-    return this.client.word.update({where: {id}, data});
+    return this.client.update({where: {id}, data});
   }
 
   async delete(id: string) {
-    return this.client.word.delete({where: {id}});
+    return this.client.delete({where: {id}});
   }
 
   async searchWords(userId: string, query: string) {
@@ -41,11 +32,11 @@ export class WordRepository {
       ];
     }
 
-    return this.client.word.findMany({where, orderBy: {createdAt: 'desc'}});
+    return this.client.findMany({where, orderBy: {createdAt: 'desc'}});
   }
 
   async addWord(userId: string, data: { word: string; translate: string; createdAt?: Date; shared?: boolean }) {
-    return this.client.word.create({
+    return this.client.create({
       data: {
         ...data,
         ownerId: userId
@@ -54,13 +45,13 @@ export class WordRepository {
   }
 
   async addManyWord(userId: string, data: { word: string; translate: string; createdAt?: Date; shared?: boolean }[]) {
-    return this.client.word.createMany({
+    return this.client.createMany({
       data: data.map((word) => ({...word, ownerId: userId}))
     });
   }
 
   async getAllWords(userId: string) {
-    return this.client.word.findMany({
+    return this.client.findMany({
       where: {ownerId: userId},
       orderBy: {createdAt: 'desc'}
     });
@@ -73,8 +64,8 @@ export class WordRepository {
     createdAt?: Date;
     shared?: boolean
   }) {
-    return this.client.word.update({
-      where: {id: word.id},
+    return this.client.update({
+      where: {id: word.id, ownerId: userId},
       data: {
         word: word.word,
         translate: word.translate,
@@ -84,8 +75,8 @@ export class WordRepository {
   }
 
   async deleteWord(userId: string, wordId: string) {
-    return this.client.word.delete({
-      where: {id: wordId}
+    return this.client.delete({
+      where: {id: wordId, ownerId: userId}
     });
   }
 }

@@ -1,8 +1,9 @@
 import {create} from 'zustand';
 import {devtools} from "zustand/middleware";
 
-import {AppState, DictionaryWord, ExerciseBlock, ValidationResults} from 'src/types';
 import {GRAMMAR_PROMPTS} from 'src/prompts';
+import {ApiService} from 'src/services/apiService';
+import {AppState, DictionaryWord, ExerciseBlock, ValidationResults} from 'src/types';
 
 interface AppStore {
   // State
@@ -13,8 +14,18 @@ interface AppStore {
   validationResults: ValidationResults;
 
   // Actions
-  handleTopicSelect: (language?: string, level?: string, selectedWords?: string[], mode?: 'learn' | 'train') => Promise<void>;
-  generateMoreExercises: (language?: string, level?: string, selectedWords?: DictionaryWord[], mode?: 'learn' | 'train') => Promise<void>;
+  handleTopicSelect: (data: {
+    language?: string,
+    level?: string,
+    selectedWords?: DictionaryWord[],
+    mode?: 'learn' | 'train'
+  }) => Promise<void>;
+  generateMoreExercises: (data: {
+    language?: string,
+    level?: string,
+    selectedWords?: DictionaryWord[],
+    mode?: 'learn' | 'train'
+  }) => Promise<void>;
   handleCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => Promise<void>;
   clearError: () => void;
 }
@@ -47,44 +58,35 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     });
 
     try {
-      const apiResponse = await fetch('/api/ai/generate-text', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({mode, topic, language, level, selectedWords})
-      });
-      const responseJson = await apiResponse.json();
+      const data = await ApiService.generateText({mode, topic, language, level, selectedWords});
 
-      if (!responseJson.success || responseJson.data?.error) {
-        set({
-          error: responseJson.data?.error || '',
-          state: 'topic-selection'
-        });
+
+      let sentencesList;
+
+      if (mode === 'learn') {
+        // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
+        sentencesList = (data)
+          .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
       } else {
-        let sentencesList;
-
-        if (mode === 'learn') {
-          // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
-          sentencesList = responseJson.data
-            .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
-        } else {
-          // For train mode, filter sentences with {{input}} placeholders
-          sentencesList = responseJson.data
-            .filter(sentence => sentence.includes('{{input}}'))
-            .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
-        }
-
-        const newBlock: ExerciseBlock = {
-          id: `block_${Date.now()}`,
-          exercises: sentencesList,
-          createdAt: new Date(),
-          isChecking: false
-        };
-
-        set(state => ({
-          exerciseBlocks: [...state.exerciseBlocks, newBlock],
-          state: 'exercises'
-        }));
+        // For train mode, filter sentences with {{input}} placeholders
+        sentencesList = (data)
+          .filter((sentence: string) => sentence.includes('{{input}}'))
+          .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
       }
+
+      console.log('123123123123123123123123', data, sentencesList)
+
+      const newBlock: ExerciseBlock = {
+        id: `block_${Date.now()}`,
+        exercises: sentencesList,
+        createdAt: new Date(),
+        isChecking: false
+      };
+
+      set(state => ({
+        exerciseBlocks: [...state.exerciseBlocks, newBlock],
+        state: 'exercises'
+      }));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
       set({
@@ -106,39 +108,33 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     const topic = topicRaw.replace(/_/g, ' ');
     set({state: 'loading-exercises', error: ''});
     try {
-      const apiResponse = await fetch('/api/ai/generate-text', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({mode, topic, language, level, selectedWords})
-      });
-      const responseJson = await apiResponse.json();
-      if (!responseJson.success || responseJson.data?.error) {
-        set({error: responseJson.data?.error || 'Ошибка генерации дополнительных упражнений'});
+      const data = await ApiService.generateText({mode, topic, language, level, selectedWords});
+
+      console.log('responseJson', data)
+
+      let newSentencesList;
+
+      if (mode === 'learn') {
+        // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
+        newSentencesList = (data)
+          .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
       } else {
-        let newSentencesList;
-
-        if (mode === 'learn') {
-          // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
-          newSentencesList = responseJson.data
-            .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
-        } else {
-          // For train mode, filter sentences with {{input}} placeholders
-          newSentencesList = responseJson.data
-            .filter(sentence => sentence.includes('{{input}}'))
-            .map(sentence => ({sentence: sentence.trim(), correctAnswers: []}));
-        }
-
-        const newBlock: ExerciseBlock = {
-          id: `block_${Date.now()}`,
-          exercises: newSentencesList,
-          createdAt: new Date(),
-          isChecking: false
-        };
-
-        set(state => ({
-          exerciseBlocks: [...state.exerciseBlocks, newBlock]
-        }));
+        // For train mode, filter sentences with {{input}} placeholders
+        newSentencesList = (data)
+          .filter((sentence: string) => sentence.includes('{{input}}'))
+          .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
       }
+
+      const newBlock: ExerciseBlock = {
+        id: `block_${Date.now()}`,
+        exercises: newSentencesList,
+        createdAt: new Date(),
+        isChecking: false
+      };
+
+      set({
+        exerciseBlocks: [...get().exerciseBlocks, newBlock]
+      });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
       set({error: `Ошибка при загрузке дополнительных упражнений: ${errorMessage}`});
@@ -174,43 +170,33 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
         return `${index + 1}. ${filledSentence}`;
       }).join('\n');
       const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
-      const apiResponse = await fetch('/api/ai/generate-text', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({prompt: validatePrompt})
-      });
-      const responseJson = await apiResponse.json();
+      const data = await ApiService.generateText({prompt: validatePrompt});
 
-      if (!responseJson.success || responseJson.data?.error) {
-        set({error: responseJson.data?.error || 'Ошибка проверки ответов'});
-      } else {
-        const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
-        const lines = responseJson.data;
+      const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
 
-        lines.forEach((line, index) => {
-          const isCorrect = line.includes('CORRECT');
-          let errorMessage: string | undefined;
+      data.forEach((line: string, index: number) => {
+        const isCorrect = line.includes('CORRECT');
+        let errorMessage: string | undefined;
 
-          if (!isCorrect && line.includes('ERROR:')) {
-            errorMessage = line.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
-          }
+        if (!isCorrect && line.includes('ERROR:')) {
+          errorMessage = line.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
+        }
 
-          let inputCounter = 0;
+        let inputCounter = 0;
 
-          block.exercises[index]?.sentence.replace(/\{\{input\}\}/g, () => {
-            const inputId = `input_${blockId}_${index}_${inputCounter++}`;
-            results[inputId] = {isCorrect, error: errorMessage};
-            return '';
-          });
+        block.exercises[index]?.sentence.replace(/\{\{input\}\}/g, () => {
+          const inputId = `input_${blockId}_${index}_${inputCounter++}`;
+          results[inputId] = {isCorrect, error: errorMessage};
+          return '';
         });
+      });
 
-        set(state => ({
-          validationResults: {
-            ...state.validationResults,
-            [blockId]: results
-          }
-        }));
-      }
+      set(state => ({
+        validationResults: {
+          ...state.validationResults,
+          [blockId]: results
+        }
+      }));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
       set({error: `Ошибка при проверке ответов: ${errorMessage}`});
