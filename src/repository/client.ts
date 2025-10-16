@@ -1,10 +1,11 @@
-import { PrismaClient } from '../generated/prisma';
-import { TagRepository } from './TagRepository';
-import { WordRepository } from './WordRepository';
-import { EntityTagRepository } from './EntityTagRepository';
-import { UserRepository } from './UserRepository';
-import { UserTokenRepository } from './UserTokenRepository';
-import { UserSettingsRepository } from './UserSettingsRepository';
+import {PrismaClient} from '../generated/prisma';
+import {TagRepository} from './TagRepository';
+import {WordRepository} from './WordRepository';
+import {EntityTagRepository} from './EntityTagRepository';
+import {UserRepository} from './UserRepository';
+import {UserTokenRepository} from './UserTokenRepository';
+import {UserSettingsRepository} from './UserSettingsRepository';
+import {GeneratedSentenceHistoryRepository} from './GeneratedSentenceHistoryRepository';
 
 // Singleton Prisma client instance
 const prisma = new PrismaClient();
@@ -16,17 +17,7 @@ export const entityTagRepository = new EntityTagRepository(prisma);
 export const userRepository = new UserRepository(prisma);
 export const userTokenRepository = new UserTokenRepository(prisma);
 export const userSettingsRepository = new UserSettingsRepository(prisma);
-
+export const generatedSentenceHistoryRepository = new GeneratedSentenceHistoryRepository(prisma)
 // Export Prisma client instance for direct access if needed
-export { prisma };
+export {prisma};
 
-// Default export with all repositories
-export default {
-  tag: tagRepository,
-  word: wordRepository,
-  entityTag: entityTagRepository,
-  user: userRepository,
-  userToken: userTokenRepository,
-  userSettings: userSettingsRepository,
-  prisma,
-};

@@ -2,15 +2,15 @@ import {PrismaClient} from '../generated/prisma';
 import {encrypt, decrypt} from '../utils/crypto';
 
 export class UserTokenRepository {
-  private client: PrismaClient;
+  private client: PrismaClient['userToken'];
 
   constructor(client: PrismaClient) {
-    this.client = client;
+    this.client = client.userToken;
   }
 
   async create(data: { userId: string; service: string; token: string }) {
     const encryptedToken = encrypt(data.token);
-    return this.client.userToken.create({
+    return this.client.create({
       data: {
         userId: data.userId,
         service: data.service,
@@ -19,27 +19,9 @@ export class UserTokenRepository {
     });
   }
 
-  async findById(id: string) {
-    const token = await this.client.userToken.findUnique({where: {id}});
-    if (token) {
-      try {
-        return {
-          ...token,
-          token: decrypt(token.encryptedToken),
-        };
-      } catch (err) {
-        return {
-          ...token,
-          token: null,
-          error: err instanceof Error ? err.message : String(err),
-        };
-      }
-    }
-    return null;
-  }
 
   async findByUserAndService(userId: string, service: string) {
-    const token = await this.client.userToken.findUnique({
+    const token = await this.client.findUnique({
       where: {userId_service: {userId, service}},
     });
 
@@ -65,7 +47,7 @@ export class UserTokenRepository {
   }
 
   async findByUser(userId: string) {
-    const tokens = await this.client.userToken.findMany({
+    const tokens = await this.client.findMany({
       where: {userId},
     });
     return tokens.map(token => ({
@@ -76,7 +58,7 @@ export class UserTokenRepository {
 
   async update(id: string, token: string) {
     const encryptedToken = encrypt(token);
-    return this.client.userToken.update({
+    return this.client.update({
       where: {id},
       data: {encryptedToken},
     });
@@ -85,31 +67,28 @@ export class UserTokenRepository {
   async upsert(userId: string, service: string, token: string) {
     const encryptedToken = encrypt(token);
 
-    const existing = await this.client.userToken.findUnique({
+
+    return this.client.upsert({
       where: {
         userId_service: {
           userId,
           service
         }
       },
-      select: {
-        id: true,
+      create: {
+        userId,
+        service,
+        encryptedToken
+      },
+      update: {
+        encryptedToken
       }
     })
 
-    if (existing) {
-      return this.client.userToken.update({
-        where: {id: existing.id},
-        data: {encryptedToken}
-      })
-    } else {
-      return this.client.userToken.create({
-        data: {userId, service, encryptedToken}
-      })
-    }
+
   }
 
   async delete(id: string) {
-    return this.client.userToken.delete({where: {id}});
+    return this.client.delete({where: {id}});
   }
 }

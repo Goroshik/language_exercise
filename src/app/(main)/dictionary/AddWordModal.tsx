@@ -1,18 +1,16 @@
 "use client"
 
-import React, {useEffect, useState} from 'react';
 import {
   Alert,
-  Autocomplete,
   Box,
   Button,
-  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  TextField,
+  TextField
 } from '@mui/material';
+import React, { useState } from 'react';
 
 interface Tag {
   id: string;
@@ -28,36 +26,12 @@ interface AddWordModalProps {
 const AddWordModal: React.FC<AddWordModalProps> = ({open, onClose, onWordAdded}) => {
   const [word, setWord] = useState('');
   const [translate, setTranslate] = useState('');
-  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
-  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
-  const [newTagInput, setNewTagInput] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (open) {
-      loadTags();
-    }
-  }, [open]);
-
-  const loadTags = async () => {
-    try {
-      const response = await fetch('/api/dictionary/tags');
-      const data = await response.json();
-
-      if (data.success) {
-        setAvailableTags(data.tags);
-      }
-    } catch (error) {
-      console.error('Failed to load tags:', error);
-    }
-  };
 
   const handleClose = () => {
     setWord('');
     setTranslate('');
-    setSelectedTags([]);
-    setNewTagInput('');
     setError('');
     onClose();
   };

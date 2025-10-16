@@ -1,5 +1,15 @@
+import { Button, CircularProgress } from '@mui/material';
 import React from 'react';
-import {Box, Button, CircularProgress, Stack, Typography} from '@mui/material';
+import {
+  CheckButtonBox,
+  ExerciseBlockCaption,
+  ExerciseBlockContainer,
+  ExerciseBlockInner,
+  ExerciseBlockTitle,
+  ExerciseContent,
+  ExerciseIndex,
+  ExerciseRow
+} from './ExerciseBlock.styled';
 
 import TextWithInputs from 'src/components/TextWithInputs';
 
@@ -39,45 +49,23 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
     onCheckAnswers(block.id, userAnswers);
   };
 
+  console.log(block.exercises)
+
   return (
-    <Stack
-      className="exercise-block-compact"
-      sx={{
-        marginBottom: 16,
-        padding: 0,
-        border: 'none',
-        borderRadius: 0,
-        backgroundColor: 'transparent',
-        boxShadow: 'none'
-      }}
-    >
-      <Typography variant="h6" sx={{mb: 2, color: '#1976d2'}}>
+    <ExerciseBlockContainer className="exercise-block-compact">
+      <ExerciseBlockTitle variant="h6">
         Блок упражнений #{blockIndex + 1}
-        <Typography variant="caption" sx={{ml: 1, color: 'text.secondary'}}>
+        <ExerciseBlockCaption variant="caption">
           (создан {block.createdAt.toLocaleTimeString()})
-        </Typography>
-      </Typography>
-      <Box sx={{
-        padding: 1,
-        backgroundColor: 'white',
-        borderRadius: 8,
-        border: '1px solid #e0e0e0',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-      }}>
+        </ExerciseBlockCaption>
+      </ExerciseBlockTitle>
+      <ExerciseBlockInner>
         {block.exercises.map((exercise, exerciseIndex) => (
-          <Box key={exerciseIndex} sx={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 2,
-            mb: exerciseIndex < block.exercises.length - 1 ? 2 : 0
-          }}>
-            <Typography variant="body2" color="text.secondary" sx={{
-              minWidth: 'auto',
-              pt: 0.5
-            }}>
+          <ExerciseRow key={exerciseIndex} sx={{ mb: exerciseIndex < block.exercises.length - 1 ? 2 : 0 }}>
+            <ExerciseIndex variant="body2">
               {exerciseIndex + 1}.
-            </Typography>
-            <Box sx={{flex: 1}}>
+            </ExerciseIndex>
+            <ExerciseContent>
               {mode === 'learn' ? (
                 <LearnModeText text={exercise.sentence}/>
               ) : (
@@ -87,13 +75,13 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
                   validationResults={validationResults}
                 />
               )}
-            </Box>
-          </Box>
+            </ExerciseContent>
+          </ExerciseRow>
         ))}
-      </Box>
+      </ExerciseBlockInner>
 
       {mode === 'train' && (
-        <Box sx={{textAlign: 'center', mt: 2}}>
+        <CheckButtonBox>
           <Button
             variant="contained"
             size="medium"
@@ -107,9 +95,9 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
               `Проверить блок #${blockIndex + 1}`
             )}
           </Button>
-        </Box>
+        </CheckButtonBox>
       )}
-    </Stack>
+    </ExerciseBlockContainer>
   );
 };
 

@@ -59,6 +59,8 @@ const Page: React.FC = () => {
     });
   };
 
+  console.log('ExerciseBlocks:', exerciseBlocks);
+
   return (
     <Box>
       <Stack direction="row" sx={{

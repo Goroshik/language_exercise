@@ -32,6 +32,9 @@ const Header: React.FC = () => {
             <Button variant="outlined" onClick={() => route.push('/dictionary')} sx={{mr: 2, backgroundColor: "white"}}>
               Словарь
             </Button>
+            <Button variant="outlined" onClick={() => route.push('/exercises/generated-history')} sx={{mr: 2, backgroundColor: "white"}}>
+              История
+            </Button>
             <IconButton
               color="inherit"
               onClick={handleSettingsOpen}

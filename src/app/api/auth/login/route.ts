@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { SignJWT } from 'jose';
 import bcrypt from 'bcryptjs';
+import { SignJWT } from 'jose';
+import { NextRequest, NextResponse } from 'next/server';
 
 import { userRepository } from 'src/repository/client';
+import { safeJson } from 'src/utils/jsonWrapper';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'dev_secret_change_me');
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
@@ -10,7 +11,7 @@ const JWT_COOKIE_NAME = process.env.JWT_COOKIE_NAME || 'app_token';
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const { email, password } = await safeJson(request);
 
     if (!email || !password) {
       return NextResponse.json({ success: false, error: 'Email и пароль обязательны' }, { status: 400 });
