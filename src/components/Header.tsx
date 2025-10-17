@@ -7,11 +7,14 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import TopicIcon from '@mui/icons-material/Topic';
 import BookIcon from '@mui/icons-material/Book';
 import HistoryIcon from '@mui/icons-material/History';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 import SettingsModal from './SettingsModal';
+import AIModelSelector from './AIModelSelector';
 
 const Header: React.FC = () => {
   const route = useRouter();
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [aiModelOpen, setAiModelOpen] = useState(false);
 
   const handleSettingsOpen = () => {
     setSettingsOpen(true);
@@ -19,6 +22,14 @@ const Header: React.FC = () => {
 
   const handleSettingsClose = () => {
     setSettingsOpen(false);
+  };
+
+  const handleAiModelOpen = () => {
+    setAiModelOpen(true);
+  };
+
+  const handleAiModelClose = () => {
+    setAiModelOpen(false);
   };
 
   return (
@@ -59,6 +70,16 @@ const Header: React.FC = () => {
                 <HistoryIcon/>
               </IconButton>
             </Tooltip>
+            <Tooltip title="AI модель">
+              <IconButton
+                color="inherit"
+                onClick={handleAiModelOpen}
+                sx={{backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
+                aria-label="ai-model"
+              >
+                <SmartToyIcon/>
+              </IconButton>
+            </Tooltip>
             <Tooltip title="Настройки">
               <IconButton
                 color="inherit"
@@ -76,6 +97,11 @@ const Header: React.FC = () => {
       <SettingsModal
         open={settingsOpen}
         onClose={handleSettingsClose}
+      />
+
+      <AIModelSelector
+        open={aiModelOpen}
+        onClose={handleAiModelClose}
       />
     </>
   );
