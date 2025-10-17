@@ -74,16 +74,24 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
         const settings = await settingsResponse.json();
         const currentAiModel = settings.aiModel || 'gemini-2.5-flash';
         setCurrentModel(currentAiModel);
-        setSelectedModel(currentAiModel);
         
         // Set provider based on current model
         const provider = getProviderFromModel(currentAiModel);
         if (provider && modelsData.providers.includes(provider)) {
+          // Current model's provider is available
           setSelectedProvider(provider);
+          setSelectedModel(currentAiModel);
         } else if (modelsData.providers.length === 1) {
           // Auto-select if only one provider available
           setSelectedProvider(modelsData.providers[0]);
           // Auto-select first model of that provider
+          const providerModels = getModelsByProvider(modelsData.providers[0]);
+          if (providerModels.length > 0) {
+            setSelectedModel(providerModels[0].value);
+          }
+        } else if (modelsData.providers.length > 1) {
+          // Multiple providers available, select first one
+          setSelectedProvider(modelsData.providers[0]);
           const providerModels = getModelsByProvider(modelsData.providers[0]);
           if (providerModels.length > 0) {
             setSelectedModel(providerModels[0].value);
