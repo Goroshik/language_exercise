@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import {GRAMMAR_PROMPTS} from 'src/prompts/grammarPrompts';
-import {generatedSentenceHistoryRepository} from 'src/repository/client';
+import {sentenceHistoryRepository} from 'src/repository/client';
 import {AIFactory} from 'src/services/aiFactory';
 import {DictionaryWord} from 'src/types';
 
@@ -101,7 +101,7 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
         });
 
         if (sentencesToSave.length > 0) {
-          await generatedSentenceHistoryRepository.addHistoryBatch(sentencesToSave);
+          await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
         }
       } catch (saveErr) {
         console.warn('Failed to save generated sentence history', saveErr);

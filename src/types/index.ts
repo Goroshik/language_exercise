@@ -38,8 +38,18 @@ export interface AppStore {
   exerciseBlocks: ExerciseBlock[];
   error: string;
   validationResults: ValidationResults;
-  handleTopicSelect: (topic: string, mode?: 'learn' | 'train', level?: string, selectedWords?: string[]) => Promise<void>;
-  generateMoreExercises: (mode?: 'learn' | 'train', level?: string, selectedWords?: string[]) => Promise<void>;
+  handleTopicSelect: (data: {
+    language?: string;
+    level?: string;
+    selectedWords?: DictionaryWord[];
+    mode?: 'learn' | 'train';
+  }) => Promise<void>;
+  generateMoreExercises: (data: {
+    language?: string;
+    level?: string;
+    selectedWords?: DictionaryWord[];
+    mode?: 'learn' | 'train';
+  }) => Promise<void>;
   handleCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => Promise<void>;
   clearError: () => void;
 }

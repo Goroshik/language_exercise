@@ -1,4 +1,4 @@
-import { generatedSentenceHistoryRepository } from 'src/repository/client';
+import { sentenceHistoryRepository } from 'src/repository/client';
 
 export async function getGeneratedHistoryService(
   userId: string,
@@ -9,7 +9,7 @@ export async function getGeneratedHistoryService(
     searchText?: string;
   }
 ) {
-  return generatedSentenceHistoryRepository.getHistory({
+  return sentenceHistoryRepository.getHistory({
     ownerId: userId,
     ...filters,
   });
