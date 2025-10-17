@@ -101,6 +101,16 @@ model UserSettings {
   @@map("user_settings")
 }
 
+model Language {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  code      String   @unique // e.g., "en", "pl"
+  name      String   // e.g., "English", "Polish"
+  nativeName String  // e.g., "English", "Polski"
+  createdAt DateTime @default(now())
+
+  @@map("languages")
+}
+
 model SentenceHistory {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   sentence    String
