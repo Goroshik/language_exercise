@@ -132,9 +132,9 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
         isChecking: false
       };
 
-      set({
-        exerciseBlocks: [...get().exerciseBlocks, newBlock]
-      });
+      set(state => ({
+        exerciseBlocks: [...state.exerciseBlocks, newBlock]
+      }));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
       set({error: `Ошибка при загрузке дополнительных упражнений: ${errorMessage}`});

@@ -66,7 +66,7 @@ model User {
   word            Word[]
   tokens          UserToken[]
   settings        UserSettings?
-  sentenceHistory GeneratedSentenceHistory[]
+  sentenceHistory SentenceHistory[]
 
   @@map("users")
 }
@@ -101,7 +101,7 @@ model UserSettings {
   @@map("user_settings")
 }
 
-model GeneratedSentenceHistory {
+model SentenceHistory {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   sentence    String
   language    String
@@ -114,5 +114,5 @@ model GeneratedSentenceHistory {
 
   // Связь с Word (неявная, через usedWordIds)
   // Можно добавить ownerId, если нужна привязка к пользователю
-  @@map("generated_sentence_history")
+  @@map("sentence_history")
 }

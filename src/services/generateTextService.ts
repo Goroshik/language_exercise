@@ -77,34 +77,28 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
         const wordMap = new Map(selectedWords.map(w => [w.word?.toLowerCase(), w.id]));
 
         // Создаем записи для каждого предложения
-        const sentencesToSave = result
-          .map(sentence => {
-            // Извлекаем слова в формате **word** из предложения
-            const wordsInSentence = new Set<string>();
-            const regex = /\*\*(.*?)\*\*/g;
-            let match;
+        const sentencesToSave = result.map(sentence => {
+          // Извлекаем слова в формате **word** из предложения
+          const wordsInSentence = new Set<string>();
+          const regex = /\*\*(.*?)\*\*/g;
+          let match;
 
-            while ((match = regex.exec(sentence)) !== null) {
-              const word = match[1].toLowerCase();
-              if (wordMap.has(word)) {
-                wordsInSentence.add(wordMap.get(word)!);
-              }
+          while ((match = regex.exec(sentence)) !== null) {
+            const word = match[1].toLowerCase();
+            if (wordMap.has(word)) {
+              wordsInSentence.add(wordMap.get(word)!);
             }
+          }
 
-            // Возвращаем null если нет найденных слов
-            if (wordsInSentence.size === 0) {
-              return null;
-            }
-
-            return {
-              ownerId: userId,
-              sentence,
-              language,
-              usedWordIds: Array.from(wordsInSentence),
-              level,
-            };
-          })
-          .filter((item): item is NonNullable<typeof item> => item !== null);
+          // Возвращаем запись даже если нет найденных слов (с пустым массивом)
+          return {
+            ownerId: userId,
+            sentence,
+            language,
+            usedWordIds: Array.from(wordsInSentence),
+            level,
+          };
+        });
 
         if (sentencesToSave.length > 0) {
           await generatedSentenceHistoryRepository.addHistoryBatch(sentencesToSave);
