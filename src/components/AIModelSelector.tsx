@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
 import {
   Dialog,
   DialogTitle,
@@ -15,9 +16,7 @@ import {
   CircularProgress,
   Box,
   Typography,
-  Divider
 } from '@mui/material';
-import { SelectChangeEvent } from '@mui/material/Select';
 import { AIModel, PROVIDER_LABELS, getModelsByProvider, getProviderFromModel } from 'src/constants/aiModels';
 
 interface AIModelSelectorProps {
@@ -31,28 +30,49 @@ interface AvailableModelsResponse {
   hasTokens: boolean;
 }
 
+interface FormData {
+  provider: 'gemini' | 'openai' | 'anthropic' | '';
+  model: string;
+}
+
 const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
-  
   const [availableData, setAvailableData] = useState<AvailableModelsResponse>({
     providers: [],
     models: [],
     hasTokens: false
   });
-  
-  const [selectedProvider, setSelectedProvider] = useState<'gemini' | 'openai' | 'anthropic' | ''>('');
-  const [selectedModel, setSelectedModel] = useState<string>('');
   const [currentModel, setCurrentModel] = useState<string>('');
+
+  const { control, handleSubmit, watch, setValue, formState: { isSubmitting } } = useForm<FormData>({
+    defaultValues: {
+      provider: '',
+      model: ''
+    }
+  });
+
+  const selectedProvider = watch('provider');
+  const selectedModel = watch('model');
 
   // Load available models and current settings
   useEffect(() => {
     if (open) {
       loadData();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
+
+  // Handle provider change - auto-select first model
+  useEffect(() => {
+    if (selectedProvider) {
+      const providerModels = getModelsByProvider(selectedProvider);
+      if (providerModels.length > 0 && !providerModels.find(m => m.value === selectedModel)) {
+        setValue('model', providerModels[0].value);
+      }
+    }
+  }, [selectedProvider, selectedModel, setValue]);
 
   const loadData = async () => {
     setLoading(true);
@@ -60,41 +80,35 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
     setSuccess('');
     
     try {
-      // Load available models based on tokens
-      const modelsResponse = await fetch('/api/ai/available-models');
+      // Load available models and current settings in parallel
+      const [modelsResponse, settingsResponse] = await Promise.all([
+        fetch('/api/ai/available-models'),
+        fetch('/api/settings')
+      ]);
+      
       if (!modelsResponse.ok) {
         throw new Error('Failed to fetch available models');
       }
+      
       const modelsData: AvailableModelsResponse = await modelsResponse.json();
       setAvailableData(modelsData);
       
-      // Load current settings
-      const settingsResponse = await fetch('/api/settings');
       if (settingsResponse.ok) {
         const settings = await settingsResponse.json();
         const currentAiModel = settings.aiModel || 'gemini-2.5-flash';
         setCurrentModel(currentAiModel);
         
-        // Set provider based on current model
+        // Initialize form with current or default provider/model
         const provider = getProviderFromModel(currentAiModel);
         if (provider && modelsData.providers.includes(provider)) {
-          // Current model's provider is available
-          setSelectedProvider(provider);
-          setSelectedModel(currentAiModel);
-        } else if (modelsData.providers.length === 1) {
-          // Auto-select if only one provider available
-          setSelectedProvider(modelsData.providers[0]);
-          // Auto-select first model of that provider
-          const providerModels = getModelsByProvider(modelsData.providers[0]);
+          setValue('provider', provider);
+          setValue('model', currentAiModel);
+        } else if (modelsData.providers.length > 0) {
+          const defaultProvider = modelsData.providers[0];
+          setValue('provider', defaultProvider);
+          const providerModels = getModelsByProvider(defaultProvider);
           if (providerModels.length > 0) {
-            setSelectedModel(providerModels[0].value);
-          }
-        } else if (modelsData.providers.length > 1) {
-          // Multiple providers available, select first one
-          setSelectedProvider(modelsData.providers[0]);
-          const providerModels = getModelsByProvider(modelsData.providers[0]);
-          if (providerModels.length > 0) {
-            setSelectedModel(providerModels[0].value);
+            setValue('model', providerModels[0].value);
           }
         }
       }
@@ -106,35 +120,12 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
     }
   };
 
-  const handleProviderChange = (event: SelectChangeEvent) => {
-    const provider = event.target.value as 'gemini' | 'openai' | 'anthropic';
-    setSelectedProvider(provider);
-    
-    // Auto-select first model of the provider
-    const providerModels = getModelsByProvider(provider);
-    if (providerModels.length > 0) {
-      setSelectedModel(providerModels[0].value);
-    } else {
-      setSelectedModel('');
-    }
-    
-    setError('');
-    setSuccess('');
-  };
-
-  const handleModelChange = (event: SelectChangeEvent) => {
-    setSelectedModel(event.target.value);
-    setError('');
-    setSuccess('');
-  };
-
-  const handleSave = async () => {
-    if (!selectedModel) {
+  const onSubmit = async (data: FormData) => {
+    if (!data.model) {
       setError('Пожалуйста, выберите модель');
       return;
     }
     
-    setSaving(true);
     setError('');
     setSuccess('');
     
@@ -145,7 +136,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          aiModel: selectedModel
+          aiModel: data.model
         })
       });
       
@@ -153,18 +144,15 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
         throw new Error('Failed to save settings');
       }
       
-      setCurrentModel(selectedModel);
+      setCurrentModel(data.model);
       setSuccess('Модель успешно сохранена!');
       
-      // Close modal after a short delay
       setTimeout(() => {
         onClose();
       }, 1000);
     } catch (error) {
       console.error('Failed to save model:', error);
       setError('Не удалось сохранить модель');
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -192,7 +180,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
                 У вас нет добавленных токенов. Пожалуйста, добавьте токен в настройках, чтобы использовать AI модели.
               </Alert>
             ) : (
-              <>
+              <form onSubmit={handleSubmit(onSubmit)}>
                 <Typography variant="body2" color="textSecondary" paragraph>
                   Выберите AI модель для генерации текста. Доступны только модели, для которых добавлен токен.
                 </Typography>
@@ -209,37 +197,47 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
                   </Alert>
                 )}
 
-                <FormControl fullWidth margin="normal">
-                  <InputLabel>Провайдер</InputLabel>
-                  <Select
-                    value={selectedProvider}
-                    onChange={handleProviderChange}
-                    disabled={isProviderDisabled || saving}
-                    label="Провайдер"
-                  >
-                    {availableData.providers.map((provider) => (
-                      <MenuItem key={provider} value={provider}>
-                        {PROVIDER_LABELS[provider]}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Controller
+                  name="provider"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth margin="normal">
+                      <InputLabel>Провайдер</InputLabel>
+                      <Select
+                        {...field}
+                        disabled={isProviderDisabled || isSubmitting}
+                        label="Провайдер"
+                      >
+                        {availableData.providers.map((provider) => (
+                          <MenuItem key={provider} value={provider}>
+                            {PROVIDER_LABELS[provider]}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                />
 
-                <FormControl fullWidth margin="normal">
-                  <InputLabel>Модель</InputLabel>
-                  <Select
-                    value={selectedModel}
-                    onChange={handleModelChange}
-                    disabled={isModelDisabled || saving}
-                    label="Модель"
-                  >
-                    {getFilteredModels().map((model) => (
-                      <MenuItem key={model.value} value={model.value}>
-                        {model.label}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
+                <Controller
+                  name="model"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControl fullWidth margin="normal">
+                      <InputLabel>Модель</InputLabel>
+                      <Select
+                        {...field}
+                        disabled={isModelDisabled || isSubmitting}
+                        label="Модель"
+                      >
+                        {getFilteredModels().map((model) => (
+                          <MenuItem key={model.value} value={model.value}>
+                            {model.label}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                />
 
                 {currentModel && (
                   <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
@@ -251,24 +249,24 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
                     </Typography>
                   </Box>
                 )}
-              </>
+              </form>
             )}
           </>
         )}
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>
+        <Button onClick={onClose} disabled={isSubmitting}>
           Отмена
         </Button>
         {availableData.hasTokens && (
           <Button
-            onClick={handleSave}
+            onClick={handleSubmit(onSubmit)}
             variant="contained"
-            disabled={loading || saving || !selectedModel || selectedModel === currentModel}
-            startIcon={saving ? <CircularProgress size={20} /> : null}
+            disabled={loading || isSubmitting || !selectedModel || selectedModel === currentModel}
+            startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
           >
-            {saving ? 'Сохранение...' : 'Сохранить'}
+            {isSubmitting ? 'Сохранение...' : 'Сохранить'}
           </Button>
         )}
       </DialogActions>
