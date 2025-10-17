@@ -2,10 +2,10 @@ import {PrismaClient, Prisma} from 'src/generated/prisma/client';
 
 
 export class GeneratedSentenceHistoryRepository {
-  private client: PrismaClient['generatedSentenceHistory'];
+  private client: PrismaClient['sentenceHistory'];
 
   constructor(client: PrismaClient) {
-    this.client = client.generatedSentenceHistory;
+    this.client = client.sentenceHistory;
   }
 
   async addHistory({ownerId, sentence, language, usedWordIds, level}: {
@@ -47,7 +47,7 @@ export class GeneratedSentenceHistoryRepository {
     usedWordIds?: string[];
     searchText?: string;
   }) {
-    const where: Prisma.GeneratedSentenceHistoryWhereInput = {
+    const where: Prisma.SentenceHistoryWhereInput = {
       ownerId,
     };
 
