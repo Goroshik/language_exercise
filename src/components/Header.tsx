@@ -1,9 +1,12 @@
 'use client'
 
 import React, {useState} from 'react';
-import {AppBar, Box, Button, Toolbar, Typography, IconButton} from '@mui/material';
+import {AppBar, Box, Toolbar, Typography, IconButton, Tooltip} from '@mui/material';
 import {useRouter} from "next/navigation";
 import SettingsIcon from '@mui/icons-material/Settings';
+import TopicIcon from '@mui/icons-material/Topic';
+import BookIcon from '@mui/icons-material/Book';
+import HistoryIcon from '@mui/icons-material/History';
 import SettingsModal from './SettingsModal';
 
 const Header: React.FC = () => {
@@ -25,24 +28,47 @@ const Header: React.FC = () => {
           <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
             Изучение английского языка
           </Typography>
-          <Box>
-            <Button variant="outlined" onClick={() => route.push('/topics')} sx={{mr: 2, backgroundColor: "white"}}>
-              Темы
-            </Button>
-            <Button variant="outlined" onClick={() => route.push('/dictionary')} sx={{mr: 2, backgroundColor: "white"}}>
-              Словарь
-            </Button>
-            <Button variant="outlined" onClick={() => route.push('/exercises/generated-history')} sx={{mr: 2, backgroundColor: "white"}}>
-              История
-            </Button>
-            <IconButton
-              color="inherit"
-              onClick={handleSettingsOpen}
-              sx={{ml: 1, backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
-              aria-label="settings"
-            >
-              <SettingsIcon/>
-            </IconButton>
+          <Box sx={{display: 'flex', gap: 1}}>
+            <Tooltip title="Темы">
+              <IconButton
+                color="inherit"
+                onClick={() => route.push('/topics')}
+                sx={{backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
+                aria-label="topics"
+              >
+                <TopicIcon/>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Словарь">
+              <IconButton
+                color="inherit"
+                onClick={() => route.push('/dictionary')}
+                sx={{backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
+                aria-label="dictionary"
+              >
+                <BookIcon/>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="История">
+              <IconButton
+                color="inherit"
+                onClick={() => route.push('/exercises/generated-history')}
+                sx={{backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
+                aria-label="history"
+              >
+                <HistoryIcon/>
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Настройки">
+              <IconButton
+                color="inherit"
+                onClick={handleSettingsOpen}
+                sx={{backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
+                aria-label="settings"
+              >
+                <SettingsIcon/>
+              </IconButton>
+            </Tooltip>
           </Box>
         </Toolbar>
       </AppBar>
