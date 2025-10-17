@@ -77,8 +77,8 @@ const WordSelector: React.FC<WordSelectorProps> = ({
     onWordsChange(newSelectedWords);
   };
 
-  const isWordDisabled = (word: string) => {
-    return selectedWords.length >= maxWords && !selectedWords.includes(word);
+  const isWordDisabled = (wordText: string) => {
+    return selectedWords.length >= maxWords && !selectedWords.some(w => w.word === wordText);
   };
 
   // NOTE: Handle tag selection for filtering

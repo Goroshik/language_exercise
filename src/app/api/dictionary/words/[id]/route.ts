@@ -5,11 +5,11 @@ import { deleteWordService, updateWordService } from 'src/services/wordService';
 import { getUserIdFromRequest } from 'src/utils/auth';
 import { safeJson } from 'src/utils/jsonWrapper';
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = getUserIdFromRequest(request);
     const { word, translate } = await safeJson(request);
-    const { id } = params;
+    const { id } = await params;
     const originalWord = await wordRepository.getAllWords(userId).then(words => words.find(w => w.id === id));
     const updatedWord = await updateWordService(userId, id, word, translate, originalWord?.createdAt);
     return NextResponse.json({ success: true, word: updatedWord });
@@ -18,10 +18,10 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const userId = getUserIdFromRequest(request);
-    const { id } = params;
+    const { id } = await params;
     await deleteWordService(userId, id);
     return NextResponse.json({ success: true, deletedId: id });
   } catch (error) {

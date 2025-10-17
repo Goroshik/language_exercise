@@ -1,13 +1,13 @@
 "use client"
 
-import React, {useState} from 'react';
+import React, {Suspense, useState} from 'react';
 import {useRouter, useSearchParams} from "next/navigation";
 
 import {signIn} from "next-auth/react";
 
 import {Box, Button, TextField, Typography} from '@mui/material';
 
-export default function Login() {
+function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/topics';
@@ -70,5 +70,13 @@ export default function Login() {
           пароль?</Button>
       </form>
     </Box>
+  );
+}
+
+export default function Login() {
+  return (
+    <Suspense fallback={<Box maxWidth={400} mx="auto" mt={8}><Typography>Загрузка...</Typography></Box>}>
+      <LoginForm />
+    </Suspense>
   );
 }

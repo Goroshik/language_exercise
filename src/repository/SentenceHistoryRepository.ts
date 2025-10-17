@@ -1,7 +1,7 @@
 import {PrismaClient, Prisma} from 'src/generated/prisma/client';
 
 
-export class GeneratedSentenceHistoryRepository {
+export class SentenceHistoryRepository {
   private client: PrismaClient['sentenceHistory'];
 
   constructor(client: PrismaClient) {

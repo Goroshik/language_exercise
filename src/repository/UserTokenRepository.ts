@@ -91,4 +91,15 @@ export class UserTokenRepository {
   async delete(id: string) {
     return this.client.delete({where: {id}});
   }
+
+  async deleteByUserAndService(userId: string, service: string) {
+    return this.client.delete({
+      where: {
+        userId_service: {
+          userId,
+          service
+        }
+      }
+    });
+  }
 }

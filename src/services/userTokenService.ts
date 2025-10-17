@@ -19,5 +19,5 @@ export async function upsertUserTokenService(userId: string, service: string, to
 }
 
 export async function deleteUserTokenService(userId: string, service: string) {
-  return userTokenRepository.delete(userId, service);
+  return userTokenRepository.deleteByUserAndService(userId, service);
 }

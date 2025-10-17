@@ -3,32 +3,7 @@ import {devtools} from "zustand/middleware";
 
 import {GRAMMAR_PROMPTS} from 'src/prompts';
 import {ApiService} from 'src/services/apiService';
-import {AppState, DictionaryWord, ExerciseBlock, ValidationResults} from 'src/types';
-
-interface AppStore {
-  // State
-  state: AppState;
-  selectedTopic: string;
-  exerciseBlocks: ExerciseBlock[];
-  error: string;
-  validationResults: ValidationResults;
-
-  // Actions
-  handleTopicSelect: (data: {
-    language?: string,
-    level?: string,
-    selectedWords?: DictionaryWord[],
-    mode?: 'learn' | 'train'
-  }) => Promise<void>;
-  generateMoreExercises: (data: {
-    language?: string,
-    level?: string,
-    selectedWords?: DictionaryWord[],
-    mode?: 'learn' | 'train'
-  }) => Promise<void>;
-  handleCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => Promise<void>;
-  clearError: () => void;
-}
+import {AppState, AppStore, DictionaryWord, ExerciseBlock, ValidationResults} from 'src/types';
 
 export const useAppStore = create<AppStore>()(devtools((set, get) => ({
   // Initial state
