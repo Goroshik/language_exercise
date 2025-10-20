@@ -1,12 +1,12 @@
 import React, {useState} from 'react';
-import {Box, Stack, TextField} from '@mui/material';
+import {Box, Button, Stack, TextField} from '@mui/material';
 
 import WordTranslationPanel from './WordTranslationPanel';
 
 interface TextWithInputsProps {
   text: string;
   exerciseIndex?: string | number;
-  validationResults?: { [key: string]: { isCorrect: boolean; error?: string } };
+  validationResults?: { [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] } };
 }
 
 interface InputData {
@@ -16,57 +16,28 @@ interface InputData {
 
 
 const TextWithInputs: React.FC<TextWithInputsProps> = ({text, exerciseIndex = 0, validationResults = {}}) => {
-  const [inputs, setInputs] = useState<InputData[]>([]);
+  const [textareaValue, setTextareaValue] = useState('');
   const [translationPanel, setTranslationPanel] = useState<{
     word: string;
     position: { x: number; y: number };
   } | null>(null);
 
-  // Парсим текст и находим все триггеры вида {{input}}
-  const parseText = (text: string) => {
-    const parts: (string | { type: 'input'; id: string })[] = [];
-    const regex = /\{\{input\}\}/g;
-    let lastIndex = 0;
-    let match;
-    let inputCounter = 0;
+  // Generate unique textarea ID for this exercise
+  const textareaId = `textarea_${exerciseIndex}`;
 
-    while ((match = regex.exec(text)) !== null) {
-      // Добавляем текст перед триггером
-      if (match.index > lastIndex) {
-        parts.push(text.slice(lastIndex, match.index));
-      }
-
-      // Добавляем маркер инпута с индексом упражнения
-      const inputId = `input_${exerciseIndex}_${inputCounter++}`;
-      parts.push({type: 'input', id: inputId});
-
-      // Инициализируем значение инпута если его еще нет
-      if (!inputs.find(input => input.id === inputId)) {
-        setInputs(prev => [...prev, {id: inputId, value: ''}]);
-      }
-
-      lastIndex = regex.lastIndex;
-    }
-
-    // Добавляем оставшийся текст
-    if (lastIndex < text.length) {
-      parts.push(text.slice(lastIndex));
-    }
-
-    return parts;
+  // Parse text and create display version (with gaps) and prefill version
+  const parseTextForDisplay = (text: string) => {
+    // Replace {{input}} with ___ for display
+    return text.replace(/\{\{input\}\}/g, '___');
   };
 
-  const handleInputChange = (id: string, value: string) => {
-    setInputs(prev =>
-      prev.map(input =>
-        input.id === id ? {...input, value} : input
-      )
-    );
+  const handlePrefillClick = () => {
+    const displayText = parseTextForDisplay(text);
+    setTextareaValue(displayText);
   };
 
-  const getInputValue = (id: string) => {
-    const input = inputs.find(input => input.id === id);
-    return input ? input.value : '';
+  const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setTextareaValue(event.target.value);
   };
 
   // NOTE: Handle double-click on text to extract and translate words
@@ -116,51 +87,91 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({text, exerciseIndex = 0,
     setTranslationPanel(null);
   };
 
-  const parsedParts = parseText(text);
+  const displayText = parseTextForDisplay(text);
+  
+  // Get validation result for this exercise
+  const validationResult = validationResults[textareaId];
+  const isValidated = !!validationResult;
+  const isCorrect = validationResult?.isCorrect;
+  const errorMessage = validationResult?.error;
+  const incorrectTranslations = validationResult?.incorrectTranslations;
 
   return (
     <>
-      <Stack  flexWrap="wrap" alignItems="center" gap={8}>
-        {parsedParts.map((part, index) => {
-          if (typeof part === 'string') {
-            return (
-              <span
-                key={index}
-                style={{whiteSpace: 'pre-wrap', cursor: 'text'}}
-                onDoubleClick={handleTextDoubleClick}
-              >
-                {part}
-              </span>
-            );
-          } else {
-            const isValidated = validationResults.hasOwnProperty(part.id);
-            const validationResult = validationResults[part.id];
-            const isCorrect = validationResult?.isCorrect;
-            const errorMessage = validationResult?.error;
+      <Stack flexDirection="column" gap={2} sx={{ width: '100%' }}>
+        {/* Display sentence with gaps */}
+        <Box
+          sx={{
+            fontSize: '1rem',
+            lineHeight: 1.5,
+            cursor: 'text',
+            whiteSpace: 'pre-wrap'
+          }}
+          onDoubleClick={handleTextDoubleClick}
+        >
+          {displayText}
+        </Box>
 
-            return (
-              <Stack flexDirection="column" alignItems="flex-start" key={index}>
-                <TextField
-                  id={part.id}
-                  size="small"
-                  variant="outlined"
-                  value={getInputValue(part.id)}
-                  onChange={(e) => handleInputChange(part.id, e.target.value)}
-                  className={`exercise-input ${isValidated ? (isCorrect ? 'exercise-input-correct' : 'exercise-input-incorrect') : ''}`}
-                />
-                {isValidated && !isCorrect && errorMessage && (
-                  <Box sx={{fontSize: '0.75rem',
-                    color: '#d32f2f',
-                    marginTop: 4,
-                    maxWidth: 200,
-                    wordWrap: 'break-word'}}>
-                    {errorMessage}
-                  </Box>
-                )}
-              </Stack>
-            );
-          }
-        })}
+        {/* Multiline textarea input */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <TextField
+              id={textareaId}
+              multiline
+              rows={3}
+              fullWidth
+              variant="outlined"
+              value={textareaValue}
+              onChange={handleTextareaChange}
+              placeholder="Введите ваш ответ здесь..."
+              className={`exercise-input ${isValidated ? (isCorrect ? 'exercise-input-correct' : 'exercise-input-incorrect') : ''}`}
+            />
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handlePrefillClick}
+              sx={{ 
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                minWidth: 'auto',
+                height: 'fit-content'
+              }}
+            >
+              Предзаполнить
+            </Button>
+          </Box>
+          
+          {/* Show error message if validation failed */}
+          {isValidated && !isCorrect && errorMessage && (
+            <Box sx={{
+              fontSize: '0.875rem',
+              color: '#d32f2f',
+              padding: 1,
+              backgroundColor: '#ffebee',
+              borderRadius: 1
+            }}>
+              {errorMessage}
+            </Box>
+          )}
+          
+          {/* Show incorrect translations if any */}
+          {isValidated && incorrectTranslations && incorrectTranslations.length > 0 && (
+            <Box sx={{
+              fontSize: '0.875rem',
+              color: '#d32f2f',
+              padding: 1,
+              backgroundColor: '#ffebee',
+              borderRadius: 1
+            }}>
+              <strong>Неправильные переводы:</strong>
+              <ul style={{ margin: '4px 0', paddingLeft: '20px' }}>
+                {incorrectTranslations.map((item, idx) => (
+                  <li key={idx}>{item}</li>
+                ))}
+              </ul>
+            </Box>
+          )}
+        </Box>
       </Stack>
 
       {translationPanel && (

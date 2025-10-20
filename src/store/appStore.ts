@@ -135,35 +135,51 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
         throw new Error('Block not found');
       }
 
+      // Build the answers text for validation - each exercise with user's answer
       const answersText = block.exercises.map((exercise, index) => {
-        const inputRegex = /\{\{input\}\}/g;
-        let inputCounter = 0;
-        const filledSentence = exercise.sentence.replace(inputRegex, () => {
-          const inputId = `input_${blockId}_${index}_${inputCounter++}`;
-          return userAnswers[inputId] || '___';
-        });
-        return `${index + 1}. ${filledSentence}`;
+        const textareaId = `textarea_${blockId}_${index}`;
+        const userAnswer = userAnswers[textareaId] || '';
+        return `${index + 1}. ${userAnswer}`;
       }).join('\n');
+      
       const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
       const data = await ApiService.generateText({prompt: validatePrompt});
 
-      const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
+      const results: { [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] } } = {};
 
       data.forEach((line: string, index: number) => {
-        const isCorrect = line.includes('CORRECT');
+        const textareaId = `textarea_${blockId}_${index}`;
+        
+        const isCorrect = line.includes('CORRECT') && !line.includes('ERROR') && !line.includes('TRANSLATION_ERRORS');
         let errorMessage: string | undefined;
+        let incorrectTranslations: string[] | undefined;
 
-        if (!isCorrect && line.includes('ERROR:')) {
-          errorMessage = line.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
+        // Parse grammar errors
+        if (line.includes('ERROR:')) {
+          const errorMatch = line.match(/ERROR:\s*([^|]+)/);
+          if (errorMatch) {
+            errorMessage = errorMatch[1].trim();
+          }
         }
 
-        let inputCounter = 0;
+        // Parse translation errors
+        if (line.includes('TRANSLATION_ERRORS:')) {
+          const translationMatch = line.match(/TRANSLATION_ERRORS:\s*(.+)/);
+          if (translationMatch) {
+            const translationErrorsStr = translationMatch[1].trim();
+            // Split by comma and clean up
+            incorrectTranslations = translationErrorsStr
+              .split(',')
+              .map(item => item.trim())
+              .filter(item => item.length > 0);
+          }
+        }
 
-        block.exercises[index]?.sentence.replace(/\{\{input\}\}/g, () => {
-          const inputId = `input_${blockId}_${index}_${inputCounter++}`;
-          results[inputId] = {isCorrect, error: errorMessage};
-          return '';
-        });
+        results[textareaId] = {
+          isCorrect,
+          error: errorMessage,
+          incorrectTranslations
+        };
       });
 
       set(state => ({

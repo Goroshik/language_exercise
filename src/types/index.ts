@@ -15,6 +15,7 @@ export type AppState = 'loading-topics' | 'topic-selection' | 'loading-exercises
 export interface ValidationResult {
   isCorrect: boolean;
   error?: string;
+  incorrectTranslations?: string[];
 }
 
 export interface ValidationResults {
