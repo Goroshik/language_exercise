@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -19,9 +19,10 @@ import {
   Divider,
   Alert,
   CircularProgress,
-  ListSubheader
+  ListSubheader,
+  Link
 } from '@mui/material';
-import {SelectChangeEvent} from '@mui/material/Select';
+import { SelectChangeEvent } from '@mui/material/Select';
 
 interface SettingsModalProps {
   open: boolean;
@@ -44,7 +45,7 @@ interface UserSettings {
   customSettings: Record<string, any>;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
@@ -70,50 +71,53 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
   // Available options
   const aiModels = [
     // Gemini models
-    {value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash (Experimental)', group: 'Gemini'},
-    {value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', group: 'Gemini'},
-    {value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', group: 'Gemini'},
-    {value: 'gemini-1.0-pro', label: 'Gemini 1.0 Pro', group: 'Gemini'},
-    
+    { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash (Experimental)', group: 'Gemini' },
+    { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', group: 'Gemini' },
+    { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', group: 'Gemini' },
+    { value: 'gemini-1.0-pro', label: 'Gemini 1.0 Pro', group: 'Gemini' },
+
     // OpenAI models
-    {value: 'gpt-4o', label: 'GPT-4o', group: 'OpenAI'},
-    {value: 'gpt-4o-mini', label: 'GPT-4o Mini', group: 'OpenAI'},
-    {value: 'gpt-4-turbo', label: 'GPT-4 Turbo', group: 'OpenAI'},
-    {value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', group: 'OpenAI'},
-    
+    { value: 'gpt-4o', label: 'GPT-4o', group: 'OpenAI' },
+    { value: 'gpt-4o-mini', label: 'GPT-4o Mini', group: 'OpenAI' },
+    { value: 'gpt-4-turbo', label: 'GPT-4 Turbo', group: 'OpenAI' },
+    { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', group: 'OpenAI' },
+
     // Claude models
-    {value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet', group: 'Claude'},
-    {value: 'claude-3-opus-20240229', label: 'Claude 3 Opus', group: 'Claude'},
-    {value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet', group: 'Claude'},
-    {value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku', group: 'Claude'}
+    { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet', group: 'Claude' },
+    { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus', group: 'Claude' },
+    { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet', group: 'Claude' },
+    { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku', group: 'Claude' }
   ];
 
   // Group models by provider for better UX
-  const groupedModels = aiModels.reduce((acc, model) => {
-    const group = model.group || 'Other';
-    if (!acc[group]) {
-      acc[group] = [];
-    }
-    acc[group].push(model);
-    return acc;
-  }, {} as Record<string, typeof aiModels>);
+  const groupedModels = aiModels.reduce(
+    (acc, model) => {
+      const group = model.group || 'Other';
+      if (!acc[group]) {
+        acc[group] = [];
+      }
+      acc[group].push(model);
+      return acc;
+    },
+    {} as Record<string, typeof aiModels>
+  );
 
   const themes = [
-    {value: 'light', label: 'Light'},
-    {value: 'dark', label: 'Dark'}
+    { value: 'light', label: 'Light' },
+    { value: 'dark', label: 'Dark' }
   ];
 
   const languages = [
-    {value: 'en', label: 'English'},
-    {value: 'ru', label: 'Русский'}
+    { value: 'en', label: 'English' },
+    { value: 'ru', label: 'Русский' }
   ];
 
   const translationLanguages = [
-    {value: 'RU', label: 'Russian'},
-    {value: 'EN', label: 'English'},
-    {value: 'DE', label: 'German'},
-    {value: 'FR', label: 'French'},
-    {value: 'ES', label: 'Spanish'}
+    { value: 'RU', label: 'Russian' },
+    { value: 'EN', label: 'English' },
+    { value: 'DE', label: 'German' },
+    { value: 'FR', label: 'French' },
+    { value: 'ES', label: 'Spanish' }
   ];
 
   // Load user data when modal opens
@@ -133,7 +137,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
         tokenData.forEach(token => {
           tokenMap[token.service] = token.token;
         });
-        setTokens(prev => ({...prev, ...tokenMap}));
+        setTokens(prev => ({ ...prev, ...tokenMap }));
       }
     } catch (error) {
       console.error('Failed to load tokens:', error);
@@ -145,7 +149,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
       const response = await fetch('/api/settings');
       if (response.ok) {
         const settingsData = await response.json();
-        setSettings(prev => ({...prev, ...settingsData}));
+        setSettings(prev => ({ ...prev, ...settingsData }));
       }
     } catch (error) {
       console.error('Failed to load settings:', error);
@@ -235,21 +239,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
       <DialogTitle>User Settings</DialogTitle>
 
       <DialogContent>
-        <Box sx={{borderBottom: 1, borderColor: 'divider', mb: 2}}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
           <Tabs value={activeTab} onChange={(_, newValue) => setActiveTab(newValue)}>
-            <Tab label="API Tokens"/>
-            <Tab label="Preferences"/>
+            <Tab label="API Tokens" />
+            <Tab label="Preferences" />
           </Tabs>
         </Box>
 
         {error && (
-          <Alert severity="error" sx={{mb: 2}}>
+          <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
 
         {success && (
-          <Alert severity="success" sx={{mb: 2}}>
+          <Alert severity="success" sx={{ mb: 2 }}>
             {success}
           </Alert>
         )}
@@ -261,7 +265,8 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
               API Tokens
             </Typography>
             <Typography variant="body2" color="textSecondary" paragraph>
-              Enter your API tokens for different services. These will be encrypted and stored securely.
+              Enter your API tokens for different services. These will be encrypted and stored
+              securely.
             </Typography>
 
             <TextField
@@ -271,9 +276,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
               margin="normal"
               type="password"
               value={tokens.gemini}
-              onChange={(e) => handleTokenChange('gemini', e.target.value)}
+              onChange={e => handleTokenChange('gemini', e.target.value)}
               placeholder="Enter your Gemini API token"
-              helperText="Get your token from Google AI Studio"
+              helperText={
+                <>
+                  Get your token from{' '}
+                  <Link
+                    href="https://aistudio.google.com/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Google AI Studio
+                  </Link>
+                </>
+              }
             />
 
             <TextField
@@ -283,9 +299,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
               margin="normal"
               type="password"
               value={tokens.openai}
-              onChange={(e) => handleTokenChange('openai', e.target.value)}
+              onChange={e => handleTokenChange('openai', e.target.value)}
               placeholder="Enter your OpenAI API token"
-              helperText="Get your token from OpenAI API dashboard"
+              helperText={
+                <>
+                  Get your token from{' '}
+                  <Link
+                    href="https://platform.openai.com/api-keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    OpenAI Platform
+                  </Link>
+                </>
+              }
             />
 
             <TextField
@@ -295,9 +322,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
               margin="normal"
               type="password"
               value={tokens.anthropic}
-              onChange={(e) => handleTokenChange('anthropic', e.target.value)}
+              onChange={e => handleTokenChange('anthropic', e.target.value)}
               placeholder="Enter your Anthropic API token"
-              helperText="Get your token from Anthropic Console"
+              helperText={
+                <>
+                  Get your token from{' '}
+                  <Link
+                    href="https://console.anthropic.com/settings/keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Anthropic Console
+                  </Link>
+                </>
+              }
             />
 
             <TextField
@@ -307,9 +345,20 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
               margin="normal"
               type="password"
               value={tokens.deepl}
-              onChange={(e) => handleTokenChange('deepl', e.target.value)}
+              onChange={e => handleTokenChange('deepl', e.target.value)}
               placeholder="Enter your DeepL API token"
-              helperText="Get your token from DeepL API dashboard"
+              helperText={
+                <>
+                  Get your token from{' '}
+                  <Link
+                    href="https://www.deepl.com/en/your-account/keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    DeepL Account
+                  </Link>
+                </>
+              }
             />
           </Box>
         )}
@@ -327,7 +376,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
                 value={settings.theme}
                 onChange={(e: SelectChangeEvent) => handleSettingChange('theme', e.target.value)}
               >
-                {themes.map((theme) => (
+                {themes.map(theme => (
                   <MenuItem key={theme.value} value={theme.value}>
                     {theme.label}
                   </MenuItem>
@@ -343,7 +392,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
               >
                 {Object.entries(groupedModels).map(([groupName, models]) => [
                   <ListSubheader key={groupName}>{groupName}</ListSubheader>,
-                  ...models.map((model) => (
+                  ...models.map(model => (
                     <MenuItem key={model.value} value={model.value} sx={{ pl: 2 }}>
                       {model.label}
                     </MenuItem>
@@ -358,7 +407,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
                 value={settings.language}
                 onChange={(e: SelectChangeEvent) => handleSettingChange('language', e.target.value)}
               >
-                {languages.map((lang) => (
+                {languages.map(lang => (
                   <MenuItem key={lang.value} value={lang.value}>
                     {lang.label}
                   </MenuItem>
@@ -370,9 +419,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
               <InputLabel>Translation Target Language</InputLabel>
               <Select
                 value={settings.translationLang}
-                onChange={(e: SelectChangeEvent) => handleSettingChange('translationLang', e.target.value)}
+                onChange={(e: SelectChangeEvent) =>
+                  handleSettingChange('translationLang', e.target.value)
+                }
               >
-                {translationLanguages.map((lang) => (
+                {translationLanguages.map(lang => (
                   <MenuItem key={lang.value} value={lang.value}>
                     {lang.label}
                   </MenuItem>
@@ -391,7 +442,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({open, onClose}) => {
           onClick={handleSave}
           variant="contained"
           disabled={loading}
-          startIcon={loading ? <CircularProgress size={20}/> : null}
+          startIcon={loading ? <CircularProgress size={20} /> : null}
         >
           {loading ? 'Saving...' : 'Save'}
         </Button>
