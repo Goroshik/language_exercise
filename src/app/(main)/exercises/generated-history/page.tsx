@@ -1,8 +1,9 @@
 'use client'
 
 import React, {useEffect, useState} from 'react';
-import {Box, Typography, TextField, Button, Stack, Chip, Autocomplete} from '@mui/material';
+import {Box, Typography, TextField, Button, Stack, Chip, Autocomplete, MenuItem} from '@mui/material';
 import LearnModeText from 'src/app/(main)/exercises/[path]/LearnModeText';
+import {useDebounce} from 'src/hooks/useDebounce';
 
 interface HistoryItem {
   id: string;
@@ -19,20 +20,55 @@ interface WordItem {
   translate: string;
 }
 
+interface LanguageItem {
+  id: string;
+  code: string;
+  name: string;
+  nativeName: string;
+}
+
+interface LevelItem {
+  value: string;
+  label: string;
+}
+
 export default function GeneratedHistoryPage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [language, setLanguage] = useState('');
   const [level, setLevel] = useState('');
   const [selectedWords, setSelectedWords] = useState<WordItem[]>([]);
   const [words, setWords] = useState<WordItem[]>([]);
+  const [wordSearchInput, setWordSearchInput] = useState('');
+  const [wordsLoading, setWordsLoading] = useState(false);
   const [searchText, setSearchText] = useState('');
   const [loading, setLoading] = useState(false);
+  const [languages, setLanguages] = useState<LanguageItem[]>([]);
+  const [levels, setLevels] = useState<LevelItem[]>([]);
 
-  // Получение всех слов пользователя
-  const fetchWords = async () => {
-    const res = await fetch('/api/dictionary/words');
+  // Debounce word search input
+  const debouncedWordSearch = useDebounce(wordSearchInput, 300);
+
+  // Получение языков
+  const fetchLanguages = async () => {
+    const res = await fetch('/api/languages');
     const data = await res.json();
-    setWords(data.data || []);
+    setLanguages(data.data || []);
+  };
+
+  // Получение уровней
+  const fetchLevels = async () => {
+    const res = await fetch('/api/levels');
+    const data = await res.json();
+    setLevels(data.data || []);
+  };
+
+  // Получение слов с поиском
+  const fetchWords = async (query: string) => {
+    setWordsLoading(true);
+    const res = await fetch(`/api/dictionary/words?query=${encodeURIComponent(query)}`);
+    const data = await res.json();
+    setWords(data.words || []);
+    setWordsLoading(false);
   };
 
   // Получение истории
@@ -50,13 +86,27 @@ export default function GeneratedHistoryPage() {
   };
 
   useEffect(() => {
-    fetchWords();
+    fetchLanguages();
+    fetchLevels();
     fetchHistory();
     // eslint-disable-next-line
   }, []);
 
+  // Fetch words when debounced search input changes
+  useEffect(() => {
+    if (debouncedWordSearch.length >= 2) {
+      fetchWords(debouncedWordSearch);
+    } else if (debouncedWordSearch.length === 0) {
+      setWords([]);
+    }
+  }, [debouncedWordSearch]);
+
   // Получить текст и перевод слов по id
-  const getWordsByIds = (ids: string[]) => words.filter(w => ids.includes(w.id));
+  const getWordsByIds = (ids: string[]) => {
+    // First try to find in selected words
+    const foundWords = selectedWords.filter(w => ids.includes(w.id));
+    return foundWords;
+  };
 
   return (
     <Box sx={{p: 3}}>
@@ -74,17 +124,59 @@ export default function GeneratedHistoryPage() {
             placeholder="Введите текст для поиска в предложениях"
           />
         </Stack>
-        <Stack direction="row" spacing={2}>
-          <TextField label="Язык" value={language} onChange={e => setLanguage(e.target.value)} size="small"/>
-          <TextField label="Уровень" value={level} onChange={e => setLevel(e.target.value)} size="small"/>
+        <Stack direction="row" spacing={2} flexWrap="wrap">
+          <TextField
+            select
+            label="Язык"
+            value={language}
+            onChange={e => setLanguage(e.target.value)}
+            size="small"
+            sx={{minWidth: 150}}
+          >
+            <MenuItem value="">
+              <em>Все языки</em>
+            </MenuItem>
+            {languages.map(lang => (
+              <MenuItem key={lang.id} value={lang.name}>
+                {lang.nativeName}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select
+            label="Уровень"
+            value={level}
+            onChange={e => setLevel(e.target.value)}
+            size="small"
+            sx={{minWidth: 200}}
+          >
+            <MenuItem value="">
+              <em>Все уровни</em>
+            </MenuItem>
+            {levels.map(lvl => (
+              <MenuItem key={lvl.value} value={lvl.value}>
+                {lvl.label}
+              </MenuItem>
+            ))}
+          </TextField>
           <Autocomplete
             multiple
             options={words}
             getOptionLabel={option => `${option.word} (${option.translate})`}
             value={selectedWords}
             onChange={(_, value) => setSelectedWords(value)}
-            renderInput={params => <TextField {...params} label="Слова" size="small"/>}
-            sx={{minWidth: 250}}
+            onInputChange={(_, value) => setWordSearchInput(value)}
+            loading={wordsLoading}
+            noOptionsText={wordSearchInput.length < 2 ? "Введите минимум 2 символа" : "Слова не найдены"}
+            renderInput={params => (
+              <TextField
+                {...params}
+                label="Слова"
+                size="small"
+                placeholder="Начните вводить слово..."
+              />
+            )}
+            sx={{minWidth: 300, flex: 1}}
           />
           <Button variant="contained" onClick={fetchHistory} disabled={loading}>
             Поиск
