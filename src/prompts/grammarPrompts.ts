@@ -31,11 +31,22 @@ She {{input}} a beautiful dress yesterday. (buy)`,
 
 ${answersText}
 
-For each sentence, respond with either "CORRECT" if grammatically correct, or "ERROR: [explanation in Russian]" if there are mistakes.
+For each sentence:
+1. Check if it's grammatically correct
+2. Check if Russian translations (if provided in the sentence) are accurate
+
+Response format:
+- If everything is correct: "CORRECT"
+- If there are grammar errors: "ERROR: [explanation in Russian]"
+- If there are incorrect translations: "TRANSLATION_ERRORS: word1 - правильный перевод, word2 - правильный перевод"
+
+You can combine both errors if needed:
+"ERROR: [grammar explanation] | TRANSLATION_ERRORS: word1 - правильный перевод"
 
 Format your response as:
 1. CORRECT
 2. ERROR: объяснение ошибки
+3. TRANSLATION_ERRORS: word - правильный перевод
 etc.`,
 
   generateTeacherSentences: (topic: string, level: string, selectedWords?: string[]) => `You are helping create English learning materials for Russian speakers. Generate 10 complete English sentences for a teacher to give to students for practicing the topic: "${topic}" at ${level} proficiency level.

@@ -28,7 +28,7 @@ interface ExerciseBlockProps {
     isChecking: boolean;
   };
   blockIndex: number;
-  validationResults: { [key: string]: { isCorrect: boolean; error?: string } };
+  validationResults: { [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] } };
   onCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => void;
   mode?: 'learn' | 'train';
 }
@@ -41,10 +41,11 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
                                                        mode = 'train'
                                                      }) => {
   const handleCheckAnswers = () => {
-    const inputs = document.querySelectorAll(`input[id^="input_${block.id}_"]`);
+    // Collect textarea values instead of individual inputs
+    const textareas = document.querySelectorAll(`textarea[id^="textarea_${block.id}_"]`);
     const userAnswers: { [key: string]: string } = {};
-    inputs.forEach(input => {
-      userAnswers[input.id] = (input as HTMLInputElement).value;
+    textareas.forEach(textarea => {
+      userAnswers[textarea.id] = (textarea as HTMLTextAreaElement).value;
     });
     onCheckAnswers(block.id, userAnswers);
   };
