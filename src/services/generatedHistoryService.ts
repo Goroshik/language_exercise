@@ -11,6 +11,6 @@ export async function getGeneratedHistoryService(
 ) {
   return sentenceHistoryRepository.getHistory({
     ownerId: userId,
-    ...filters,
+    ...filters
   });
 }

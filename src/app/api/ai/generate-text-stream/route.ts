@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 import { createEventStream, getTextStream } from 'src/services/generateTextStreamService';
 import { getUserIdFromRequest } from 'src/utils/auth';
@@ -17,7 +16,7 @@ export async function POST(request: NextRequest) {
       headers: {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
+        Connection: 'keep-alive',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST',
         'Access-Control-Allow-Headers': 'Content-Type'
@@ -28,7 +27,10 @@ export async function POST(request: NextRequest) {
       return error.response;
     }
     if (error instanceof Error && error.message.includes('No token found')) {
-      return NextResponse.json({ error: 'AI service token not configured for user' }, { status: 402 });
+      return NextResponse.json(
+        { error: 'AI service token not configured for user' },
+        { status: 402 }
+      );
     }
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }

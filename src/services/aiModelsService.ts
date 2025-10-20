@@ -13,27 +13,25 @@ export interface AvailableModelsResponse {
 export async function getAvailableModels(userId: string): Promise<AvailableModelsResponse> {
   // Get all user tokens
   const tokens = await userTokenRepository.findByUser(userId);
-  
+
   // Extract services that have tokens
   const availableServices = new Set(tokens.map(token => token.service));
-  
+
   // Map service names to providers
   const providerMap: Record<string, 'gemini' | 'openai' | 'anthropic'> = {
     gemini: 'gemini',
     openai: 'openai',
     anthropic: 'anthropic'
   };
-  
+
   // Get available providers based on tokens
   const availableProviders = Object.entries(providerMap)
     .filter(([service]) => availableServices.has(service))
     .map(([, provider]) => provider);
-  
+
   // Get models for available providers
-  const availableModels = AI_MODELS.filter(model => 
-    availableProviders.includes(model.provider)
-  );
-  
+  const availableModels = AI_MODELS.filter(model => availableProviders.includes(model.provider));
+
   return {
     providers: availableProviders,
     models: availableModels,

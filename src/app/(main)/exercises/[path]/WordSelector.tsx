@@ -1,6 +1,15 @@
-import React, {useState, useEffect} from 'react';
-import {Box, Checkbox, Chip, FormControlLabel, Paper, Stack, TextField, Typography} from '@mui/material';
-import {DictionaryWord} from 'src/types';
+import React, { useState, useEffect } from 'react';
+import {
+  Box,
+  Checkbox,
+  Chip,
+  FormControlLabel,
+  Paper,
+  Stack,
+  TextField,
+  Typography
+} from '@mui/material';
+import { DictionaryWord } from 'src/types';
 
 interface WordSelectorProps {
   selectedWords: DictionaryWord[];
@@ -9,10 +18,10 @@ interface WordSelectorProps {
 }
 
 const WordSelector: React.FC<WordSelectorProps> = ({
-                                                     selectedWords,
-                                                     onWordsChange,
-                                                     maxWords = 5
-                                                   }) => {
+  selectedWords,
+  onWordsChange,
+  maxWords = 5
+}) => {
   const [filterText, setFilterText] = useState('');
   const [words, setWords] = useState<DictionaryWord[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
@@ -48,17 +57,17 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   const getFilteredWords = (searchQuery: string = '') => {
     return words.filter(word => {
       // Filter by tags
-      const matchesTags = selectedTags.length === 0
+      const matchesTags = selectedTags.length === 0;
 
       // Filter by search query
-      const matchesSearch = searchQuery === '' ||
+      const matchesSearch =
+        searchQuery === '' ||
         word.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
         word.translate.toLowerCase().includes(searchQuery.toLowerCase());
 
       return matchesTags && matchesSearch;
     });
   };
-
 
   const handleWordToggle = (word: DictionaryWord) => {
     const currentIndex = selectedWords.indexOf(word);
@@ -107,14 +116,14 @@ const WordSelector: React.FC<WordSelectorProps> = ({
         backgroundColor: '#fafafa'
       }}
     >
-      <Typography variant="h6" sx={{mb: 2}}>
+      <Typography variant="h6" sx={{ mb: 2 }}>
         Выберите слова ({selectedWords.length}/{maxWords})
       </Typography>
 
       {/* NOTE: Tag filtering section */}
       {allTags.length > 0 && (
-        <Box sx={{mb: 2}}>
-          <Typography variant="subtitle2" sx={{mb: 1, color: 'text.secondary'}}>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
             Фильтр по тегам:
           </Typography>
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
@@ -123,14 +132,12 @@ const WordSelector: React.FC<WordSelectorProps> = ({
                 key={tag}
                 label={tag}
                 onClick={() => handleTagToggle(tag)}
-                color={selectedTags.includes(tag) ? "primary" : "default"}
-                variant={selectedTags.includes(tag) ? "filled" : "outlined"}
+                color={selectedTags.includes(tag) ? 'primary' : 'default'}
+                variant={selectedTags.includes(tag) ? 'filled' : 'outlined'}
                 size="small"
                 sx={{
                   '&:hover': {
-                    backgroundColor: selectedTags.includes(tag)
-                      ? 'primary.dark'
-                      : 'action.hover'
+                    backgroundColor: selectedTags.includes(tag) ? 'primary.dark' : 'action.hover'
                   }
                 }}
               />
@@ -142,7 +149,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
                 variant="outlined"
                 size="small"
                 color="secondary"
-                sx={{ml: 1}}
+                sx={{ ml: 1 }}
               />
             )}
           </Stack>
@@ -154,12 +161,12 @@ const WordSelector: React.FC<WordSelectorProps> = ({
         size="small"
         placeholder="Поиск слов..."
         value={filterText}
-        onChange={(e) => setFilterText(e.target.value)}
-        sx={{mb: 2}}
+        onChange={e => setFilterText(e.target.value)}
+        sx={{ mb: 2 }}
       />
 
       {/* NOTE: Display filtered dictionary words */}
-      <Box sx={{display: 'flex', flexDirection: 'column', gap: 0}}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
         {filteredWords.map((dictionaryWord, index) => (
           <Box key={dictionaryWord.id}>
             <FormControlLabel
@@ -172,7 +179,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
                 />
               }
               label={
-                <Box sx={{display: 'flex', flexDirection: 'column', py: 1}}>
+                <Box sx={{ display: 'flex', flexDirection: 'column', py: 1 }}>
                   <Typography
                     variant="body1"
                     sx={{
@@ -223,7 +230,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
 
       {/* NOTE: Show message when no words found */}
       {filteredWords.length === 0 && isInitialized && (
-        <Typography variant="body2" color="text.secondary" sx={{mt: 2}}>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
           {words.length === 0 ? 'Словарь пуст' : 'Слова не найдены'}
         </Typography>
       )}

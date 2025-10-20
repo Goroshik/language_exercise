@@ -1,4 +1,4 @@
-import {PrismaClient} from '../generated/prisma';
+import { PrismaClient } from '../generated/prisma';
 
 export class UserRepository {
   private client: PrismaClient['user'];
@@ -9,7 +9,7 @@ export class UserRepository {
 
   async getUserByEmail(email: string) {
     return this.client.findUnique({
-      where: {email},
+      where: { email }
     });
   }
 }

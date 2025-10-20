@@ -17,16 +17,12 @@ export async function POST(request: NextRequest) {
     }
     if (error instanceof Error && error.message.includes('No token found')) {
       return NextResponse.json(
-        {error: 'AI service token not configured for user'},
-        {status: 402}
+        { error: 'AI service token not configured for user' },
+        { status: 402 }
       );
     }
-    return NextResponse.json(
-      {error: 'Internal server error'},
-      {status: 500}
-    );
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
 
 import { parseWordsFromTextService } from 'src/services/parseWordsFromTextService';
-

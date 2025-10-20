@@ -1,11 +1,25 @@
-"use client"
+'use client';
 
-import React, {useEffect, useState} from 'react';
-import {Add as AddIcon, FileUpload as ImportIcon, Search as SearchIcon} from '@mui/icons-material';
-import {Box, Button, Container, Paper, Stack, Typography, Pagination, TextField, InputAdornment} from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import {
+  Add as AddIcon,
+  FileUpload as ImportIcon,
+  Search as SearchIcon
+} from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Container,
+  Paper,
+  Stack,
+  Typography,
+  Pagination,
+  TextField,
+  InputAdornment
+} from '@mui/material';
 
-import {DictionaryWord} from 'src/types';
-import ImportWordsModal from "src/components/ImportWordsModal";
+import { DictionaryWord } from 'src/types';
+import ImportWordsModal from 'src/components/ImportWordsModal';
 
 import WordCard from './WordCard';
 import AddWordModal from './AddWordModal';
@@ -52,9 +66,8 @@ const DictionaryPage: React.FC = () => {
   const endIndex = startIndex + WORDS_PER_PAGE;
   const paginatedWords = words.slice(startIndex, endIndex);
 
-
   return (
-    <Container maxWidth="lg" sx={{mt: 4, mb: 4}}>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
           Словарь
@@ -62,7 +75,7 @@ const DictionaryPage: React.FC = () => {
         <Box display="flex" gap={2}>
           <Button
             variant="outlined"
-            startIcon={<ImportIcon/>}
+            startIcon={<ImportIcon />}
             onClick={() => setIsImportModalOpen(true)}
             size="large"
           >
@@ -70,7 +83,7 @@ const DictionaryPage: React.FC = () => {
           </Button>
           <Button
             variant="contained"
-            startIcon={<AddIcon/>}
+            startIcon={<AddIcon />}
             onClick={() => setIsAddModalOpen(true)}
             size="large"
           >
@@ -84,19 +97,19 @@ const DictionaryPage: React.FC = () => {
           fullWidth
           placeholder="Поиск по слову или переводу..."
           value={searchQuery}
-          onChange={(e) => handleSearchChange(e.target.value)}
+          onChange={e => handleSearchChange(e.target.value)}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
                 <SearchIcon />
               </InputAdornment>
-            ),
+            )
           }}
         />
       </Box>
 
       {words.length === 0 ? (
-        <Paper sx={{p: 4, textAlign: 'center'}}>
+        <Paper sx={{ p: 4, textAlign: 'center' }}>
           <Typography variant="h6" color="text.secondary" gutterBottom>
             Слова не найдены
           </Typography>
@@ -111,11 +124,11 @@ const DictionaryPage: React.FC = () => {
               '& > *': {
                 minWidth: 250,
                 flex: '1 1 calc(33.333% - 16px)',
-                maxWidth: 'calc(33.333% - 16px)',
-              },
+                maxWidth: 'calc(33.333% - 16px)'
+              }
             }}
           >
-            {paginatedWords.map((word) => (
+            {paginatedWords.map(word => (
               <WordCard
                 key={word.id}
                 word={word}
@@ -147,10 +160,7 @@ const DictionaryPage: React.FC = () => {
         onWordAdded={loadWords}
       />
 
-      <ImportWordsModal
-        open={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-      />
+      <ImportWordsModal open={isImportModalOpen} onClose={() => setIsImportModalOpen(false)} />
     </Container>
   );
 };

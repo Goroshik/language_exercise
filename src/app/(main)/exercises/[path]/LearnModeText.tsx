@@ -1,5 +1,9 @@
 import React, { useState } from 'react';
-import { LearnModeTextBold, LearnModeTextSpan, LearnModeTextTypography } from './LearnModeText.styled';
+import {
+  LearnModeTextBold,
+  LearnModeTextSpan,
+  LearnModeTextTypography
+} from './LearnModeText.styled';
 
 import WordTranslationPanel from 'src/components/WordTranslationPanel';
 
@@ -95,19 +99,13 @@ const LearnModeText: React.FC<LearnModeTextProps> = ({ text }) => {
         {parsedParts.map((part, index) => {
           if (typeof part === 'string') {
             return (
-              <LearnModeTextSpan
-                key={index}
-                onDoubleClick={handleTextDoubleClick}
-              >
+              <LearnModeTextSpan key={index} onDoubleClick={handleTextDoubleClick}>
                 {part}
               </LearnModeTextSpan>
             );
           } else {
             return (
-              <LearnModeTextBold
-                key={index}
-                onDoubleClick={handleTextDoubleClick}
-              >
+              <LearnModeTextBold key={index} onDoubleClick={handleTextDoubleClick}>
                 {part.text}
               </LearnModeTextBold>
             );

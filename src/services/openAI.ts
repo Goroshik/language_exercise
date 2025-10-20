@@ -17,7 +17,7 @@ export class OpenAIService extends BaseAIService {
       const openai = new OpenAI({ apiKey: token });
 
       // Get user's selected model from settings, default to gpt-4o-mini for parsing
-      const model = await this.getUserModel(userId) || 'gpt-4o-mini';
+      const model = (await this.getUserModel(userId)) || 'gpt-4o-mini';
 
       console.log(`Using OpenAI model ${model} for parsing words`);
 
@@ -36,14 +36,15 @@ ${text}`;
         messages: [
           {
             role: 'system',
-            content: 'You are a helpful assistant that parses text and extracts word-translation pairs. Always respond with valid JSON only.'
+            content:
+              'You are a helpful assistant that parses text and extracts word-translation pairs. Always respond with valid JSON only.'
           },
           {
             role: 'user',
             content: prompt
           }
         ],
-        temperature: 0.3,
+        temperature: 0.3
       });
 
       const responseText = response.choices[0]?.message?.content || '';
@@ -80,7 +81,7 @@ ${text}`;
       const openai = new OpenAI({ apiKey: token });
 
       // Get user's selected model from settings
-      const model = await this.getUserModel(userId) || 'gpt-4o-mini';
+      const model = (await this.getUserModel(userId)) || 'gpt-4o-mini';
 
       console.log(`Using OpenAI model ${model} for text generation`);
 
@@ -92,7 +93,7 @@ ${text}`;
             content: prompt
           }
         ],
-        temperature: 0.7,
+        temperature: 0.7
       });
 
       const text = response.choices[0]?.message?.content || '';
@@ -118,7 +119,7 @@ ${text}`;
     const openai = new OpenAI({ apiKey: token });
 
     // Get user's selected model from settings
-    const model = await this.getUserModel(userId) || 'gpt-4o-mini';
+    const model = (await this.getUserModel(userId)) || 'gpt-4o-mini';
 
     console.log(`Using OpenAI model ${model} for streaming text generation`);
 
@@ -131,7 +132,7 @@ ${text}`;
         }
       ],
       temperature: 0.7,
-      stream: true,
+      stream: true
     });
 
     async function* textGenerator() {
@@ -187,4 +188,3 @@ ${text}`;
 }
 
 export default OpenAIService;
-

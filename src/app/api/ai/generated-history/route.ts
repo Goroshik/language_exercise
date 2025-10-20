@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
       language,
       level,
       usedWordIds,
-      searchText,
+      searchText
     });
 
     return NextResponse.json({ success: true, data: history });

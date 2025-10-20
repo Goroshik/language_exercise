@@ -1,4 +1,4 @@
-import {NextRequest, NextResponse} from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 import {
   deleteUserSettingsService,
@@ -6,9 +6,8 @@ import {
   updateUserSettingsService,
   upsertUserSettingsService
 } from 'src/services/userSettingsService';
-import {getUserIdFromRequest} from 'src/utils/auth';
-import {safeJson} from 'src/utils/jsonWrapper';
-
+import { getUserIdFromRequest } from 'src/utils/auth';
+import { safeJson } from 'src/utils/jsonWrapper';
 
 // NOTE: Type definitions for API requests
 interface SettingsRequest {
@@ -19,7 +18,6 @@ interface SettingsRequest {
   customSettings: Record<string, any>;
 }
 
-
 // GET /api/settings - Get user settings
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +25,7 @@ export async function GET(request: NextRequest) {
     const userSettings = await getUserSettingsService(userId);
     return NextResponse.json(userSettings);
   } catch (error) {
-    return NextResponse.json({error: 'Failed to fetch user settings'}, {status: 500});
+    return NextResponse.json({ error: 'Failed to fetch user settings' }, { status: 500 });
   }
 }
 
@@ -40,7 +38,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error in POST /api/settings:', error);
-    return NextResponse.json({error: 'Failed to save user settings'}, {status: 500});
+    return NextResponse.json({ error: 'Failed to save user settings' }, { status: 500 });
   }
 }
 
@@ -49,11 +47,11 @@ export async function PATCH(request: NextRequest) {
   try {
     const userId = getUserIdFromRequest(request);
     const body = await safeJson(request);
-    const updateData = {...body, updatedAt: new Date()};
+    const updateData = { ...body, updatedAt: new Date() };
     const userSettings = await updateUserSettingsService(userId, updateData);
     return NextResponse.json(userSettings);
   } catch (error) {
-    return NextResponse.json({error: 'Failed to update user settings'}, {status: 500});
+    return NextResponse.json({ error: 'Failed to update user settings' }, { status: 500 });
   }
 }
 
@@ -64,6 +62,6 @@ export async function DELETE(request: NextRequest) {
     const result = await deleteUserSettingsService(userId);
     return NextResponse.json(result);
   } catch (error) {
-    return NextResponse.json({error: 'Failed to reset user settings'}, {status: 500});
+    return NextResponse.json({ error: 'Failed to reset user settings' }, { status: 500 });
   }
 }

@@ -37,7 +37,7 @@ export class GoogleTranslateService {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           q: text,
@@ -104,7 +104,7 @@ export class GoogleTranslateService {
       const response = await fetch(url, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           q: validTexts,
@@ -136,7 +136,8 @@ export class GoogleTranslateService {
       }
     } catch (error) {
       console.error('Google Translate API Batch Error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Unknown translation error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown translation error occurred';
       return texts.map(() => ({ text: '', error: errorMessage }));
     }
   }

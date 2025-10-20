@@ -1,5 +1,5 @@
-import {PrismaClient} from '../generated/prisma';
-import {encrypt, decrypt} from '../utils/crypto';
+import { PrismaClient } from '../generated/prisma';
+import { encrypt, decrypt } from '../utils/crypto';
 
 export class UserTokenRepository {
   private client: PrismaClient['userToken'];
@@ -14,31 +14,30 @@ export class UserTokenRepository {
       data: {
         userId: data.userId,
         service: data.service,
-        encryptedToken,
-      },
+        encryptedToken
+      }
     });
   }
 
-
   async findByUserAndService(userId: string, service: string) {
     const token = await this.client.findUnique({
-      where: {userId_service: {userId, service}},
+      where: { userId_service: { userId, service } }
     });
 
-    console.log('token', userId, service, token)
+    console.log('token', userId, service, token);
 
     if (token) {
-      const {encryptedToken, ...data} = token
+      const { encryptedToken, ...data } = token;
       try {
         return {
           ...data,
-          token: decrypt(token.encryptedToken),
+          token: decrypt(token.encryptedToken)
         };
       } catch (err) {
         return {
           ...token,
           token: null,
-          error: err instanceof Error ? err.message : String(err),
+          error: err instanceof Error ? err.message : String(err)
         };
       }
     }
@@ -48,25 +47,24 @@ export class UserTokenRepository {
 
   async findByUser(userId: string) {
     const tokens = await this.client.findMany({
-      where: {userId},
+      where: { userId }
     });
     return tokens.map(token => ({
       ...token,
-      token: decrypt(token.encryptedToken),
+      token: decrypt(token.encryptedToken)
     }));
   }
 
   async update(id: string, token: string) {
     const encryptedToken = encrypt(token);
     return this.client.update({
-      where: {id},
-      data: {encryptedToken},
+      where: { id },
+      data: { encryptedToken }
     });
   }
 
   async upsert(userId: string, service: string, token: string) {
     const encryptedToken = encrypt(token);
-
 
     return this.client.upsert({
       where: {
@@ -83,13 +81,11 @@ export class UserTokenRepository {
       update: {
         encryptedToken
       }
-    })
-
-
+    });
   }
 
   async delete(id: string) {
-    return this.client.delete({where: {id}});
+    return this.client.delete({ where: { id } });
   }
 
   async deleteByUserAndService(userId: string, service: string) {

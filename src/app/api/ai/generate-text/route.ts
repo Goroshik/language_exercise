@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
   try {
     const userId = getUserIdFromRequest(request);
     const body = await safeJson(request);
-    
+
     const result = await processGenerateTextRequest(body, userId);
 
     return NextResponse.json(result.body, { status: result.status });

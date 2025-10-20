@@ -17,7 +17,7 @@ export class ClaudeAIService extends BaseAIService {
       const anthropic = new Anthropic({ apiKey: token });
 
       // Get user's selected model from settings, default to claude-3-haiku-20240307 for parsing
-      const model = await this.getUserModel(userId) || 'claude-3-haiku-20240307';
+      const model = (await this.getUserModel(userId)) || 'claude-3-haiku-20240307';
 
       console.log(`Using Claude model ${model} for parsing words`);
 
@@ -77,7 +77,7 @@ ${text}`;
       const anthropic = new Anthropic({ apiKey: token });
 
       // Get user's selected model from settings
-      const model = await this.getUserModel(userId) || 'claude-3-5-sonnet-20241022';
+      const model = (await this.getUserModel(userId)) || 'claude-3-5-sonnet-20241022';
 
       console.log(`Using Claude model ${model} for text generation`);
 
@@ -116,7 +116,7 @@ ${text}`;
     const anthropic = new Anthropic({ apiKey: token });
 
     // Get user's selected model from settings
-    const model = await this.getUserModel(userId) || 'claude-3-5-sonnet-20241022';
+    const model = (await this.getUserModel(userId)) || 'claude-3-5-sonnet-20241022';
 
     console.log(`Using Claude model ${model} for streaming text generation`);
 

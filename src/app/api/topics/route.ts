@@ -6,6 +6,9 @@ export async function GET() {
     const topics = getTopicsService();
     return NextResponse.json({ success: true, topics });
   } catch (error) {
-    return NextResponse.json({ success: false, error: 'Failed to load tags', tags: [] }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: 'Failed to load tags', tags: [] },
+      { status: 500 }
+    );
   }
 }

@@ -16,7 +16,7 @@ export const initializeStores = (initialState: InitialState = {}) => {
     const createAppStore = useAppStore.getState();
 
     stores = {
-      app: createStore<AppStore>()((set) => ({
+      app: createStore<AppStore>()(set => ({
         ...createAppStore,
         ...(initialState.app || {})
       }))

@@ -1,8 +1,8 @@
 import Joi from 'joi';
-import {GRAMMAR_PROMPTS} from 'src/prompts/grammarPrompts';
-import {sentenceHistoryRepository} from 'src/repository/client';
-import {AIFactory} from 'src/services/aiFactory';
-import {DictionaryWord} from 'src/types';
+import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
+import { sentenceHistoryRepository } from 'src/repository/client';
+import { AIFactory } from 'src/services/aiFactory';
+import { DictionaryWord } from 'src/types';
 
 export type Mode = 'learn' | 'exercise' | string;
 
@@ -21,10 +21,14 @@ const schema = Joi.object({
   topic: Joi.string().required(),
   language: Joi.string().required(),
   level: Joi.string().required(),
-  selectedWords: Joi.array().items(Joi.object({
-    id: Joi.string().allow(null),
-    word: Joi.string().allow('', null),
-  })).optional(),
+  selectedWords: Joi.array()
+    .items(
+      Joi.object({
+        id: Joi.string().allow(null),
+        word: Joi.string().allow('', null)
+      })
+    )
+    .optional()
 });
 
 function formatAIResponse(text: string): string[] {
@@ -35,26 +39,30 @@ function formatAIResponse(text: string): string[] {
     .map(line => line.replace(/^[\d\)\.\-\*\s]+/, ''));
 }
 
-export async function processGenerateTextRequest(rawBody: unknown, userId: string): Promise<ServiceResponse> {
+export async function processGenerateTextRequest(
+  rawBody: unknown,
+  userId: string
+): Promise<ServiceResponse> {
   try {
-    const validation = schema.validate(rawBody, {abortEarly: false, stripUnknown: true});
-    const {error, value} = validation as { error?: any; value: any };
+    const validation = schema.validate(rawBody, { abortEarly: false, stripUnknown: true });
+    const { error, value } = validation as { error?: any; value: any };
     if (error) {
       const messages: string[] = (error.details || []).map((d: any) => String(d.message));
-      return {status: 400, body: {error: messages.join('; ')}};
+      return { status: 400, body: { error: messages.join('; ') } };
     }
 
     const body = value as GenerateTextRequest;
-    const {mode, topic, language, level, selectedWords = []} = body;
+    const { mode, topic, language, level, selectedWords = [] } = body;
 
     const words = selectedWords.map(w => w.word || '');
-    const prompt = mode === 'learn'
-      ? GRAMMAR_PROMPTS.generateTeacherSentences(topic, level, words)
-      : GRAMMAR_PROMPTS.generateExercises(topic, words);
+    const prompt =
+      mode === 'learn'
+        ? GRAMMAR_PROMPTS.generateTeacherSentences(topic, level, words)
+        : GRAMMAR_PROMPTS.generateExercises(topic, words);
 
     const aiService = await AIFactory.getAIService(userId);
     if (!aiService || typeof aiService.generateText !== 'function') {
-      return {status: 502, body: {error: 'AI service not available for user'}};
+      return { status: 502, body: { error: 'AI service not available for user' } };
     }
 
     let rawResult: unknown;
@@ -62,13 +70,18 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
       rawResult = await aiService.generateText(prompt, userId);
     } catch (err) {
       if (err instanceof Error && err.message.includes('No token found')) {
-        return {status: 402, body: {error: 'AI service token not configured for user'}};
+        return { status: 402, body: { error: 'AI service token not configured for user' } };
       }
       console.error('AI service error', err);
-      return {status: 502, body: {error: 'Failed to generate text from AI service'}};
+      return { status: 502, body: { error: 'Failed to generate text from AI service' } };
     }
 
-    const text = typeof rawResult === 'string' ? rawResult : (rawResult && typeof rawResult === 'object' ? (rawResult as any).text ?? '' : '');
+    const text =
+      typeof rawResult === 'string'
+        ? rawResult
+        : rawResult && typeof rawResult === 'object'
+          ? ((rawResult as any).text ?? '')
+          : '';
     const result = formatAIResponse(text);
 
     if (result.length > 0) {
@@ -96,7 +109,7 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
             sentence,
             language,
             usedWordIds: Array.from(wordsInSentence),
-            level,
+            level
           };
         });
 
@@ -108,11 +121,11 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
       }
     }
 
-    console.log(result)
+    console.log(result);
 
-    return {status: 200, body: {success: true, data: result}};
+    return { status: 200, body: { success: true, data: result } };
   } catch (err) {
     console.error('Unexpected error in generateText service:', err);
-    return {status: 500, body: {error: 'Internal server error'}};
+    return { status: 500, body: { error: 'Internal server error' } };
   }
 }
