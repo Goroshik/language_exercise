@@ -8,7 +8,13 @@ import {useDebounce} from 'src/hooks/useDebounce';
 interface HistoryItem {
   id: string;
   sentence: string;
-  language: string;
+  languageId: string;
+  language: {
+    id: string;
+    code: string;
+    name: string;
+    nativeName: string;
+  };
   usedWordIds: string[];
   level: string;
   createdAt: string;
@@ -34,7 +40,7 @@ interface LevelItem {
 
 export default function GeneratedHistoryPage() {
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [language, setLanguage] = useState('');
+  const [languageId, setLanguageId] = useState('');
   const [level, setLevel] = useState('');
   const [selectedWords, setSelectedWords] = useState<WordItem[]>([]);
   const [words, setWords] = useState<WordItem[]>([]);
@@ -75,7 +81,7 @@ export default function GeneratedHistoryPage() {
   const fetchHistory = async () => {
     setLoading(true);
     const params = new URLSearchParams();
-    if (language) params.append('language', language);
+    if (languageId) params.append('languageId', languageId);
     if (level) params.append('level', level);
     if (selectedWords.length > 0) params.append('usedWordIds', selectedWords.map(w => w.id).join(','));
     if (searchText) params.append('searchText', searchText);
@@ -128,8 +134,8 @@ export default function GeneratedHistoryPage() {
           <TextField
             select
             label="Язык"
-            value={language}
-            onChange={e => setLanguage(e.target.value)}
+            value={languageId}
+            onChange={e => setLanguageId(e.target.value)}
             size="small"
             sx={{minWidth: 150}}
           >
@@ -137,7 +143,7 @@ export default function GeneratedHistoryPage() {
               <em>Все языки</em>
             </MenuItem>
             {languages.map(lang => (
-              <MenuItem key={lang.id} value={lang.name}>
+              <MenuItem key={lang.id} value={lang.id}>
                 {lang.nativeName}
               </MenuItem>
             ))}
@@ -196,7 +202,7 @@ export default function GeneratedHistoryPage() {
                   <LearnModeText text={item.sentence} />
                 </Box>
                 <Stack direction="row" spacing={1} flexWrap="wrap">
-                  <Chip label={`Язык: ${item.language}`} size="small"/>
+                  <Chip label={`Язык: ${item.language.nativeName}`} size="small"/>
                   <Chip label={`Уровень: ${item.level}`} size="small"/>
                   <Chip label={`Дата: ${new Date(item.createdAt).toLocaleString()}`} size="small"/>
                   {getWordsByIds(item.usedWordIds).map(w => (

@@ -108,17 +108,20 @@ model Language {
   nativeName String  // e.g., "English", "Polski"
   createdAt DateTime @default(now())
 
+  sentenceHistory SentenceHistory[]
+
   @@map("languages")
 }
 
 model SentenceHistory {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   sentence    String
-  language    String
+  languageId  String   @db.ObjectId
   usedWordIds String[] @db.ObjectId
   level       String
   ownerId     String   @db.ObjectId
   owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  language    Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
