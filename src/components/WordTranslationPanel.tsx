@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from 'react';
-import {Box, Button, CircularProgress, IconButton, Paper, Typography,} from '@mui/material';
-import {Add as AddIcon, Close as CloseIcon} from '@mui/icons-material';
+import React, { useEffect, useState } from 'react';
+import { Box, Button, CircularProgress, IconButton, Paper, Typography } from '@mui/material';
+import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import ImportWordsModal from './ImportWordsModal';
 
 interface WordTranslationPanelProps {
@@ -9,11 +9,7 @@ interface WordTranslationPanelProps {
   onClose: () => void;
 }
 
-const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({
-                                                                     word,
-                                                                     position,
-                                                                     onClose,
-                                                                   }) => {
+const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, position, onClose }) => {
   const [translation, setTranslation] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -25,8 +21,8 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({
       try {
         const response = await fetch('/api/translate', {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({word})
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ word })
         });
         const data = await response.json();
         if (data.text) {
@@ -71,28 +67,28 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({
           minWidth: 200,
           maxWidth: 300,
           backgroundColor: '#fff',
-          border: '1px solid #e0e0e0',
+          border: '1px solid #e0e0e0'
         }}
       >
-        <Box sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1}}>
-          <Typography variant="h6" sx={{fontWeight: 600, color: 'primary.main'}}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, color: 'primary.main' }}>
             {word}
           </Typography>
           <IconButton size="small" onClick={onClose}>
-            <CloseIcon fontSize="small"/>
+            <CloseIcon fontSize="small" />
           </IconButton>
         </Box>
 
-        <Box sx={{mb: 2}}>
+        <Box sx={{ mb: 2 }}>
           {isLoading ? (
-            <Box sx={{display: 'flex', alignItems: 'center', gap: 1}}>
-              <CircularProgress size={16}/>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CircularProgress size={16} />
               <Typography variant="body2" color="text.secondary">
                 Переводится...
               </Typography>
             </Box>
           ) : (
-            <Typography variant="body1" sx={{fontStyle: 'italic'}}>
+            <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
               {translation}
             </Typography>
           )}
@@ -101,11 +97,11 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({
         <Button
           variant="contained"
           size="small"
-          startIcon={<AddIcon/>}
+          startIcon={<AddIcon />}
           onClick={handleAddToDictionary}
           disabled={isLoading || !translation || translation === 'Ошибка при переводе'}
           fullWidth
-          sx={{textTransform: 'none'}}
+          sx={{ textTransform: 'none' }}
         >
           Добавить в словарь
         </Button>

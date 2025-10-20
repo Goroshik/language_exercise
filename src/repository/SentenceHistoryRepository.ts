@@ -1,5 +1,4 @@
-import {PrismaClient, Prisma} from 'src/generated/prisma/client';
-
+import { PrismaClient, Prisma } from 'src/generated/prisma/client';
 
 export class SentenceHistoryRepository {
   private client: PrismaClient['sentenceHistory'];
@@ -8,7 +7,13 @@ export class SentenceHistoryRepository {
     this.client = client.sentenceHistory;
   }
 
-  async addHistory({ownerId, sentence, language, usedWordIds, level}: {
+  async addHistory({
+    ownerId,
+    sentence,
+    language,
+    usedWordIds,
+    level
+  }: {
     ownerId: string;
     sentence: string;
     language: string;
@@ -21,26 +26,34 @@ export class SentenceHistoryRepository {
         sentence,
         language,
         usedWordIds,
-        level,
-      },
+        level
+      }
     });
   }
 
-  async addHistoryBatch(sentences: {
-    ownerId: string;
-    sentence: string;
-    language: string;
-    usedWordIds: string[];
-    level: string;
-  }[]) {
-    if (sentences.length === 0) return {count: 0};
+  async addHistoryBatch(
+    sentences: {
+      ownerId: string;
+      sentence: string;
+      language: string;
+      usedWordIds: string[];
+      level: string;
+    }[]
+  ) {
+    if (sentences.length === 0) return { count: 0 };
 
     return this.client.createMany({
-      data: sentences,
+      data: sentences
     });
   }
 
-  async getHistory({ownerId, language, level, usedWordIds, searchText}: {
+  async getHistory({
+    ownerId,
+    language,
+    level,
+    usedWordIds,
+    searchText
+  }: {
     ownerId: string;
     language?: string;
     level?: string;
@@ -48,21 +61,20 @@ export class SentenceHistoryRepository {
     searchText?: string;
   }) {
     const where: Prisma.SentenceHistoryWhereInput = {
-      ownerId,
+      ownerId
     };
 
     if (language) where.language = language;
     if (level) where.level = level;
     if (usedWordIds && usedWordIds.length > 0) {
-      where.usedWordIds = {hasSome: usedWordIds};
+      where.usedWordIds = { hasSome: usedWordIds };
     }
     if (searchText) {
-      where.sentence = {contains: searchText, mode: 'insensitive'};
+      where.sentence = { contains: searchText, mode: 'insensitive' };
     }
     return this.client.findMany({
       where,
-      orderBy: {createdAt: 'desc'},
+      orderBy: { createdAt: 'desc' }
     });
   }
 }
-

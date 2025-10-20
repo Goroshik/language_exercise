@@ -1,4 +1,4 @@
-import {PrismaClient} from '../generated/prisma';
+import { PrismaClient } from '../generated/prisma';
 
 export class UserSettingsRepository {
   private client: PrismaClient['userSettings'];
@@ -15,13 +15,12 @@ export class UserSettingsRepository {
     translationLang?: string;
     customSettings?: any;
   }) {
-    return this.client.create({data});
+    return this.client.create({ data });
   }
-
 
   async findByUserId(userId: string) {
     return this.client.findUnique({
-      where: {userId},
+      where: { userId }
     });
   }
 
@@ -36,8 +35,8 @@ export class UserSettingsRepository {
     }
   ) {
     return this.client.update({
-      where: {userId},
-      data,
+      where: { userId },
+      data
     });
   }
 
@@ -55,19 +54,17 @@ export class UserSettingsRepository {
       theme: data.theme,
       aiModel: data.aiModel,
       language: data.language,
-      translationLang: data.translationLang,
+      translationLang: data.translationLang
+    };
 
-    }
-    
     return this.client.upsert({
-      where: {userId},
-      create: {userId, ...settings},
-      update: settings,
-    })
-
+      where: { userId },
+      create: { userId, ...settings },
+      update: settings
+    });
   }
 
   async delete(userId: string) {
-    return this.client.delete({where: {userId}});
+    return this.client.delete({ where: { userId } });
   }
 }

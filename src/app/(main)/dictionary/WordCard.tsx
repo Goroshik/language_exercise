@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -14,8 +14,12 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import {Delete as DeleteIcon, Edit as EditIcon, MoreVert as MoreVertIcon} from '@mui/icons-material';
-import {DictionaryWord} from 'src/types';
+import {
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  MoreVert as MoreVertIcon
+} from '@mui/icons-material';
+import { DictionaryWord } from 'src/types';
 
 interface WordCardProps {
   word: DictionaryWord;
@@ -23,7 +27,7 @@ interface WordCardProps {
   onWordDelete?: () => void;
 }
 
-const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) => {
+const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editWord, setEditWord] = useState(word.word);
@@ -35,9 +39,9 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
     const response = await fetch(`/api/dictionary/words/${id}`, {
       method: 'PUT',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({word, translate}),
+      body: JSON.stringify({ word, translate })
     });
 
     const data = await response.json();
@@ -49,7 +53,7 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
 
   const removeWord = async (id: string) => {
     const response = await fetch(`/api/dictionary/words/${id}`, {
-      method: 'DELETE',
+      method: 'DELETE'
     });
 
     const data = await response.json();
@@ -73,7 +77,10 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
 
   const handleDeleteClick = async () => {
     // NOTE: Check if window is available (client-side only)
-    if (typeof window !== 'undefined' && window.confirm('Вы уверены, что хотите удалить это слово?')) {
+    if (
+      typeof window !== 'undefined' &&
+      window.confirm('Вы уверены, что хотите удалить это слово?')
+    ) {
       setIsDeleting(true);
       try {
         await removeWord(word.id);
@@ -115,7 +122,7 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
 
   return (
     <>
-      <Card sx={{mb: 2, position: 'relative'}}>
+      <Card sx={{ mb: 2, position: 'relative' }}>
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="flex-start">
             <Box flexGrow={1}>
@@ -126,35 +133,30 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
                 {word.translate}
               </Typography>
 
-              <Typography variant="caption" color="text.secondary" sx={{mt: 1, display: 'block'}}>
+              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
                 {new Date(word.createdAt).toLocaleDateString('ru-RU')}
               </Typography>
             </Box>
 
-
-            <IconButton
-              size="small"
-              onClick={handleMenuOpen}
-              sx={{ml: 1}}
-            >
-              <MoreVertIcon/>
+            <IconButton size="small" onClick={handleMenuOpen} sx={{ ml: 1 }}>
+              <MoreVertIcon />
             </IconButton>
           </Box>
         </CardContent>
       </Card>
 
       {/* Контекстное меню */}
-      <Menu
-        anchorEl={anchorEl}
-        open={Boolean(anchorEl)}
-        onClose={handleMenuClose}
-      >
+      <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         <MenuItem onClick={handleEditClick} disabled={isDeleting || isUpdating}>
-          <EditIcon sx={{mr: 1}} fontSize="small"/>
+          <EditIcon sx={{ mr: 1 }} fontSize="small" />
           Редактировать
         </MenuItem>
-        <MenuItem onClick={handleDeleteClick} sx={{color: 'error.main'}} disabled={isDeleting || isUpdating}>
-          <DeleteIcon sx={{mr: 1}} fontSize="small"/>
+        <MenuItem
+          onClick={handleDeleteClick}
+          sx={{ color: 'error.main' }}
+          disabled={isDeleting || isUpdating}
+        >
+          <DeleteIcon sx={{ mr: 1 }} fontSize="small" />
           {isDeleting ? 'Удаление...' : 'Удалить'}
         </MenuItem>
       </Menu>
@@ -167,7 +169,7 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
             fullWidth
             label="Слово на английском"
             value={editWord}
-            onChange={(e) => setEditWord(e.target.value)}
+            onChange={e => setEditWord(e.target.value)}
             margin="normal"
             required
           />
@@ -176,13 +178,15 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
             fullWidth
             label="Перевод"
             value={editTranslate}
-            onChange={(e) => setEditTranslate(e.target.value)}
+            onChange={e => setEditTranslate(e.target.value)}
             margin="normal"
             required
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancelEdit} disabled={isUpdating}>Отмена</Button>
+          <Button onClick={handleCancelEdit} disabled={isUpdating}>
+            Отмена
+          </Button>
           <Button onClick={handleSaveEdit} variant="contained" disabled={isUpdating}>
             {isUpdating ? 'Сохранение...' : 'Сохранить'}
           </Button>
@@ -193,4 +197,3 @@ const WordCard: React.FC<WordCardProps> = ({word, onWordUpdate, onWordDelete}) =
 };
 
 export default WordCard;
-

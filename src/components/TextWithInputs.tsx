@@ -1,21 +1,21 @@
-import React, {useState} from 'react';
-import {Box, Button, Stack, TextField} from '@mui/material';
+import React, { useState } from 'react';
+import { Box, Button, Stack, TextField } from '@mui/material';
 
 import WordTranslationPanel from './WordTranslationPanel';
 
 interface TextWithInputsProps {
   text: string;
   exerciseIndex?: string | number;
-  validationResults?: { [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] } };
+  validationResults?: {
+    [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] };
+  };
 }
 
-interface InputData {
-  id: string;
-  value: string;
-}
-
-
-const TextWithInputs: React.FC<TextWithInputsProps> = ({text, exerciseIndex = 0, validationResults = {}}) => {
+const TextWithInputs: React.FC<TextWithInputsProps> = ({
+  text,
+  exerciseIndex = 0,
+  validationResults = {}
+}) => {
   const [textareaValue, setTextareaValue] = useState('');
   const [translationPanel, setTranslationPanel] = useState<{
     word: string;
@@ -88,7 +88,7 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({text, exerciseIndex = 0,
   };
 
   const displayText = parseTextForDisplay(text);
-  
+
   // Get validation result for this exercise
   const validationResult = validationResults[textareaId];
   const isValidated = !!validationResult;
@@ -130,7 +130,7 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({text, exerciseIndex = 0,
               variant="outlined"
               size="small"
               onClick={handlePrefillClick}
-              sx={{ 
+              sx={{
                 textTransform: 'none',
                 whiteSpace: 'nowrap',
                 minWidth: 'auto',
@@ -140,29 +140,33 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({text, exerciseIndex = 0,
               Предзаполнить
             </Button>
           </Box>
-          
+
           {/* Show error message if validation failed */}
           {isValidated && !isCorrect && errorMessage && (
-            <Box sx={{
-              fontSize: '0.875rem',
-              color: '#d32f2f',
-              padding: 1,
-              backgroundColor: '#ffebee',
-              borderRadius: 1
-            }}>
+            <Box
+              sx={{
+                fontSize: '0.875rem',
+                color: '#d32f2f',
+                padding: 1,
+                backgroundColor: '#ffebee',
+                borderRadius: 1
+              }}
+            >
               {errorMessage}
             </Box>
           )}
-          
+
           {/* Show incorrect translations if any */}
           {isValidated && incorrectTranslations && incorrectTranslations.length > 0 && (
-            <Box sx={{
-              fontSize: '0.875rem',
-              color: '#d32f2f',
-              padding: 1,
-              backgroundColor: '#ffebee',
-              borderRadius: 1
-            }}>
+            <Box
+              sx={{
+                fontSize: '0.875rem',
+                color: '#d32f2f',
+                padding: 1,
+                backgroundColor: '#ffebee',
+                borderRadius: 1
+              }}
+            >
               <strong>Неправильные переводы:</strong>
               <ul style={{ margin: '4px 0', paddingLeft: '20px' }}>
                 {incorrectTranslations.map((item, idx) => (

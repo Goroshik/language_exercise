@@ -1,4 +1,4 @@
-import {PrismaClient} from '../generated/prisma';
+import { PrismaClient } from '../generated/prisma';
 
 export class EntityTagRepository {
   private client: PrismaClient['entityTag'];
@@ -8,11 +8,10 @@ export class EntityTagRepository {
   }
 
   async create(data: { entityType: string; entityId: string; tagId: string }) {
-    return this.client.create({data});
+    return this.client.create({ data });
   }
 
-
   async delete(id: string) {
-    return this.client.delete({where: {id}});
+    return this.client.delete({ where: { id } });
   }
 }

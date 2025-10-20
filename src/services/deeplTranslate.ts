@@ -20,13 +20,13 @@ export class DeepLTranslateService {
     sourceLang: string = 'EN'
   ): Promise<TranslationResponse> {
     if (!text.trim()) {
-      return {text: '', error: 'Empty text provided for translation'};
+      return { text: '', error: 'Empty text provided for translation' };
     }
 
     // Получаем токен DeepL из БД через API
     const apiKey = await this.getDeepLToken();
     if (!apiKey) {
-      return {text: '', error: 'Токен DeepL не найден'};
+      return { text: '', error: 'Токен DeepL не найден' };
     }
 
     // NOTE: Skip DeepL API in browser due to CORS restrictions, use LibreTranslate directly
@@ -50,11 +50,11 @@ export class DeepLTranslateService {
       });
       const data = await libreResponse.json();
       if (data.translations && data.translations[0]?.text) {
-        return {text: data.translations[0].text};
+        return { text: data.translations[0].text };
       }
-      return {text: '', error: data.message || 'Ошибка перевода'};
+      return { text: '', error: data.message || 'Ошибка перевода' };
     } catch (error: any) {
-      return {text: '', error: error?.message || 'Ошибка при переводе'};
+      return { text: '', error: error?.message || 'Ошибка при переводе' };
     }
   }
 

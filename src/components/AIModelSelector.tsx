@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
@@ -15,9 +15,14 @@ import {
   Alert,
   CircularProgress,
   Box,
-  Typography,
+  Typography
 } from '@mui/material';
-import { AIModel, PROVIDER_LABELS, getModelsByProvider, getProviderFromModel } from 'src/constants/aiModels';
+import {
+  AIModel,
+  PROVIDER_LABELS,
+  getModelsByProvider,
+  getProviderFromModel
+} from 'src/constants/aiModels';
 
 interface AIModelSelectorProps {
   open: boolean;
@@ -46,7 +51,13 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
   });
   const [currentModel, setCurrentModel] = useState<string>('');
 
-  const { control, handleSubmit, watch, setValue, formState: { isSubmitting } } = useForm<FormData>({
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { isSubmitting }
+  } = useForm<FormData>({
     defaultValues: {
       provider: '',
       model: ''
@@ -78,26 +89,26 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
     setLoading(true);
     setError('');
     setSuccess('');
-    
+
     try {
       // Load available models and current settings in parallel
       const [modelsResponse, settingsResponse] = await Promise.all([
         fetch('/api/ai/available-models'),
         fetch('/api/settings')
       ]);
-      
+
       if (!modelsResponse.ok) {
         throw new Error('Failed to fetch available models');
       }
-      
+
       const modelsData: AvailableModelsResponse = await modelsResponse.json();
       setAvailableData(modelsData);
-      
+
       if (settingsResponse.ok) {
         const settings = await settingsResponse.json();
         const currentAiModel = settings.aiModel || 'gemini-2.5-flash';
         setCurrentModel(currentAiModel);
-        
+
         // Initialize form with current or default provider/model
         const provider = getProviderFromModel(currentAiModel);
         if (provider && modelsData.providers.includes(provider)) {
@@ -125,10 +136,10 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
       setError('Пожалуйста, выберите модель');
       return;
     }
-    
+
     setError('');
     setSuccess('');
-    
+
     try {
       const response = await fetch('/api/settings', {
         method: 'PATCH',
@@ -139,14 +150,14 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
           aiModel: data.model
         })
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to save settings');
       }
-      
+
       setCurrentModel(data.model);
       setSuccess('Модель успешно сохранена!');
-      
+
       setTimeout(() => {
         onClose();
       }, 1000);
@@ -167,7 +178,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Выбор AI модели</DialogTitle>
-      
+
       <DialogContent>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
@@ -177,12 +188,14 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
           <>
             {!availableData.hasTokens ? (
               <Alert severity="warning" sx={{ mb: 2 }}>
-                У вас нет добавленных токенов. Пожалуйста, добавьте токен в настройках, чтобы использовать AI модели.
+                У вас нет добавленных токенов. Пожалуйста, добавьте токен в настройках, чтобы
+                использовать AI модели.
               </Alert>
             ) : (
               <form onSubmit={handleSubmit(onSubmit)}>
                 <Typography variant="body2" color="textSecondary" paragraph>
-                  Выберите AI модель для генерации текста. Доступны только модели, для которых добавлен токен.
+                  Выберите AI модель для генерации текста. Доступны только модели, для которых
+                  добавлен токен.
                 </Typography>
 
                 {error && (
@@ -208,7 +221,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
                         disabled={isProviderDisabled || isSubmitting}
                         label="Провайдер"
                       >
-                        {availableData.providers.map((provider) => (
+                        {availableData.providers.map(provider => (
                           <MenuItem key={provider} value={provider}>
                             {PROVIDER_LABELS[provider]}
                           </MenuItem>
@@ -224,12 +237,8 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
                   render={({ field }) => (
                     <FormControl fullWidth margin="normal">
                       <InputLabel>Модель</InputLabel>
-                      <Select
-                        {...field}
-                        disabled={isModelDisabled || isSubmitting}
-                        label="Модель"
-                      >
-                        {getFilteredModels().map((model) => (
+                      <Select {...field} disabled={isModelDisabled || isSubmitting} label="Модель">
+                        {getFilteredModels().map(model => (
                           <MenuItem key={model.value} value={model.value}>
                             {model.label}
                           </MenuItem>
@@ -245,7 +254,8 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
                       Текущая модель:
                     </Typography>
                     <Typography variant="body2">
-                      {availableData.models.find(m => m.value === currentModel)?.label || currentModel}
+                      {availableData.models.find(m => m.value === currentModel)?.label ||
+                        currentModel}
                     </Typography>
                   </Box>
                 )}

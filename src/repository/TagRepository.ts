@@ -1,4 +1,4 @@
-import {PrismaClient} from '../generated/prisma';
+import { PrismaClient } from '../generated/prisma';
 
 export class TagRepository {
   private client: PrismaClient['tag'];
@@ -12,17 +12,19 @@ export class TagRepository {
     color?: string;
     backgroudColor?: string;
     borderColor?: string;
-    ownerId?: string
+    ownerId?: string;
   }) {
-    return this.client.create({data});
+    return this.client.create({ data });
   }
 
-
-  async update(id: string, data: { name?: string; color?: string; backgroudColor?: string; borderColor?: string }) {
-    return this.client.update({where: {id}, data});
+  async update(
+    id: string,
+    data: { name?: string; color?: string; backgroudColor?: string; borderColor?: string }
+  ) {
+    return this.client.update({ where: { id }, data });
   }
 
   async delete(id: string) {
-    return this.client.delete({where: {id}});
+    return this.client.delete({ where: { id } });
   }
 }
