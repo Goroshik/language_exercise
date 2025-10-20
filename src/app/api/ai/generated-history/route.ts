@@ -9,14 +9,14 @@ export async function GET(request: NextRequest) {
     const userId = getUserIdFromRequest(request);
 
     const searchParams = request.nextUrl.searchParams;
-    const language = searchParams.get('language') || undefined;
+    const languageId = searchParams.get('languageId') || undefined;
     const level = searchParams.get('level') || undefined;
     const searchText = searchParams.get('searchText') || undefined;
     const usedWordIdsParam = searchParams.get('usedWordIds');
     const usedWordIds = usedWordIdsParam ? usedWordIdsParam.split(',') : undefined;
 
     const history = await getGeneratedHistoryService(userId, {
-      language,
+      languageId,
       level,
       usedWordIds,
       searchText,

@@ -8,10 +8,10 @@ export class SentenceHistoryRepository {
     this.client = client.sentenceHistory;
   }
 
-  async addHistory({ownerId, sentence, language, usedWordIds, level}: {
+  async addHistory({ownerId, sentence, languageId, usedWordIds, level}: {
     ownerId: string;
     sentence: string;
-    language: string;
+    languageId: string;
     usedWordIds: string[];
     level: string;
   }) {
@@ -19,7 +19,7 @@ export class SentenceHistoryRepository {
       data: {
         ownerId,
         sentence,
-        language,
+        languageId,
         usedWordIds,
         level,
       },
@@ -29,7 +29,7 @@ export class SentenceHistoryRepository {
   async addHistoryBatch(sentences: {
     ownerId: string;
     sentence: string;
-    language: string;
+    languageId: string;
     usedWordIds: string[];
     level: string;
   }[]) {
@@ -40,9 +40,9 @@ export class SentenceHistoryRepository {
     });
   }
 
-  async getHistory({ownerId, language, level, usedWordIds, searchText}: {
+  async getHistory({ownerId, languageId, level, usedWordIds, searchText}: {
     ownerId: string;
-    language?: string;
+    languageId?: string;
     level?: string;
     usedWordIds?: string[];
     searchText?: string;
@@ -51,7 +51,7 @@ export class SentenceHistoryRepository {
       ownerId,
     };
 
-    if (language) where.language = language;
+    if (languageId) where.languageId = languageId;
     if (level) where.level = level;
     if (usedWordIds && usedWordIds.length > 0) {
       where.usedWordIds = {hasSome: usedWordIds};
@@ -62,6 +62,9 @@ export class SentenceHistoryRepository {
     return this.client.findMany({
       where,
       orderBy: {createdAt: 'desc'},
+      include: {
+        language: true,
+      },
     });
   }
 }

@@ -1,6 +1,6 @@
 import Joi from 'joi';
 import {GRAMMAR_PROMPTS} from 'src/prompts/grammarPrompts';
-import {sentenceHistoryRepository} from 'src/repository/client';
+import {sentenceHistoryRepository, languageRepository} from 'src/repository/client';
 import {AIFactory} from 'src/services/aiFactory';
 import {DictionaryWord} from 'src/types';
 
@@ -9,7 +9,7 @@ export type Mode = 'learn' | 'exercise' | string;
 export interface GenerateTextRequest {
   mode: Mode;
   topic: string;
-  language: string;
+  languageId: string;
   level: string;
   selectedWords?: DictionaryWord[];
 }
@@ -19,7 +19,7 @@ export type ServiceResponse = { status: number; body: any };
 const schema = Joi.object({
   mode: Joi.string().required(),
   topic: Joi.string().required(),
-  language: Joi.string().required(),
+  languageId: Joi.string().required(),
   level: Joi.string().required(),
   selectedWords: Joi.array().items(Joi.object({
     id: Joi.string().allow(null),
@@ -45,12 +45,18 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
     }
 
     const body = value as GenerateTextRequest;
-    const {mode, topic, language, level, selectedWords = []} = body;
+    const {mode, topic, languageId, level, selectedWords = []} = body;
+
+    // Fetch language by ID
+    const language = await languageRepository.findById(languageId);
+    if (!language) {
+      return {status: 400, body: {error: 'Invalid language ID'}};
+    }
 
     const words = selectedWords.map(w => w.word || '');
     const prompt = mode === 'learn'
-      ? GRAMMAR_PROMPTS.generateTeacherSentences(topic, level, words)
-      : GRAMMAR_PROMPTS.generateExercises(topic, words);
+      ? GRAMMAR_PROMPTS.generateTeacherSentences(topic, level, language.name, words)
+      : GRAMMAR_PROMPTS.generateExercises(topic, language.name, words);
 
     const aiService = await AIFactory.getAIService(userId);
     if (!aiService || typeof aiService.generateText !== 'function') {
@@ -94,7 +100,7 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
           return {
             ownerId: userId,
             sentence,
-            language,
+            languageId,
             usedWordIds: Array.from(wordsInSentence),
             level,
           };
