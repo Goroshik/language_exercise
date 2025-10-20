@@ -12,7 +12,7 @@ export interface AvailableModelsResponse {
  */
 export async function getAvailableModels(userId: string): Promise<AvailableModelsResponse> {
   // Get all user tokens
-  const tokens = await userTokenRepository.findByUserId(userId);
+  const tokens = await userTokenRepository.findByUser(userId);
   
   // Extract services that have tokens
   const availableServices = new Set(tokens.map(token => token.service));
