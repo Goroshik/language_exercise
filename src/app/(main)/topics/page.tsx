@@ -14,8 +14,11 @@ import {
 } from '@mui/material';
 import { showAlert } from 'src/utils/alert';
 
+import { useAppStore } from 'src/store/appStore';
+
 const Page: React.FC = () => {
   const navigate = useRouter();
+  const { setIsNavigating } = useAppStore();
 
   const [topics, setTopics] = useState<Record<string, Record<string, string>>>({});
 
@@ -25,6 +28,14 @@ const Page: React.FC = () => {
       .toLowerCase()
       .replace(/\s+/g, '_');
 
+    // Save the selected topic to user settings
+    fetch('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lastSelectedTopic: path })
+    }).catch(error => console.error('Failed to save topic:', error));
+
+    setIsNavigating(true);
     navigate.push(`/exercises/${path}`);
   };
 

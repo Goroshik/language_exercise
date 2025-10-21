@@ -8,12 +8,13 @@ export class SentenceHistoryRepository {
     this.client = client.sentenceHistory;
   }
 
-  async addHistory({ownerId, sentence, languageId, usedWordIds, level}: {
+  async addHistory({ownerId, sentence, languageId, usedWordIds, level, mode = 'exercise'}: {
     ownerId: string;
     sentence: string;
     languageId: string;
     usedWordIds: string[];
     level: string;
+    mode?: string;
   }) {
     return this.client.create({
       data: {
@@ -22,6 +23,7 @@ export class SentenceHistoryRepository {
         languageId,
         usedWordIds,
         level,
+        mode,
       },
     });
   }
@@ -32,11 +34,15 @@ export class SentenceHistoryRepository {
     languageId: string;
     usedWordIds: string[];
     level: string;
+    mode?: string;
   }[]) {
     if (sentences.length === 0) return {count: 0};
 
     return this.client.createMany({
-      data: sentences,
+      data: sentences.map(s => ({
+        ...s,
+        mode: s.mode || 'exercise',
+      })),
     });
   }
 
