@@ -41,6 +41,7 @@ export interface DictionaryState {
 export interface AppStore {
   state: AppState;
   selectedTopic: string;
+  selectedLanguageId?: string;
   exerciseBlocks: ExerciseBlock[];
   error: string;
   validationResults: ValidationResults;

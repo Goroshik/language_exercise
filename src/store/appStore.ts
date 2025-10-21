@@ -1,7 +1,6 @@
 import {create} from 'zustand';
 import {devtools} from "zustand/middleware";
 
-import {GRAMMAR_PROMPTS} from 'src/prompts';
 import {ApiService} from 'src/services/apiService';
 import {AppState, AppStore, DictionaryWord, ExerciseBlock, ValidationResults} from 'src/types';
 
@@ -9,6 +8,7 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
   // Initial state
   state: 'loading-topics',
   selectedTopic: '',
+  selectedLanguageId: undefined,
   exerciseBlocks: [],
   error: '',
   validationResults: {},
@@ -27,6 +27,7 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     const topic = topicRaw.replace(/_/g, ' ');
     set({
       selectedTopic: topic,
+      selectedLanguageId: languageId,
       state: 'loading-exercises',
       error: '',
       validationResults: {}
@@ -119,7 +120,7 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
   },
 
   handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string }) => {
-    const {exerciseBlocks, selectedTopic} = get();
+    const {exerciseBlocks, selectedTopic, selectedLanguageId} = get();
 
     // Set checking state for specific block
     set(state => ({
@@ -135,35 +136,89 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
         throw new Error('Block not found');
       }
 
+      // Получаем название языка
+      let languageName = 'English';
+      if (selectedLanguageId) {
+        try {
+          const res = await fetch('/api/languages');
+          const data = await res.json();
+          const language = data.data?.find((lang: any) => lang.id === selectedLanguageId);
+          if (language) {
+            languageName = language.name;
+          }
+        } catch (error) {
+          console.error('Failed to fetch language name:', error);
+        }
+      }
+
+      // Собираем текст с ответами пользователя (используем textarea значения)
       const answersText = block.exercises.map((exercise, index) => {
-        const inputRegex = /\{\{input\}\}/g;
-        let inputCounter = 0;
-        const filledSentence = exercise.sentence.replace(inputRegex, () => {
-          const inputId = `input_${blockId}_${index}_${inputCounter++}`;
-          return userAnswers[inputId] || '___';
-        });
-        return `${index + 1}. ${filledSentence}`;
+        const textareaId = `textarea_${blockId}_${index}`;
+        const userAnswer = userAnswers[textareaId] || '';
+        return `${index + 1}. ${userAnswer}`;
       }).join('\n');
-      const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
-      const data = await ApiService.generateText({prompt: validatePrompt});
 
-      const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
+      // Вызываем API для проверки ответов (промпт формируется на сервере)
+      const data = await ApiService.checkAnswers({
+        topic: selectedTopic,
+        answersText,
+        languageName
+      });
 
-      data.forEach((line: string, index: number) => {
-        const isCorrect = line.includes('CORRECT');
-        let errorMessage: string | undefined;
+      const results: {
+        [key: string]: {
+          isCorrect: boolean;
+          error?: string;
+          incorrectTranslations?: string[];
+        };
+      } = {};
 
-        if (!isCorrect && line.includes('ERROR:')) {
-          errorMessage = line.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
+      data.forEach((rawLine: string, index: number) => {
+        const textareaId = `textarea_${blockId}_${index}`;
+        const normalizedLine = rawLine.replace(/^\d+[\.\)]\s*/, '').trim();
+
+        if (!normalizedLine) {
+          results[textareaId] = {
+            isCorrect: false,
+            error: 'Не удалось обработать ответ проверки'
+          };
+          return;
         }
 
-        let inputCounter = 0;
+        const segments = normalizedLine.split('|').map(part => part.trim());
+        const isCorrect = segments.length === 1 && /^CORRECT$/i.test(segments[0]);
 
-        block.exercises[index]?.sentence.replace(/\{\{input\}\}/g, () => {
-          const inputId = `input_${blockId}_${index}_${inputCounter++}`;
-          results[inputId] = {isCorrect, error: errorMessage};
-          return '';
-        });
+        let errorMessage: string | undefined;
+        let incorrectTranslations: string[] | undefined;
+
+        if (!isCorrect) {
+          segments.forEach(segment => {
+            if (/^ERROR:/i.test(segment)) {
+              const message = segment.replace(/^ERROR:\s*/i, '').trim();
+              if (message) {
+                errorMessage = errorMessage ? `${errorMessage} ${message}`.trim() : message;
+              }
+            } else if (/^TRANSLATION_ERRORS:/i.test(segment)) {
+              const errorsText = segment.replace(/^TRANSLATION_ERRORS:\s*/i, '').trim();
+              if (errorsText) {
+                incorrectTranslations = errorsText
+                  .split(/,\s*/)
+                  .map(item => item.trim())
+                  .filter(Boolean);
+              } else {
+                incorrectTranslations = [];
+              }
+            }
+          });
+        }
+
+        results[textareaId] = {
+          isCorrect,
+          ...(errorMessage ? { error: errorMessage } : {}),
+          ...(incorrectTranslations && incorrectTranslations.length > 0
+            ? { incorrectTranslations }
+            : {})
+        };
       });
 
       set(state => ({
