@@ -19,7 +19,8 @@ import {
   Divider,
   Alert,
   CircularProgress,
-  ListSubheader
+  ListSubheader,
+  Link
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
 
@@ -277,7 +278,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
               value={tokens.gemini}
               onChange={e => handleTokenChange('gemini', e.target.value)}
               placeholder="Enter your Gemini API token"
-              helperText="Get your token from Google AI Studio"
+              helperText={
+                <>
+                  Get your token from{' '}
+                  <Link
+                    href="https://aistudio.google.com/apikey"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Google AI Studio
+                  </Link>
+                </>
+              }
             />
 
             <TextField
@@ -289,7 +301,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
               value={tokens.openai}
               onChange={e => handleTokenChange('openai', e.target.value)}
               placeholder="Enter your OpenAI API token"
-              helperText="Get your token from OpenAI API dashboard"
+              helperText={
+                <>
+                  Get your token from{' '}
+                  <Link
+                    href="https://platform.openai.com/api-keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    OpenAI Platform
+                  </Link>
+                </>
+              }
             />
 
             <TextField
@@ -301,7 +324,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
               value={tokens.anthropic}
               onChange={e => handleTokenChange('anthropic', e.target.value)}
               placeholder="Enter your Anthropic API token"
-              helperText="Get your token from Anthropic Console"
+              helperText={
+                <>
+                  Get your token from{' '}
+                  <Link
+                    href="https://console.anthropic.com/settings/keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Anthropic Console
+                  </Link>
+                </>
+              }
             />
 
             <TextField
@@ -313,7 +347,18 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
               value={tokens.deepl}
               onChange={e => handleTokenChange('deepl', e.target.value)}
               placeholder="Enter your DeepL API token"
-              helperText="Get your token from DeepL API dashboard"
+              helperText={
+                <>
+                  Get your token from{' '}
+                  <Link
+                    href="https://www.deepl.com/en/your-account/keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    DeepL Account
+                  </Link>
+                </>
+              }
             />
           </Box>
         )}
