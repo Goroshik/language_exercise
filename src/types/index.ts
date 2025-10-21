@@ -49,13 +49,13 @@ export interface AppStore {
     languageId?: string;
     level?: string;
     selectedWords?: DictionaryWord[];
-    mode?: 'learn' | 'train';
+    mode?: 'student' | 'teacher';
   }) => Promise<void>;
   generateMoreExercises: (data: {
     languageId?: string;
     level?: string;
     selectedWords?: DictionaryWord[];
-    mode?: 'learn' | 'train';
+    mode?: 'student' | 'teacher';
   }) => Promise<void>;
   handleCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => Promise<void>;
   clearError: () => void;

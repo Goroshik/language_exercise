@@ -4,7 +4,7 @@ import {sentenceHistoryRepository, languageRepository} from 'src/repository/clie
 import {AIFactory} from 'src/services/aiFactory';
 import {DictionaryWord} from 'src/types';
 
-export type Mode = 'learn' | 'exercise' | string;
+export type Mode = 'student' | 'teacher' | string;
 
 export interface GenerateTextRequest {
   mode: Mode;
@@ -54,9 +54,9 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
     }
 
     const words = selectedWords.map(w => w.word || '');
-    const prompt = mode === 'learn'
-      ? GRAMMAR_PROMPTS.generateTeacherSentences(topic, level, language.name, words)
-      : GRAMMAR_PROMPTS.generateExercises(topic, language.name, words);
+    const prompt = mode === 'student'
+      ? GRAMMAR_PROMPTS.generateStudentExercises(topic, language.name, words)
+      : GRAMMAR_PROMPTS.generateTeacherExamples(topic, level, language.name, words);
 
     const aiService = await AIFactory.getAIService(userId);
     if (!aiService || typeof aiService.generateText !== 'function') {
@@ -96,14 +96,18 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
             }
           }
 
+          // Удаляем подсказки из предложения перед сохранением в историю
+          // Формат подсказок: (hint text) в конце предложения
+          const sentenceWithoutHints = sentence.replace(/\s*\([^)]+\)\s*$/, '').trim();
+
           // Возвращаем запись даже если нет найденных слов (с пустым массивом)
           return {
             ownerId: userId,
-            sentence,
+            sentence: sentenceWithoutHints,
             languageId,
             usedWordIds: Array.from(wordsInSentence),
             level,
-            mode, // Сохраняем режим генерации (learn/exercise)
+            mode, // Сохраняем режим генерации (student/teacher)
           };
         });
 

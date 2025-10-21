@@ -23,7 +23,7 @@ const Page: React.FC = () => {
   const navigate = useRouter();
 
   // State for button selections
-  const [selectedMode, setSelectedMode] = useState<'learn' | 'train'>('learn');
+  const [selectedMode, setSelectedMode] = useState<'student' | 'teacher'>('student');
   const [selectedLevel, setSelectedLevel] = useState<string>('A1');
   const [selectedWords, setSelectedWords] = useState<DictionaryWord[]>([]);
   const [languages, setLanguages] = useState<Language[]>([]);
@@ -121,18 +121,18 @@ const Page: React.FC = () => {
           <Box sx={{display: 'flex', justifyContent: 'center', gap: 2, mb: 3, flexWrap: 'wrap'}}>
             <ButtonGroup variant="outlined" size="medium">
               <Button
-                variant={selectedMode === 'learn' ? 'contained' : 'outlined'}
-                onClick={() => setSelectedMode('learn')}
+                variant={selectedMode === 'student' ? 'contained' : 'outlined'}
+                onClick={() => setSelectedMode('student')}
                 sx={{textTransform: 'none'}}
               >
-                Учить
+                Студент
               </Button>
               <Button
-                variant={selectedMode === 'train' ? 'contained' : 'outlined'}
-                onClick={() => setSelectedMode('train')}
+                variant={selectedMode === 'teacher' ? 'contained' : 'outlined'}
+                onClick={() => setSelectedMode('teacher')}
                 sx={{textTransform: 'none'}}
               >
-                Тренирова
+                Преподаватель
               </Button>
             </ButtonGroup>
 

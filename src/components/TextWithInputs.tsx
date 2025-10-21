@@ -76,7 +76,18 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     while ((match = boldRegex.exec(mainLine)) !== null) {
       boldWords.push(match[1]);
     }
-    hints = boldWords;
+    
+    // Проверяем наличие подсказок в скобках в конце предложения
+    // Формат: They **visited** many countries last summer. (visit)
+    const hintMatch = mainLine.match(/\s*\(([^)]+)\)\s*$/);
+    if (hintMatch) {
+      hints = hintMatch[1]
+        .split(/[,;]+/)
+        .map(part => part.trim())
+        .filter(Boolean);
+      // Удаляем подсказки из основного текста
+      mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
+    }
     
     // Заменяем **word** на пустые поля
     const displaySentence = mainLine.replace(/\*\*(.*?)\*\*/g, '_____');
