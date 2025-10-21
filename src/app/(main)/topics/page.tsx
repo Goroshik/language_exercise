@@ -13,8 +13,11 @@ import {
   Typography
 } from '@mui/material';
 
+import { useAppStore } from 'src/store/appStore';
+
 const Page: React.FC = () => {
   const navigate = useRouter();
+  const { setIsNavigating } = useAppStore();
 
   const [topics, setTopics] = useState<Record<string, Record<string, string>>>({});
 
@@ -24,6 +27,7 @@ const Page: React.FC = () => {
       .toLowerCase()
       .replace(/\s+/g, '_');
 
+    setIsNavigating(true);
     navigate.push(`/exercises/${path}`);
   };
 
