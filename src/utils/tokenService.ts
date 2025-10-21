@@ -1,4 +1,5 @@
 import { userTokenRepository } from 'src/repository/client';
+import { showAlert } from 'src/utils/alert';
 
 export interface TokenResult {
   token: string | null;
@@ -30,7 +31,7 @@ export class TokenService {
         token: tokenData.token
       };
     } catch (error) {
-      console.error(`Error fetching token for service ${service}:`, error);
+      showAlert.error(`Error fetching token for service ${service}`);
       return {
         token: null,
         error: `Failed to retrieve token for service: ${service}`

@@ -20,6 +20,7 @@ import {
 
 import { DictionaryWord } from 'src/types';
 import ImportWordsModal from 'src/components/ImportWordsModal';
+import { showAlert } from 'src/utils/alert';
 
 import WordCard from './WordCard';
 import AddWordModal from './AddWordModal';
@@ -48,7 +49,7 @@ const DictionaryPage: React.FC = () => {
         setCurrentPage(1); // Reset to first page when data changes
       }
     } catch (error) {
-      console.error('Failed to load words:', error);
+      showAlert.error('Failed to load words');
     }
   };
 

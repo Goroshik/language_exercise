@@ -11,6 +11,7 @@ import {
   TextField
 } from '@mui/material';
 import React, { useState } from 'react';
+import { showAlert } from 'src/utils/alert';
 
 interface Tag {
   id: string;
@@ -74,7 +75,7 @@ const AddWordModal: React.FC<AddWordModalProps> = ({ open, onClose, onWordAdded 
         setError(data.error || 'Не удалось добавить слово. Попробуйте еще раз');
       }
     } catch (error) {
-      console.error('Failed to add word:', error);
+      showAlert.error('Failed to add word');
       setError('Не удалось добавить слово. Попробуйте еще раз');
     } finally {
       setLoading(false);

@@ -12,6 +12,7 @@ import {
   Stack,
   Typography
 } from '@mui/material';
+import { showAlert } from 'src/utils/alert';
 
 import { useAppStore } from 'src/store/appStore';
 
@@ -50,7 +51,7 @@ const Page: React.FC = () => {
         setTopics(data.topics);
       }
     } catch (error) {
-      console.error('Failed to load tags:', error);
+      showAlert.error('Failed to load tags');
     }
   };
 
