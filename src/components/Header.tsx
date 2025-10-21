@@ -16,7 +16,9 @@ const Header: React.FC = () => {
   const route = useRouter();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiModelOpen, setAiModelOpen] = useState(false);
-  const { selectedTopic, lastSelectedTopicPath, loadLastSelectedTopic } = useAppStore();
+  const { selectedTopic,  loadLastSelectedTopic, state, isNavigating, setIsNavigating } = useAppStore();
+
+  const isLoading = state === 'loading-exercises' || state === 'loading-topics' || isNavigating;
 
   useEffect(() => {
     loadLastSelectedTopic();
@@ -38,12 +40,10 @@ const Header: React.FC = () => {
     setAiModelOpen(false);
   };
 
-  const handleTopicsClick = () => {
-    if (lastSelectedTopicPath) {
-      route.push(`/exercises/${lastSelectedTopicPath}`);
-    } else {
-      route.push('/topics');
-    }
+  const handleNavigation = (path: string) => {
+    if (isLoading) return;
+    setIsNavigating(true);
+    route.push(path);
   };
 
   return (
@@ -60,74 +60,94 @@ const Header: React.FC = () => {
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title="Темы">
-              <IconButton
-                color="inherit"
-                onClick={handleTopicsClick}
-                sx={{
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { backgroundColor: '#f5f5f5' }
-                }}
-                aria-label="topics"
-              >
-                <TopicIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={() => handleNavigation('/topics')}
+                  disabled={isLoading}
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  }}
+                  aria-label="topics"
+                >
+                  <TopicIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="Словарь">
-              <IconButton
-                color="inherit"
-                onClick={() => route.push('/dictionary')}
-                sx={{
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { backgroundColor: '#f5f5f5' }
-                }}
-                aria-label="dictionary"
-              >
-                <BookIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={() => handleNavigation('/dictionary')}
+                  disabled={isLoading}
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  }}
+                  aria-label="dictionary"
+                >
+                  <BookIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="История">
-              <IconButton
-                color="inherit"
-                onClick={() => route.push('/exercises/generated-history')}
-                sx={{
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { backgroundColor: '#f5f5f5' }
-                }}
-                aria-label="history"
-              >
-                <HistoryIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={() => handleNavigation('/exercises/generated-history')}
+                  disabled={isLoading}
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  }}
+                  aria-label="history"
+                >
+                  <HistoryIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="AI модель">
-              <IconButton
-                color="inherit"
-                onClick={handleAiModelOpen}
-                sx={{
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { backgroundColor: '#f5f5f5' }
-                }}
-                aria-label="ai-model"
-              >
-                <SmartToyIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={handleAiModelOpen}
+                  disabled={isLoading}
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  }}
+                  aria-label="ai-model"
+                >
+                  <SmartToyIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="Настройки">
-              <IconButton
-                color="inherit"
-                onClick={handleSettingsOpen}
-                sx={{
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { backgroundColor: '#f5f5f5' }
-                }}
-                aria-label="settings"
-              >
-                <SettingsIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={handleSettingsOpen}
+                  disabled={isLoading}
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  }}
+                  aria-label="settings"
+                >
+                  <SettingsIcon />
+                </IconButton>
+              </span>
             </Tooltip>
           </Box>
         </Toolbar>
