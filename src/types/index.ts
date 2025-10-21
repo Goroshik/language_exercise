@@ -45,6 +45,8 @@ export interface AppStore {
   exerciseBlocks: ExerciseBlock[];
   error: string;
   validationResults: ValidationResults;
+  isNavigating: boolean;
+  setIsNavigating: (isNavigating: boolean) => void;
   lastSelectedTopicPath: string;
   loadLastSelectedTopic: () => Promise<string>;
   handleTopicSelect: (data: {

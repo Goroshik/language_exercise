@@ -61,20 +61,21 @@ const Page: React.FC = () => {
     validationResults,
     handleTopicSelect,
     generateMoreExercises,
-    handleCheckAnswers
+    handleCheckAnswers,
+    setIsNavigating
   } = useAppStore();
 
   // Update the store's selectedTopic when the component mounts
   useEffect(() => {
     const topicPath = topicName ? decodeURIComponent(topicName) : '';
-    useAppStore.setState({ selectedTopic, lastSelectedTopicPath: topicPath });
+    useAppStore.setState({selectedTopic, lastSelectedTopicPath: topicPath});
 
     // Save to user settings
     if (topicPath) {
       fetch('/api/settings', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lastSelectedTopic: topicPath })
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({lastSelectedTopic: topicPath})
       }).catch(error => console.error('Failed to save topic:', error));
     }
   }, [selectedTopic, topicName]);
@@ -83,7 +84,8 @@ const Page: React.FC = () => {
   const isLoading = state === 'loading-exercises';
 
   const handleBackToTopics = () => {
-    navigate.push('/topics');
+    setIsNavigating(true);
+    navigate.push('/');
   };
 
   const handleGenerateMore = () => {
