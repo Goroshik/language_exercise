@@ -1,6 +1,7 @@
 # AI Model Selector Implementation Summary
 
 ## Overview
+
 Implemented a new AI model selector feature in the header that allows users to quickly and easily select which AI model to use for text generation.
 
 ## Requirements Met ✅
@@ -17,6 +18,7 @@ Implemented a new AI model selector feature in the header that allows users to q
 ### New Components
 
 #### 1. AIModelSelector Component (`src/components/AIModelSelector.tsx`)
+
 - **Purpose**: Modal dialog for selecting AI models
 - **Features**:
   - Fetches available models based on user's API tokens
@@ -29,8 +31,9 @@ Implemented a new AI model selector feature in the header that allows users to q
   - Loading states for data fetching and saving
   - Error and success message handling
   - Provider and model selection tracking
-  
+
 #### 2. AI Models Constants (`src/constants/aiModels.ts`)
+
 - **Purpose**: Centralized model definitions and utilities
 - **Contents**:
   - `AIModel` interface defining model structure
@@ -42,6 +45,7 @@ Implemented a new AI model selector feature in the header that allows users to q
     - `getModelLabel()`: Get display label for model
 
 #### 3. Available Models API (`src/app/api/ai/available-models/route.ts`)
+
 - **Purpose**: REST endpoint to fetch user's available models
 - **Logic**:
   1. Gets user ID from request
@@ -53,6 +57,7 @@ Implemented a new AI model selector feature in the header that allows users to q
 ### Modified Components
 
 #### Header Component (`src/components/Header.tsx`)
+
 - **Changes**:
   - Added SmartToy icon import from Material-UI
   - Added AIModelSelector component import
@@ -63,6 +68,7 @@ Implemented a new AI model selector feature in the header that allows users to q
 ## Technical Design
 
 ### Data Flow
+
 ```
 User clicks AI Model button in Header
     ↓
@@ -86,11 +92,13 @@ Success message shown, modal closes after 1 second
 ```
 
 ### Provider-Token Mapping
+
 - `gemini` token → Gemini models (gemini-2.0-flash-exp, gemini-2.5-flash, etc.)
 - `openai` token → OpenAI models (gpt-4o, gpt-4o-mini, etc.)
 - `anthropic` token → Claude models (claude-3-5-sonnet, claude-3-opus, etc.)
 
 ### Auto-Selection Logic
+
 1. **No tokens**: Show warning, disable all controls
 2. **One token**: Auto-select provider, disable provider dropdown
 3. **Current model's provider available**: Pre-select that provider and model
@@ -100,6 +108,7 @@ Success message shown, modal closes after 1 second
 ## User Interface (Russian Locale)
 
 ### Modal Elements
+
 - **Title**: "Выбор AI модели"
 - **Provider Label**: "Провайдер"
 - **Model Label**: "Модель"
@@ -110,11 +119,13 @@ Success message shown, modal closes after 1 second
 - **Success Message**: "Модель успешно сохранена!"
 
 ### Header Icon
+
 - **Tooltip**: "AI модель"
 - **Icon**: SmartToy (robot icon)
 - **Style**: White background with primary color icon, matches other header buttons
 
 ## File Structure
+
 ```
 src/
 ├── components/
@@ -143,15 +154,18 @@ src/
 - [ ] Save button disabled when no changes made
 
 ## Dependencies
+
 - Material-UI components (Dialog, Select, Button, etc.)
 - Existing API endpoints (/api/settings, /api/tokens)
 - Existing repositories (userTokenRepository, userSettingsRepository)
 - React hooks (useState, useEffect)
 
 ## Database Schema
+
 Uses existing `UserSettings` table with `aiModel` field to store selected model.
 
 ## Future Enhancements (Out of Scope)
+
 - Display model capabilities/pricing in selector
 - Show model performance metrics
 - Add favorites or recently used models
@@ -159,6 +173,7 @@ Uses existing `UserSettings` table with `aiModel` field to store selected model.
 - Estimate token costs for selected model
 
 ## Compatibility
+
 - Next.js 15.5.4
 - React 19.1.0
 - Material-UI 7.3.4

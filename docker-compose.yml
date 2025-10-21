@@ -4,8 +4,8 @@ services:
     image: mongo:7
     container_name: mongodb-dev
     ports:
-      - "27017:27017"
-    command: ["--replSet", "rs0", "--bind_ip_all"]
+      - '27017:27017'
+    command: ['--replSet', 'rs0', '--bind_ip_all']
     volumes:
       - mongodb_data:/data/db
     healthcheck:

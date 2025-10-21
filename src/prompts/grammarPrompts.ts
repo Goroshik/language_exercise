@@ -1,5 +1,9 @@
 export const GRAMMAR_PROMPTS = {
-  generateExercises: (topic: string, languageName: string, selectedWords?: string[]) => `You are helping a Russian speaker learn ${languageName}. Generate 5 ${languageName} sentences for practicing the topic: "${topic}".
+  generateExercises: (
+    topic: string,
+    languageName: string,
+    selectedWords?: string[]
+  ) => `You are helping a Russian speaker learn ${languageName}. Generate 5 ${languageName} sentences for practicing the topic: "${topic}".
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 
@@ -13,7 +17,11 @@ Example format:
 I {{input}} to school every day. (go)
 She {{input}} a beautiful dress yesterday. (buy)`,
 
-  generateMoreExercises: (topic: string, languageName: string, selectedWords?: string[]) => `You are helping a Russian speaker learn ${languageName}. Generate 5 NEW ${languageName} sentences for practicing the topic: "${topic}".
+  generateMoreExercises: (
+    topic: string,
+    languageName: string,
+    selectedWords?: string[]
+  ) => `You are helping a Russian speaker learn ${languageName}. Generate 5 NEW ${languageName} sentences for practicing the topic: "${topic}".
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 
@@ -27,7 +35,11 @@ Example format:
 I {{input}} to school every day. (go)
 She {{input}} a beautiful dress yesterday. (buy)`,
 
-  validateAnswers: (topic: string, answersText: string, languageName: string = 'the target language') => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences for grammatical correctness. Topic: "${topic}".
+  validateAnswers: (
+    topic: string,
+    answersText: string,
+    languageName: string = 'the target language'
+  ) => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences for grammatical correctness. Topic: "${topic}".
 
 ${answersText}
 
@@ -49,7 +61,12 @@ Format your response as:
 3. TRANSLATION_ERRORS: word - правильный перевод
 etc.`,
 
-  generateTeacherSentences: (topic: string, level: string, languageName: string, selectedWords?: string[]) => `You are helping create ${languageName} learning materials for Russian speakers. Generate 10 complete ${languageName} sentences for a teacher to give to students for practicing the topic: "${topic}" at ${level} proficiency level.
+  generateTeacherSentences: (
+    topic: string,
+    level: string,
+    languageName: string,
+    selectedWords?: string[]
+  ) => `You are helping create ${languageName} learning materials for Russian speakers. Generate 10 complete ${languageName} sentences for a teacher to give to students for practicing the topic: "${topic}" at ${level} proficiency level.
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 

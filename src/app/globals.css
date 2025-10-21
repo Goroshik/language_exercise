@@ -1,25 +1,24 @@
 .global-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 24px 16px;
-    box-sizing: border-box;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px;
+  box-sizing: border-box;
 }
 
 .exercise-block-compact {
-    padding: 12px 10px;
-    margin-bottom: 16px;
-    border-radius: 10px;
-    background: #f8f8f8;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  padding: 12px 10px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  background: #f8f8f8;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 .exercise-block-compact .MuiTypography-root {
-    font-size: 1rem;
+  font-size: 1rem;
 }
 
 .exercise-block-compact .MuiButton-root {
-    min-width: 32px;
-    padding: 4px 12px;
-    font-size: 0.95rem;
+  min-width: 32px;
+  padding: 4px 12px;
+  font-size: 0.95rem;
 }
-
