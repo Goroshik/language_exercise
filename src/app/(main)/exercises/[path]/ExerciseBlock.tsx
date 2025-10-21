@@ -52,8 +52,6 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
     onCheckAnswers(block.id, userAnswers);
   };
 
-  console.log(block.exercises);
-
   return (
     <ExerciseBlockContainer className="exercise-block-compact">
       <ExerciseBlockTitle variant="h6">

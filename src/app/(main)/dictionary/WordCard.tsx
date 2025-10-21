@@ -20,6 +20,7 @@ import {
   MoreVert as MoreVertIcon
 } from '@mui/icons-material';
 import { DictionaryWord } from 'src/types';
+import { showAlert } from 'src/utils/alert';
 
 interface WordCardProps {
   word: DictionaryWord;
@@ -86,7 +87,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
         await removeWord(word.id);
         onWordDelete?.();
       } catch (error) {
-        console.error('Failed to delete word:', error);
+        showAlert.error('Failed to delete word');
         // NOTE: Check if alert is available (client-side only)
         if (typeof window !== 'undefined') {
           alert('Не удалось удалить слово. Попробуйте еще раз.');
@@ -106,7 +107,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
         setEditDialogOpen(false);
         onWordUpdate?.();
       } catch (error) {
-        console.error('Failed to update word:', error);
+        showAlert.error('Failed to update word');
         alert('Не удалось обновить слово. Попробуйте еще раз.');
       } finally {
         setIsUpdating(false);

@@ -10,6 +10,7 @@ import {
   Typography
 } from '@mui/material';
 import { DictionaryWord } from 'src/types';
+import { showAlert } from 'src/utils/alert';
 
 interface WordSelectorProps {
   selectedWords: DictionaryWord[];
@@ -47,7 +48,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
         setIsInitialized(true);
       }
     } catch (error) {
-      console.error('Failed to load words:', error);
+      showAlert.error('Failed to load words');
       setIsInitialized(true);
     }
   };

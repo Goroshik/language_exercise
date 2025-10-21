@@ -23,6 +23,7 @@ import {
   Link
 } from '@mui/material';
 import { SelectChangeEvent } from '@mui/material/Select';
+import { showAlert } from 'src/utils/alert';
 
 interface SettingsModalProps {
   open: boolean;
@@ -140,7 +141,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
         setTokens(prev => ({ ...prev, ...tokenMap }));
       }
     } catch (error) {
-      console.error('Failed to load tokens:', error);
+      showAlert.error('Failed to load tokens');
     }
   };
 
@@ -152,7 +153,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
         setSettings(prev => ({ ...prev, ...settingsData }));
       }
     } catch (error) {
-      console.error('Failed to load settings:', error);
+      showAlert.error('Failed to load settings');
     }
   };
 
@@ -193,7 +194,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
       setSuccess('Tokens saved successfully!');
     } catch (error) {
       setError('Failed to save tokens');
-      console.error('Save tokens error:', error);
+      showAlert.error('Failed to save tokens');
     } finally {
       setLoading(false);
     }
@@ -220,7 +221,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
       }
     } catch (error) {
       setError('Failed to save settings');
-      console.error('Save settings error:', error);
+      showAlert.error('Failed to save settings');
     } finally {
       setLoading(false);
     }
