@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Box, Button, CircularProgress, IconButton, Paper, Typography } from '@mui/material';
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
 import ImportWordsModal from './ImportWordsModal';
@@ -13,6 +13,26 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
   const [translation, setTranslation] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // NOTE: Handle clicks outside the panel to close it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+
+    // Add event listener with a small delay to prevent immediate closure
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [onClose]);
 
   // NOTE: Get word translation when component mounts
   useEffect(() => {
@@ -42,6 +62,7 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
 
   const handleAddToDictionary = () => {
     setIsModalOpen(true);
+    onClose(); // Close the translation panel when opening the modal
   };
 
   const handleCloseModal = () => {
@@ -56,6 +77,7 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
   return (
     <>
       <Paper
+        ref={panelRef}
         elevation={8}
         onClick={handlePanelClick}
         sx={{
