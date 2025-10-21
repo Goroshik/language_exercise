@@ -5,21 +5,26 @@ import {GRAMMAR_PROMPTS} from 'src/prompts';
 import {ApiService} from 'src/services/apiService';
 import {AppState, AppStore, DictionaryWord, ExerciseBlock, ValidationResults} from 'src/types';
 
-export const useAppStore = create<AppStore>()(devtools((set, get) => ({
+export const useAppStore = create<AppStore>()(
+  devtools((set, get) => ({
     // Initial state
     state: 'loading-topics',
     selectedTopic: '',
-    selectedLanguageId: undefined,
     exerciseBlocks: [],
     error: '',
     validationResults: {},
     isNavigating: false,
 
+    // Actions
     setIsNavigating: (isNavigating: boolean) => {
       set({isNavigating});
     },
-    // Actions
-    handleTopicSelect: async ({languageId, level = 'A1', selectedWords = [], mode = 'student'}: {
+    handleTopicSelect: async ({
+                                languageId,
+                                level = 'A1',
+                                selectedWords = [],
+                                mode = 'student'
+                              }: {
       languageId?: string;
       level?: string;
       selectedWords?: DictionaryWord[];
@@ -30,27 +35,12 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
       // Предполагаем, что topic — последний сегмент после /exercises/
       const topicRaw = urlPath.split('/').pop() || '';
       const topic = topicRaw.replace(/_/g, ' ');
-      // Save the last selected topic path
-      const topicPath = urlPath.split('/exercises/')[1] || '';
-
       set({
         selectedTopic: topic,
-        selectedLanguageId: languageId,
         state: 'loading-exercises',
         error: '',
         validationResults: {}
       });
-
-      // Save to user settings
-      try {
-        await fetch('/api/settings', {
-          method: 'PATCH',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({lastSelectedTopic: topicPath})
-        });
-      } catch (error) {
-        console.error('Failed to save last selected topic:', error);
-      }
 
       try {
         const data = await ApiService.generateText({
@@ -64,12 +54,15 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
         let sentencesList;
 
         if (mode === 'student') {
-          // For student mode, sentences have **bold** words that will be converted to blanks by TextWithInputs for practice
-          sentencesList = (data)
-            .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
+          // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
+          sentencesList = data.map((sentence: string) => ({
+            sentence: sentence.trim(),
+            correctAnswers: []
+          }));
         } else {
-          // For teacher mode, sentences have **bold** words for learning/viewing examples
-          sentencesList = (data)
+          // For train mode, filter sentences with {{input}} placeholders
+          sentencesList = data
+            .filter((sentence: string) => sentence.includes('{{input}}'))
             .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
         }
 
@@ -95,7 +88,12 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
       }
     },
 
-    generateMoreExercises: async ({languageId, level = 'A1', selectedWords = [], mode = 'student'}: {
+    generateMoreExercises: async ({
+                                    languageId,
+                                    level = 'A1',
+                                    selectedWords = [],
+                                    mode = 'student'
+                                  }: {
       languageId?: string;
       level?: string;
       selectedWords?: DictionaryWord[];
@@ -107,19 +105,28 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
       const topic = topicRaw.replace(/_/g, ' ');
       set({state: 'loading-exercises', error: ''});
       try {
-        const data = await ApiService.generateText({mode, topic, languageId, level, selectedWords});
+        const data = await ApiService.generateText({
+          mode,
+          topic,
+          languageId,
+          level,
+          selectedWords
+        });
 
         console.log('responseJson', data);
 
         let newSentencesList;
 
         if (mode === 'student') {
-          // For student mode, sentences have **bold** words that will be converted to blanks by TextWithInputs for practice
-          newSentencesList = (data)
-            .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
+          // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
+          newSentencesList = data.map((sentence: string) => ({
+            sentence: sentence.trim(),
+            correctAnswers: []
+          }));
         } else {
-          // For teacher mode, sentences have **bold** words for learning/viewing examples
-          newSentencesList = (data)
+          // For train mode, filter sentences with {{input}} placeholders
+          newSentencesList = data
+            .filter((sentence: string) => sentence.includes('{{input}}'))
             .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
         }
 
@@ -142,7 +149,7 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     },
 
     handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string }) => {
-      const {exerciseBlocks, selectedTopic, selectedLanguageId} = get();
+      const {exerciseBlocks, selectedTopic} = get();
 
       // Set checking state for specific block
       set(state => ({
@@ -158,89 +165,37 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
           throw new Error('Block not found');
         }
 
-        // Получаем название языка
-        let languageName = 'English';
-        if (selectedLanguageId) {
-          try {
-            const res = await fetch('/api/languages');
-            const data = await res.json();
-            const language = data.data?.find((lang: any) => lang.id === selectedLanguageId);
-            if (language) {
-              languageName = language.name;
-            }
-          } catch (error) {
-            console.error('Failed to fetch language name:', error);
-          }
-        }
-
-        // Собираем текст с ответами пользователя (используем textarea значения)
-        const answersText = block.exercises.map((exercise, index) => {
-          const textareaId = `textarea_${blockId}_${index}`;
-          const userAnswer = userAnswers[textareaId] || '';
-          return `${index + 1}. ${userAnswer}`;
-        }).join('\n');
-
-        // Вызываем API для проверки ответов (промпт формируется на сервере)
-        const data = await ApiService.checkAnswers({
-          topic: selectedTopic,
-          answersText,
-          languageName
-        });
-
-        const results: {
-          [key: string]: {
-            isCorrect: boolean;
-            error?: string;
-            incorrectTranslations?: string[];
-          };
-        } = {};
-
-        data.forEach((rawLine: string, index: number) => {
-          const textareaId = `textarea_${blockId}_${index}`;
-          const normalizedLine = rawLine.replace(/^\d+[\.\)]\s*/, '').trim();
-
-          if (!normalizedLine) {
-            results[textareaId] = {
-              isCorrect: false,
-              error: 'Не удалось обработать ответ проверки'
-            };
-            return;
-          }
-
-          const segments = normalizedLine.split('|').map(part => part.trim());
-          const isCorrect = segments.length === 1 && /^CORRECT$/i.test(segments[0]);
-
-          let errorMessage: string | undefined;
-          let incorrectTranslations: string[] | undefined;
-
-          if (!isCorrect) {
-            segments.forEach(segment => {
-              if (/^ERROR:/i.test(segment)) {
-                const message = segment.replace(/^ERROR:\s*/i, '').trim();
-                if (message) {
-                  errorMessage = errorMessage ? `${errorMessage} ${message}`.trim() : message;
-                }
-              } else if (/^TRANSLATION_ERRORS:/i.test(segment)) {
-                const errorsText = segment.replace(/^TRANSLATION_ERRORS:\s*/i, '').trim();
-                if (errorsText) {
-                  incorrectTranslations = errorsText
-                    .split(/,\s*/)
-                    .map(item => item.trim())
-                    .filter(Boolean);
-                } else {
-                  incorrectTranslations = [];
-                }
-              }
+        const answersText = block.exercises
+          .map((exercise, index) => {
+            const inputRegex = /\{\{input\}\}/g;
+            let inputCounter = 0;
+            const filledSentence = exercise.sentence.replace(inputRegex, () => {
+              const inputId = `input_${blockId}_${index}_${inputCounter++}`;
+              return userAnswers[inputId] || '___';
             });
+            return `${index + 1}. ${filledSentence}`;
+          })
+          .join('\n');
+        const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
+        const data = await ApiService.generateText({prompt: validatePrompt});
+
+        const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
+
+        data.forEach((line: string, index: number) => {
+          const isCorrect = line.includes('CORRECT');
+          let errorMessage: string | undefined;
+
+          if (!isCorrect && line.includes('ERROR:')) {
+            errorMessage = line.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
           }
 
-          results[textareaId] = {
-            isCorrect,
-            ...(errorMessage ? {error: errorMessage} : {}),
-            ...(incorrectTranslations && incorrectTranslations.length > 0
-              ? {incorrectTranslations}
-              : {})
-          };
+          let inputCounter = 0;
+
+          block.exercises[index]?.sentence.replace(/\{\{input\}\}/g, () => {
+            const inputId = `input_${blockId}_${index}_${inputCounter++}`;
+            results[inputId] = {isCorrect, error: errorMessage};
+            return '';
+          });
         });
 
         set(state => ({
@@ -264,19 +219,6 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
 
     clearError: () => {
       set({error: ''});
-    },
-
-    loadLastSelectedTopic: async () => {
-      try {
-        const response = await fetch('/api/settings');
-        const data = await response.json();
-        const lastTopic = data.lastSelectedTopic || '';
-        set({lastSelectedTopicPath: lastTopic});
-        return lastTopic;
-      } catch (error) {
-        console.error('Failed to load last selected topic:', error);
-        return '';
-      }
     }
   }))
 );

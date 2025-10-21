@@ -1,15 +1,15 @@
 'use client';
 
-import React, {useState, useEffect} from 'react';
-import {useRouter, useParams} from 'next/navigation';
+import React, { useState, useEffect } from 'react';
+import { useRouter, useParams } from 'next/navigation';
 
-import {Box, Button, ButtonGroup, Stack, Typography, MenuItem, TextField} from '@mui/material';
+import { Box, Button, ButtonGroup, Stack, Typography, MenuItem, TextField } from '@mui/material';
 
-import {useAppStore} from 'src/store/appStore';
+import { useAppStore } from 'src/store/appStore';
 
 import ExerciseBlock from './ExerciseBlock';
 import WordSelector from './WordSelector';
-import {DictionaryWord} from 'src/types';
+import { DictionaryWord } from 'src/types';
 
 interface Language {
   id: string;
@@ -19,7 +19,7 @@ interface Language {
 }
 
 const Page: React.FC = () => {
-  const {topicName} = useParams<{ topicName: string }>();
+  const { topicName } = useParams<{ topicName: string }>();
   const navigate = useRouter();
 
   // State for button selections
