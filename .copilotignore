@@ -1,0 +1,4 @@
+# Не предлагать автофиксы для конфигов линтера
+eslint.config.js
+eslint.config.mjs
+.eslintrc*
