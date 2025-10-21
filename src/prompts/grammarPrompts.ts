@@ -3,29 +3,29 @@ export const GRAMMAR_PROMPTS = {
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 
-Each sentence should have 1-2 words replaced with {{input}} placeholders where the student needs to fill in the correct ${languageName} word form.
+Each sentence should be complete and grammatically correct, but one word should be highlighted in bold (**word**) to indicate where the student needs to fill in the correct form.
 
-At the end of each sentence, add the missing words in brackets in their base form (infinitive for verbs, singular for nouns, positive form for adjectives).
+The highlighted word should be the key word that demonstrates the grammar topic being practiced.
 
-Return ONLY the sentences, one per line, with {{input}} placeholders where words should be filled in and the base forms in brackets at the end.
+Return ONLY the sentences, one per line, with the target word in bold formatting (**word**).
 
 Example format:
-I {{input}} to school every day. (go)
-She {{input}} a beautiful dress yesterday. (buy)`,
+They **visit** many countries last summer.
+She **buys** a beautiful dress yesterday.`,
 
   generateMoreExercises: (topic: string, languageName: string, selectedWords?: string[]) => `You are helping a Russian speaker learn ${languageName}. Generate 5 NEW ${languageName} sentences for practicing the topic: "${topic}".
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 
-Each sentence should have 1-2 words replaced with {{input}} placeholders where the student needs to fill in the correct ${languageName} word form.
+Each sentence should be complete and grammatically correct, but one word should be highlighted in bold (**word**) to indicate where the student needs to fill in the correct form.
 
-At the end of each sentence, add the missing words in brackets in their base form (infinitive for verbs, singular for nouns, positive form for adjectives).
+The highlighted word should be the key word that demonstrates the grammar topic being practiced.
 
-Return ONLY the sentences, one per line, with {{input}} placeholders where words should be filled in and the base forms in brackets at the end.
+Return ONLY the sentences, one per line, with the target word in bold formatting (**word**).
 
 Example format:
-I {{input}} to school every day. (go)
-She {{input}} a beautiful dress yesterday. (buy)`,
+They **visit** many countries last summer.
+She **buys** a beautiful dress yesterday.`,
 
   validateAnswers: (topic: string, answersText: string, languageName: string = 'the target language') => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences for grammatical correctness. Topic: "${topic}".
 

@@ -27,7 +27,7 @@ const schema = Joi.object({
   })).optional(),
 });
 
-function formatAIResponse(text: string): string[] {
+export function formatAIResponse(text: string): string[] {
   return text
     .split(/\r?\n/)
     .map(line => line.trim())
@@ -103,6 +103,7 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
             languageId,
             usedWordIds: Array.from(wordsInSentence),
             level,
+            mode, // Сохраняем режим генерации (learn/exercise)
           };
         });
 
