@@ -57,11 +57,11 @@ ${text}`;
         }
         return [];
       } catch (parseError) {
-        showAlert.error('Failed to parse Claude response as JSON', cleanedResponse);
+        showAlert.error('Failed to parse Claude response as JSON');
         return [];
       }
     } catch (error) {
-      showAlert.error('Error parsing words with Claude', error);
+      showAlert.error('Error parsing words with Claude');
       return [];
     }
   }
@@ -98,7 +98,7 @@ ${text}`;
 
       return { text };
     } catch (error) {
-      showAlert.error('Claude API Error', error);
+      showAlert.error('Claude API Error');
       return {
         text: '',
         error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -161,7 +161,7 @@ ${text}`;
 
       return null;
     } catch (error) {
-      showAlert.error('Error fetching user model settings', error);
+      showAlert.error('Error fetching user model settings');
       return null;
     }
   }

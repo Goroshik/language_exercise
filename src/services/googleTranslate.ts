@@ -67,7 +67,7 @@ export class GoogleTranslateService {
         return { text: '', error: 'No translation received from Google Translate API' };
       }
     } catch (error) {
-      showAlert.error('Google Translate API Error', error);
+      showAlert.error('Google Translate API Error');
       return {
         text: '',
         error: error instanceof Error ? error.message : 'Unknown translation error occurred'
@@ -137,7 +137,7 @@ export class GoogleTranslateService {
         }));
       }
     } catch (error) {
-      showAlert.error('Google Translate API Batch Error', error);
+      showAlert.error('Google Translate API Batch Error');
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown translation error occurred';
       return texts.map(() => ({ text: '', error: errorMessage }));
