@@ -25,6 +25,13 @@ export const useAlertStore = create<AlertStore>()(
       set((state) => ({
         alerts: [...state.alerts, { id, message, severity }]
       }));
+      
+      // Auto-dismiss after 6 seconds
+      setTimeout(() => {
+        set((state) => ({
+          alerts: state.alerts.filter((alert) => alert.id !== id)
+        }));
+      }, 6000);
     },
 
     removeAlert: (id: string) => {

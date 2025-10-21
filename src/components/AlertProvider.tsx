@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Alert, Snackbar, Stack } from '@mui/material';
+import { Alert, Stack } from '@mui/material';
 import { useAlertStore } from 'src/store/alertStore';
 
 export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -14,26 +14,30 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   return (
     <>
       {children}
-      <Stack spacing={1} sx={{ position: 'fixed', bottom: 16, right: 16, zIndex: 9999 }}>
-        {alerts.map((alert) => (
-          <Snackbar
-            key={alert.id}
-            open={true}
-            autoHideDuration={6000}
-            onClose={() => handleClose(alert.id)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          >
+      {alerts.length > 0 && (
+        <Stack
+          spacing={1}
+          sx={{
+            position: 'fixed',
+            bottom: 16,
+            right: 16,
+            zIndex: 9999,
+            maxWidth: 400
+          }}
+        >
+          {alerts.map((alert) => (
             <Alert
+              key={alert.id}
               onClose={() => handleClose(alert.id)}
               severity={alert.severity}
-              sx={{ width: '100%' }}
               variant="filled"
+              sx={{ width: '100%' }}
             >
               {alert.message}
             </Alert>
-          </Snackbar>
-        ))}
-      </Stack>
+          ))}
+        </Stack>
+      )}
     </>
   );
 };
