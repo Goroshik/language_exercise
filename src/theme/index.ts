@@ -85,7 +85,6 @@ export default createTheme({
           '&.exercise-input': {
             minWidth: 100,
             '& .MuiOutlinedInput-root': {
-              height: '2em',
               '&:hover': {
                 backgroundColor: 'rgba(0, 0, 0, 0.04)'
               }

@@ -1,45 +1,30 @@
 export const GRAMMAR_PROMPTS = {
-  generateExercises: (
-    topic: string,
-    languageName: string,
-    selectedWords?: string[]
-  ) => `You are helping a Russian speaker learn ${languageName}. Generate 5 ${languageName} sentences for practicing the topic: "${topic}".
+  // For student mode - create exercises with blanks for students to fill (practice exercises)
+  generateStudentExercises: (topic: string, languageName: string, selectedWords?: string[]) => `You are helping a Russian speaker learn ${languageName}. Generate 5 ${languageName} sentences for practicing the topic: "${topic}".
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 
-Each sentence should have 1-2 words replaced with {{input}} placeholders where the student needs to fill in the correct ${languageName} word form.
+IMPORTANT REQUIREMENTS:
+1. Each sentence must be complete and grammatically correct
+2. ONE key word should be highlighted with **word** - this word should be in the CORRECT grammatical form (NOT base form)
+3. The highlighted word demonstrates the grammar topic being practiced
+4. After the sentence, add a hint in parentheses ONLY if appropriate:
+   - DO NOT add hints for articles (a/the)
+   - DO NOT add "to be" for continuous tenses (the student should know the form)
+   - DO add hints for verb infinitives, base noun forms, or other helpful context
+   - Format: (hint text)
 
-At the end of each sentence, add the missing words in brackets in their base form (infinitive for verbs, singular for nouns, positive form for adjectives).
+CRITICAL: Return ONLY the sentences, one per line. DO NOT include any introductory text, explanations, or headers.
 
-Return ONLY the sentences, one per line, with {{input}} placeholders where words should be filled in and the base forms in brackets at the end.
+Example output for topic "Past Simple":
+They **visited** many countries last summer. (visit)
+She **bought** a beautiful dress yesterday. (buy)
 
-Example format:
-I {{input}} to school every day. (go)
-She {{input}} a beautiful dress yesterday. (buy)`,
+Example output for topic "Articles":
+I need **a** new phone.
+**The** sun is shining brightly.`,
 
-  generateMoreExercises: (
-    topic: string,
-    languageName: string,
-    selectedWords?: string[]
-  ) => `You are helping a Russian speaker learn ${languageName}. Generate 5 NEW ${languageName} sentences for practicing the topic: "${topic}".
-
-${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
-
-Each sentence should have 1-2 words replaced with {{input}} placeholders where the student needs to fill in the correct ${languageName} word form.
-
-At the end of each sentence, add the missing words in brackets in their base form (infinitive for verbs, singular for nouns, positive form for adjectives).
-
-Return ONLY the sentences, one per line, with {{input}} placeholders where words should be filled in and the base forms in brackets at the end.
-
-Example format:
-I {{input}} to school every day. (go)
-She {{input}} a beautiful dress yesterday. (buy)`,
-
-  validateAnswers: (
-    topic: string,
-    answersText: string,
-    languageName: string = 'the target language'
-  ) => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences for grammatical correctness. Topic: "${topic}".
+  validateAnswers: (topic: string, answersText: string, languageName: string = 'the target language') => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences for grammatical correctness. Topic: "${topic}".
 
 ${answersText}
 
@@ -61,16 +46,16 @@ Format your response as:
 3. TRANSLATION_ERRORS: word - правильный перевод
 etc.`,
 
-  generateTeacherSentences: (
-    topic: string,
-    level: string,
-    languageName: string,
-    selectedWords?: string[]
-  ) => `You are helping create ${languageName} learning materials for Russian speakers. Generate 10 complete ${languageName} sentences for a teacher to give to students for practicing the topic: "${topic}" at ${level} proficiency level.
+  // For teacher mode - provide correct example sentences for learning/viewing
+  generateTeacherExamples: (topic: string, level: string, languageName: string, selectedWords?: string[]) => `You are helping create ${languageName} learning materials for Russian speakers. Generate 10 complete ${languageName} sentences for students to learn the topic: "${topic}" at ${level} proficiency level.
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 
-Each sentence should be complete and grammatically correct, but one word should be highlighted in bold (**word**) to indicate where the student needs to fill in the correct form.
+IMPORTANT REQUIREMENTS:
+1. All sentences must be grammatically CORRECT (students will learn from these examples)
+2. ONE key word should be highlighted with **word** - this word MUST be in the CORRECT grammatical form
+3. The highlighted word demonstrates the grammar topic being practiced
+4. DO NOT add any hints or base forms - these are for learning, not exercises
 
 Level guidelines:
 - A1: Simple present/past tense, basic vocabulary, simple sentence structures
@@ -80,9 +65,10 @@ Level guidelines:
 - C1: Advanced grammar structures, sophisticated vocabulary
 - C2: Native-like complexity, idiomatic expressions
 
-Return ONLY the sentences, one per line, with the target word in bold formatting (**word**).
+CRITICAL: Return ONLY the sentences, one per line. DO NOT include any introductory text, explanations, or headers.
 
-Example format:
-I **go** to school every day.
-She **bought** a beautiful dress yesterday.`
+Example output for topic "Past Simple":
+They **visited** many countries last summer.
+She **bought** a beautiful dress yesterday.
+I **studied** English for two hours.`
 };

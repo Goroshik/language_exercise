@@ -4,7 +4,7 @@ import { sentenceHistoryRepository, languageRepository } from 'src/repository/cl
 import { AIFactory } from 'src/services/aiFactory';
 import { DictionaryWord } from 'src/types';
 
-export type Mode = 'learn' | 'exercise' | string;
+export type Mode = 'student' | 'teacher' | string;
 
 export interface GenerateTextRequest {
   mode: Mode;
@@ -21,17 +21,13 @@ const schema = Joi.object({
   topic: Joi.string().required(),
   languageId: Joi.string().required(),
   level: Joi.string().required(),
-  selectedWords: Joi.array()
-    .items(
-      Joi.object({
-        id: Joi.string().allow(null),
-        word: Joi.string().allow('', null)
-      })
-    )
-    .optional()
+  selectedWords: Joi.array().items(Joi.object({
+    id: Joi.string().allow(null),
+    word: Joi.string().allow('', null),
+  })).optional(),
 });
 
-function formatAIResponse(text: string): string[] {
+export function formatAIResponse(text: string): string[] {
   return text
     .split(/\r?\n/)
     .map(line => line.trim())
@@ -61,10 +57,9 @@ export async function processGenerateTextRequest(
     }
 
     const words = selectedWords.map(w => w.word || '');
-    const prompt =
-      mode === 'learn'
-        ? GRAMMAR_PROMPTS.generateTeacherSentences(topic, level, language.name, words)
-        : GRAMMAR_PROMPTS.generateExercises(topic, language.name, words);
+    const prompt = mode === 'student'
+      ? GRAMMAR_PROMPTS.generateStudentExercises(topic, language.name, words)
+      : GRAMMAR_PROMPTS.generateTeacherExamples(topic, level, language.name, words);
 
     const aiService = await AIFactory.getAIService(userId);
     if (!aiService || typeof aiService.generateText !== 'function') {
@@ -82,12 +77,7 @@ export async function processGenerateTextRequest(
       return { status: 502, body: { error: 'Failed to generate text from AI service' } };
     }
 
-    const text =
-      typeof rawResult === 'string'
-        ? rawResult
-        : rawResult && typeof rawResult === 'object'
-          ? ((rawResult as any).text ?? '')
-          : '';
+    const text = typeof rawResult === 'string' ? rawResult : (rawResult && typeof rawResult === 'object' ? (rawResult as any).text ?? '' : '');
     const result = formatAIResponse(text);
 
     if (result.length > 0) {
@@ -109,13 +99,18 @@ export async function processGenerateTextRequest(
             }
           }
 
+          // Удаляем подсказки из предложения перед сохранением в историю
+          // Формат подсказок: (hint text) в конце предложения
+          const sentenceWithoutHints = sentence.replace(/\s*\([^)]+\)\s*$/, '').trim();
+
           // Возвращаем запись даже если нет найденных слов (с пустым массивом)
           return {
             ownerId: userId,
-            sentence,
+            sentence: sentenceWithoutHints,
             languageId,
             usedWordIds: Array.from(wordsInSentence),
-            level
+            level,
+            mode, // Сохраняем режим генерации (student/teacher)
           };
         });
 

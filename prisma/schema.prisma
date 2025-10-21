@@ -120,6 +120,7 @@ model SentenceHistory {
   languageId  String   @db.ObjectId
   usedWordIds String[] @db.ObjectId
   level       String
+  mode        String   @default("exercise") // "learn" or "exercise" - режим для которого было сгенерировано предложение
   ownerId     String   @db.ObjectId
   owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   language    Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
