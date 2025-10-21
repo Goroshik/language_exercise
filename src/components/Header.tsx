@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppBar, Box, Toolbar, Typography, IconButton, Tooltip } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -10,11 +10,17 @@ import HistoryIcon from '@mui/icons-material/History';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import SettingsModal from './SettingsModal';
 import AIModelSelector from './AIModelSelector';
+import { useAppStore } from 'src/store/appStore';
 
 const Header: React.FC = () => {
   const route = useRouter();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiModelOpen, setAiModelOpen] = useState(false);
+  const { selectedTopic, lastSelectedTopicPath, loadLastSelectedTopic } = useAppStore();
+
+  useEffect(() => {
+    loadLastSelectedTopic();
+  }, [loadLastSelectedTopic]);
 
   const handleSettingsOpen = () => {
     setSettingsOpen(true);
@@ -32,18 +38,31 @@ const Header: React.FC = () => {
     setAiModelOpen(false);
   };
 
+  const handleTopicsClick = () => {
+    if (lastSelectedTopicPath) {
+      route.push(`/exercises/${lastSelectedTopicPath}`);
+    } else {
+      route.push('/topics');
+    }
+  };
+
   return (
     <>
       <AppBar position="static" color="primary">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Изучение английского языка
+            {selectedTopic && (
+              <Typography component="span" variant="subtitle1" sx={{ ml: 2, opacity: 0.9 }}>
+                - {selectedTopic}
+              </Typography>
+            )}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title="Темы">
               <IconButton
                 color="inherit"
-                onClick={() => route.push('/topics')}
+                onClick={handleTopicsClick}
                 sx={{
                   backgroundColor: 'white',
                   color: 'primary.main',

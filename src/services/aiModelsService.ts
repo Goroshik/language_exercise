@@ -1,5 +1,5 @@
-import {userTokenRepository} from 'src/repository/client';
-import {AI_MODELS} from 'src/constants/aiModels';
+import { userTokenRepository } from 'src/repository/client';
+import { AI_MODELS } from 'src/constants/aiModels';
 
 export interface AvailableModelsResponse {
   providers: Array<'gemini' | 'openai' | 'anthropic'>;
@@ -30,9 +30,7 @@ export async function getAvailableModels(userId: string): Promise<AvailableModel
     .map(([, provider]) => provider);
 
   // Get models for available providers
-  const availableModels = AI_MODELS.filter(model =>
-    availableProviders.includes(model.provider)
-  );
+  const availableModels = AI_MODELS.filter(model => availableProviders.includes(model.provider));
 
   return {
     providers: availableProviders,

@@ -11,6 +11,7 @@ The header bar contains the following elements from left to right:
 ```
 
 Where:
+
 - **Изучение английского языка** - App title (left-aligned)
 - **[📚]** - Topics button (TopicIcon)
 - **[📖]** - Dictionary button (BookIcon)
@@ -185,7 +186,7 @@ When clicking on the Provider dropdown, it shows only providers for which the us
 - **Warning Alert**: Orange/Yellow background with dark text
 - **Error Alert**: Red background with white text
 - **Current Model Box**: Light gray background (#f5f5f5)
-- **Buttons**: 
+- **Buttons**:
   - Cancel: Default (gray)
   - Save: Primary color (blue)
   - Disabled: Gray with reduced opacity
