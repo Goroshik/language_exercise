@@ -6,6 +6,7 @@ import {useRouter, useParams} from "next/navigation";
 import {Box, Button, ButtonGroup, Stack, Typography, MenuItem, TextField} from '@mui/material';
 
 import {useAppStore} from 'src/store/appStore';
+import {showAlert} from 'src/utils/alert';
 
 import ExerciseBlock from './ExerciseBlock';
 import WordSelector from './WordSelector';
@@ -48,7 +49,7 @@ const Page: React.FC = () => {
           setSelectedLanguageId(langs[0].id);
         }
       } catch (error) {
-        console.error('Failed to fetch languages:', error);
+        showAlert.error('Failed to fetch languages');
       }
     };
     fetchLanguages();
@@ -88,8 +89,6 @@ const Page: React.FC = () => {
       mode: selectedMode
     });
   };
-
-  console.log('ExerciseBlocks:', exerciseBlocks);
 
   return (
     <Box>
