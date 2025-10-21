@@ -1,7 +1,7 @@
 import { DictionaryWord } from 'src/types';
 
 interface GenerateTextRequest {
-  mode?: 'learn' | 'train';
+  mode?: 'student' | 'teacher';
   topic?: string;
   languageId?: string;
   level?: string;

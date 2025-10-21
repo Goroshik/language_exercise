@@ -14,11 +14,11 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
   validationResults: {},
 
   // Actions
-  handleTopicSelect: async ({languageId, level = 'A1', selectedWords = [], mode = 'train'}: {
+  handleTopicSelect: async ({languageId, level = 'A1', selectedWords = [], mode = 'student'}: {
     languageId?: string;
     level?: string;
     selectedWords?: DictionaryWord[];
-    mode?: 'learn' | 'train';
+    mode?: 'student' | 'teacher';
   } = {}) => {
     // Получаем topic из URL
     const urlPath = window.location.pathname;
@@ -39,14 +39,13 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
 
       let sentencesList;
 
-      if (mode === 'learn') {
-        // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
+      if (mode === 'student') {
+        // For student mode, sentences have **bold** words that will be converted to blanks by TextWithInputs for practice
         sentencesList = (data)
           .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
       } else {
-        // For train mode, filter sentences with {{input}} placeholders
+        // For teacher mode, sentences have **bold** words for learning/viewing examples
         sentencesList = (data)
-          .filter((sentence: string) => sentence.includes('{{input}}'))
           .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
       }
 
@@ -72,11 +71,11 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     }
   },
 
-  generateMoreExercises: async ({languageId, level = 'A1', selectedWords = [], mode = 'train'}: {
+  generateMoreExercises: async ({languageId, level = 'A1', selectedWords = [], mode = 'student'}: {
     languageId?: string;
     level?: string;
     selectedWords?: DictionaryWord[];
-    mode?: 'learn' | 'train';
+    mode?: 'student' | 'teacher';
   } = {}) => {
     // Получаем topic из URL
     const urlPath = window.location.pathname;
@@ -90,14 +89,13 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
 
       let newSentencesList;
 
-      if (mode === 'learn') {
-        // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
+      if (mode === 'student') {
+        // For student mode, sentences have **bold** words that will be converted to blanks by TextWithInputs for practice
         newSentencesList = (data)
           .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
       } else {
-        // For train mode, filter sentences with {{input}} placeholders
+        // For teacher mode, sentences have **bold** words for learning/viewing examples
         newSentencesList = (data)
-          .filter((sentence: string) => sentence.includes('{{input}}'))
           .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
       }
 
