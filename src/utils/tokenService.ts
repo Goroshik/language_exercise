@@ -1,4 +1,4 @@
-import {userTokenRepository} from 'src/repository/client';
+import { userTokenRepository } from 'src/repository/client';
 
 export interface TokenResult {
   token: string | null;
@@ -25,7 +25,7 @@ export class TokenService {
           error: `No token found for service: ${service}`
         };
       }
-      
+
       return {
         token: tokenData.token
       };

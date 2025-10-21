@@ -14,13 +14,13 @@ export const AI_MODELS: AIModel[] = [
   { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', provider: 'gemini' },
   { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro', provider: 'gemini' },
   { value: 'gemini-1.0-pro', label: 'Gemini 1.0 Pro', provider: 'gemini' },
-  
+
   // OpenAI models
   { value: 'gpt-4o', label: 'GPT-4o', provider: 'openai' },
   { value: 'gpt-4o-mini', label: 'GPT-4o Mini', provider: 'openai' },
   { value: 'gpt-4-turbo', label: 'GPT-4 Turbo', provider: 'openai' },
   { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo', provider: 'openai' },
-  
+
   // Claude models
   { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet', provider: 'anthropic' },
   { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus', provider: 'anthropic' },

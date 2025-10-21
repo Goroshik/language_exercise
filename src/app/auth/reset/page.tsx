@@ -1,7 +1,7 @@
-"use client"
+'use client';
 
 import React, { useState } from 'react';
-import { useRouter } from "next/navigation";
+import { useRouter } from 'next/navigation';
 
 import { Box, Button, TextField, Typography } from '@mui/material';
 
@@ -35,7 +35,9 @@ export default function ResetPassword() {
 
   return (
     <Box maxWidth={400} mx="auto" mt={8}>
-      <Typography variant="h5" mb={2}>Сброс пароля</Typography>
+      <Typography variant="h5" mb={2}>
+        Сброс пароля
+      </Typography>
       <form onSubmit={handleReset}>
         <TextField
           label="Email"
@@ -53,10 +55,27 @@ export default function ResetPassword() {
           value={newPassword}
           onChange={e => setNewPassword(e.target.value)}
         />
-        {error && <Typography color="error" mt={1}>{error}</Typography>}
-        {success && <Typography color="primary" mt={1}>Пароль успешно изменён!</Typography>}
-        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>Сбросить пароль</Button>
-        <Button variant="text" fullWidth sx={{ mt: 1 }} onClick={() => navigate.push('/auth/login')}>Назад к входу</Button>
+        {error && (
+          <Typography color="error" mt={1}>
+            {error}
+          </Typography>
+        )}
+        {success && (
+          <Typography color="primary" mt={1}>
+            Пароль успешно изменён!
+          </Typography>
+        )}
+        <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
+          Сбросить пароль
+        </Button>
+        <Button
+          variant="text"
+          fullWidth
+          sx={{ mt: 1 }}
+          onClick={() => navigate.push('/auth/login')}
+        >
+          Назад к входу
+        </Button>
       </form>
     </Box>
   );

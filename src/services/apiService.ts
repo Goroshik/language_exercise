@@ -1,4 +1,4 @@
-import {DictionaryWord} from 'src/types';
+import { DictionaryWord } from 'src/types';
 
 interface GenerateTextRequest {
   mode?: 'learn' | 'train';
@@ -22,7 +22,7 @@ interface Tag {
 type ApiResponse<T> = {
   success: true;
   data: T;
-}
+};
 
 export class ApiService {
   static async generateText(data: GenerateTextRequest): Promise<string[]> {
@@ -40,18 +40,16 @@ export class ApiService {
   private static async post<T>(endpoint: string, data: any): Promise<T> {
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
 
-
-    return response.json().then(({data}) => data);
+    return response.json().then(({ data }) => data);
   }
 
   private static async get<T>(endpoint: string): Promise<T> {
     const response = await fetch(endpoint);
 
-
-    return await response.json().then(({data}) => data);
+    return await response.json().then(({ data }) => data);
   }
 }

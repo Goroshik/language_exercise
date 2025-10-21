@@ -19,5 +19,3 @@ export function getUserIdFromRequest(request: NextRequest): string {
   }
   return userId;
 }
-
-

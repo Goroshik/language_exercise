@@ -10,11 +10,17 @@ export interface ExerciseBlock {
   isChecking: boolean;
 }
 
-export type AppState = 'loading-topics' | 'topic-selection' | 'loading-exercises' | 'exercises' | 'checking';
+export type AppState =
+  | 'loading-topics'
+  | 'topic-selection'
+  | 'loading-exercises'
+  | 'exercises'
+  | 'checking';
 
 export interface ValidationResult {
   isCorrect: boolean;
   error?: string;
+  incorrectTranslations?: string[];
 }
 
 export interface ValidationResults {

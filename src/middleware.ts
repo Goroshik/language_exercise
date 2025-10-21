@@ -42,8 +42,8 @@ export async function middleware(request: NextRequest) {
       requestHeaders.set('x-user-id', userId);
       return NextResponse.next({
         request: {
-          headers: requestHeaders,
-        },
+          headers: requestHeaders
+        }
       });
     }
 
@@ -53,10 +53,10 @@ export async function middleware(request: NextRequest) {
   // Unauthenticated
   if (!isPublicRoute) {
     if (isApi) {
-      return new NextResponse(
-        JSON.stringify({ success: false, error: 'Unauthorized' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
-      );
+      return new NextResponse(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' }
+      });
     }
     const url = new URL('/auth/login', request.url);
     url.searchParams.set('callbackUrl', pathname);
@@ -67,8 +67,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    '/api/:path*',
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/api/:path*', '/((?!_next/static|_next/image|favicon.ico).*)']
 };

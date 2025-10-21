@@ -10,13 +10,10 @@ export async function GET(request: NextRequest) {
   try {
     const userId = getUserIdFromRequest(request);
     const availableModels = await getAvailableModels(userId);
-    
+
     return NextResponse.json(availableModels);
   } catch (error) {
     console.error('Error fetching available models:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch available models' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch available models' }, { status: 500 });
   }
 }

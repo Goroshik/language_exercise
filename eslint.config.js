@@ -9,7 +9,7 @@ import prettierConfig from 'eslint-config-prettier';
 
 export default [
   {
-    ignores: ['dist', 'build', 'node_modules', '.react-router']
+    ignores: ['dist', 'build', 'node_modules', '.react-router', '.next']
   },
   js.configs.recommended,
   {
@@ -31,7 +31,14 @@ export default [
         process: 'readonly',
         Buffer: 'readonly',
         __dirname: 'readonly',
-        __filename: 'readonly'
+        __filename: 'readonly',
+        HTMLElement: 'readonly',
+        HTMLTextAreaElement: 'readonly',
+        HTMLInputElement: 'readonly',
+        fetch: 'readonly',
+        alert: 'readonly',
+        URLSearchParams: 'readonly',
+        React: 'readonly'
       }
     },
     plugins: {

@@ -14,25 +14,26 @@ export async function POST(request: NextRequest) {
     const { email, password } = await safeJson(request);
 
     if (!email || !password) {
-      return NextResponse.json({ success: false, error: 'Email и пароль обязательны' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'Email и пароль обязательны' },
+        { status: 400 }
+      );
     }
-
 
     const user = await userRepository.getUserByEmail(email);
 
-    console.log(user)
+    console.log(user);
 
     if (!user) {
       return NextResponse.json({ success: false, error: 'Неверные данные' }, { status: 401 });
     }
 
-    console.log(email, bcrypt.hashSync(password, 10))
+    console.log(email, bcrypt.hashSync(password, 10));
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {
       return NextResponse.json({ success: false, error: 'Неверные данные' }, { status: 401 });
     }
-
 
     const jwt = await new SignJWT({ id: user.id, email: user.email })
       .setProtectedHeader({ alg: 'HS256' })
@@ -47,7 +48,7 @@ export async function POST(request: NextRequest) {
       sameSite: 'lax',
       secure: process.env.NODE_ENV === 'production',
       path: '/',
-      maxAge: 60 * 60 * 24 * 7,
+      maxAge: 60 * 60 * 24 * 7
     });
 
     return response;
@@ -56,6 +57,3 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: false, error: 'Ошибка сервера' }, { status: 500 });
   }
 }
-
-
-

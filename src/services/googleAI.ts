@@ -1,4 +1,4 @@
-import {GoogleGenerativeAI} from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import { BaseAIService, AIResponse, ParsedWord } from './baseAI';
 import { userSettingsRepository } from 'src/repository/client';
 
@@ -14,10 +14,10 @@ export class GoogleAIService extends BaseAIService {
     try {
       const token = await this.validateAndGetToken(userId);
       const genAI = new GoogleGenerativeAI(token);
-      
+
       // Get user's selected model from settings, default to gemini-2.5-flash for parsing
-      const modelName = await this.getUserModel(userId) || 'gemini-2.5-flash';
-      const model = genAI.getGenerativeModel({model: modelName});
+      const modelName = (await this.getUserModel(userId)) || 'gemini-2.5-flash';
+      const model = genAI.getGenerativeModel({ model: modelName });
 
       console.log(`Using Gemini model ${modelName} for parsing words`);
 
@@ -35,7 +35,7 @@ ${text}`;
       const response = await result.response;
       const responseText = response.text();
 
-      console.log('AI response:', responseText)
+      console.log('AI response:', responseText);
 
       // NOTE: Clean response and extract JSON
       const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
@@ -66,17 +66,16 @@ ${text}`;
     try {
       const token = await this.validateAndGetToken(userId);
       const genAI = new GoogleGenerativeAI(token);
-      
-      // Get user's selected model from settings
-      const modelName = await this.getUserModel(userId) || 'gemini-2.5-flash';
-      const model = genAI.getGenerativeModel({model: modelName});
 
+      // Get user's selected model from settings
+      const modelName = (await this.getUserModel(userId)) || 'gemini-2.5-flash';
+      const model = genAI.getGenerativeModel({ model: modelName });
 
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
 
-      return {text};
+      return { text };
     } catch (error) {
       console.error('Google AI API Error:', error);
       return {
@@ -95,11 +94,10 @@ ${text}`;
   async generateTextStream(prompt: string, userId: string): Promise<AsyncIterable<string>> {
     const token = await this.validateAndGetToken(userId);
     const genAI = new GoogleGenerativeAI(token);
-    
-    // Get user's selected model from settings
-    const modelName = await this.getUserModel(userId) || 'gemini-2.5-flash';
-    const model = genAI.getGenerativeModel({model: modelName});
 
+    // Get user's selected model from settings
+    const modelName = (await this.getUserModel(userId)) || 'gemini-2.5-flash';
+    const model = genAI.getGenerativeModel({ model: modelName });
 
     const result = await model.generateContentStream(prompt);
 
