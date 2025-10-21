@@ -14,8 +14,8 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
   validationResults: {},
 
   // Actions
-  handleTopicSelect: async ({language = 'English', level = 'A1', selectedWords = [], mode = 'train'}: {
-    language?: string;
+  handleTopicSelect: async ({languageId, level = 'A1', selectedWords = [], mode = 'train'}: {
+    languageId?: string;
     level?: string;
     selectedWords?: DictionaryWord[];
     mode?: 'learn' | 'train';
@@ -33,7 +33,7 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     });
 
     try {
-      const data = await ApiService.generateText({mode, topic, language, level, selectedWords});
+      const data = await ApiService.generateText({mode, topic, languageId, level, selectedWords});
 
 
       let sentencesList;
@@ -71,8 +71,8 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     }
   },
 
-  generateMoreExercises: async ({language = 'English', level = 'A1', selectedWords = [], mode = 'train'}: {
-    language?: string;
+  generateMoreExercises: async ({languageId, level = 'A1', selectedWords = [], mode = 'train'}: {
+    languageId?: string;
     level?: string;
     selectedWords?: DictionaryWord[];
     mode?: 'learn' | 'train';
@@ -83,7 +83,7 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     const topic = topicRaw.replace(/_/g, ' ');
     set({state: 'loading-exercises', error: ''});
     try {
-      const data = await ApiService.generateText({mode, topic, language, level, selectedWords});
+      const data = await ApiService.generateText({mode, topic, languageId, level, selectedWords});
 
       console.log('responseJson', data)
 
