@@ -45,6 +45,8 @@ export interface AppStore {
   exerciseBlocks: ExerciseBlock[];
   error: string;
   validationResults: ValidationResults;
+  lastSelectedTopicPath: string;
+  loadLastSelectedTopic: () => Promise<string>;
   handleTopicSelect: (data: {
     languageId?: string;
     level?: string;

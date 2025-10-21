@@ -92,6 +92,7 @@ model UserSettings {
   aiModel         String?  @default("gemini-2.5-flash") // selected AI model
   language        String?  @default("en") // interface language
   translationLang String?  @default("RU") // target translation language
+  lastSelectedTopic String? // last selected topic for exercises
   customSettings  Json? // for additional flexible settings storage
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
