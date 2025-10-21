@@ -44,6 +44,8 @@ export interface AppStore {
   exerciseBlocks: ExerciseBlock[];
   error: string;
   validationResults: ValidationResults;
+  isNavigating: boolean;
+  setIsNavigating: (isNavigating: boolean) => void;
   handleTopicSelect: (data: {
     languageId?: string;
     level?: string;
