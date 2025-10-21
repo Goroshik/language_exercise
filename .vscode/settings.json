@@ -1,0 +1,15 @@
+{
+  // Отключить автоматические фиксы Copilot для ESLint
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "never"
+  },
+  
+  // Отключить автоматическое форматирование при сохранении
+  "editor.formatOnSave": false,
+  
+  // Отключить предложения Copilot для автофиксов
+  "github.copilot.enable": {
+    "*": true,
+    "eslint": false
+  }
+}
