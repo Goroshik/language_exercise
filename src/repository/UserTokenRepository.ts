@@ -24,8 +24,6 @@ export class UserTokenRepository {
       where: { userId_service: { userId, service } }
     });
 
-    console.log('token', userId, service, token);
-
     if (token) {
       const { encryptedToken, ...data } = token;
       try {

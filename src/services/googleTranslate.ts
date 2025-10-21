@@ -1,4 +1,6 @@
 // NOTE: Google Translate API service for translating words from English to Russian
+import { showAlert } from 'src/utils/alert';
+
 export interface TranslationResponse {
   text: string;
   error?: string;
@@ -65,7 +67,7 @@ export class GoogleTranslateService {
         return { text: '', error: 'No translation received from Google Translate API' };
       }
     } catch (error) {
-      console.error('Google Translate API Error:', error);
+      showAlert.error('Google Translate API Error', error);
       return {
         text: '',
         error: error instanceof Error ? error.message : 'Unknown translation error occurred'
@@ -135,7 +137,7 @@ export class GoogleTranslateService {
         }));
       }
     } catch (error) {
-      console.error('Google Translate API Batch Error:', error);
+      showAlert.error('Google Translate API Batch Error', error);
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown translation error occurred';
       return texts.map(() => ({ text: '', error: errorMessage }));
