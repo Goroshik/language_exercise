@@ -1,9 +1,9 @@
 'use client';
 
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {useRouter, useParams} from "next/navigation";
 
-import {Box, Button, ButtonGroup, Stack, Typography} from '@mui/material';
+import {Box, Button, ButtonGroup, Stack, Typography, MenuItem, TextField} from '@mui/material';
 
 import {useAppStore} from 'src/store/appStore';
 
@@ -11,18 +11,48 @@ import ExerciseBlock from './ExerciseBlock';
 import WordSelector from './WordSelector';
 import {DictionaryWord} from "src/types";
 
+interface Language {
+  id: string;
+  code: string;
+  name: string;
+  nativeName: string;
+}
+
 const Page: React.FC = () => {
   const {topicName} = useParams<{ topicName: string }>();
   const navigate = useRouter();
-  const selectedLanguage: string = 'English';
 
   // State for button selections
   const [selectedMode, setSelectedMode] = useState<'learn' | 'train'>('learn');
   const [selectedLevel, setSelectedLevel] = useState<string>('A1');
   const [selectedWords, setSelectedWords] = useState<DictionaryWord[]>([]);
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [selectedLanguageId, setSelectedLanguageId] = useState<string>('');
 
   // Decode the topic name from URL
   const selectedTopic = topicName ? decodeURIComponent(topicName) : '';
+
+  // Fetch languages on mount
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const res = await fetch('/api/languages');
+        const data = await res.json();
+        const langs = data.data || [];
+        setLanguages(langs);
+        // Set default to English if available
+        const englishLang = langs.find((l: Language) => l.code === 'en');
+        if (englishLang) {
+          setSelectedLanguageId(englishLang.id);
+        } else if (langs.length > 0) {
+          setSelectedLanguageId(langs[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to fetch languages:', error);
+      }
+    };
+    fetchLanguages();
+  }, []);
 
   // Use app state store
   const {
@@ -43,7 +73,7 @@ const Page: React.FC = () => {
 
   const handleGenerateMore = () => {
     generateMoreExercises({
-      language: selectedLanguage,
+      languageId: selectedLanguageId,
       level: selectedLevel,
       selectedWords,
       mode: selectedMode
@@ -52,7 +82,7 @@ const Page: React.FC = () => {
 
   const handleGenerateInitial = () => {
     handleTopicSelect({
-      language: selectedLanguage,
+      languageId: selectedLanguageId,
       level: selectedLevel,
       selectedWords,
       mode: selectedMode
@@ -88,7 +118,7 @@ const Page: React.FC = () => {
         {/* Main content - left side */}
         <Box sx={{flex: 1}}>
           {/* Generation Mode Selection */}
-          <Box sx={{display: 'flex', justifyContent: 'center', gap: 2, mb: 3}}>
+          <Box sx={{display: 'flex', justifyContent: 'center', gap: 2, mb: 3, flexWrap: 'wrap'}}>
             <ButtonGroup variant="outlined" size="medium">
               <Button
                 variant={selectedMode === 'learn' ? 'contained' : 'outlined'}
@@ -119,6 +149,22 @@ const Page: React.FC = () => {
                 </Button>
               ))}
             </ButtonGroup>
+
+            {/* Language Selection */}
+            <TextField
+              select
+              label="Язык"
+              value={selectedLanguageId}
+              onChange={(e) => setSelectedLanguageId(e.target.value)}
+              size="small"
+              sx={{minWidth: 150}}
+            >
+              {languages.map((lang) => (
+                <MenuItem key={lang.id} value={lang.id}>
+                  {lang.nativeName}
+                </MenuItem>
+              ))}
+            </TextField>
           </Box>
 
           {exerciseBlocks.length === 0 ? (

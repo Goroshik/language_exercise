@@ -3,7 +3,7 @@ import { sentenceHistoryRepository } from 'src/repository/client';
 export async function getGeneratedHistoryService(
   userId: string,
   filters: {
-    language?: string;
+    languageId?: string;
     level?: string;
     usedWordIds?: string[];
     searchText?: string;
