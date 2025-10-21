@@ -1,5 +1,5 @@
 import {create} from 'zustand';
-import {devtools} from "zustand/middleware";
+import {devtools} from 'zustand/middleware';
 
 import {GRAMMAR_PROMPTS} from 'src/prompts';
 import {ApiService} from 'src/services/apiService';
@@ -13,7 +13,12 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
   exerciseBlocks: [],
   error: '',
   validationResults: {},
+ isNavigating: false,
 
+    // Actions
+    setIsNavigating: (isNavigating: boolean) => {
+      set({isNavigating});
+    },
   // Actions
   handleTopicSelect: async ({languageId, level = 'A1', selectedWords = [], mode = 'train'}: {
     languageId?: string;
@@ -65,8 +70,10 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
       showAlert.error(`Ошибка при загрузке упражнений: ${errorMessage}`);
       set({
-        error: `Ошибка при загрузке упражнений: ${errorMessage}`,
-        state: 'topic-selection'
+        selectedTopic: topic,
+        state: 'loading-exercises',
+        error: '',
+        validationResults: {}
       });
     }
   },
@@ -141,29 +148,106 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
           const inputId = `input_${blockId}_${index}_${inputCounter++}`;
           return userAnswers[inputId] || '___';
         });
-        return `${index + 1}. ${filledSentence}`;
-      }).join('\n');
-      const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
-      const data = await ApiService.generateText({prompt: validatePrompt});
 
-      const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
+        let sentencesList;
 
-      data.forEach((line: string, index: number) => {
-        const isCorrect = line.includes('CORRECT');
-        let errorMessage: string | undefined;
-
-        if (!isCorrect && line.includes('ERROR:')) {
-          errorMessage = line.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
+        if (mode === 'student') {
+          // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
+          sentencesList = data.map((sentence: string) => ({
+            sentence: sentence.trim(),
+            correctAnswers: []
+          }));
+        } else {
+          // For train mode, filter sentences with {{input}} placeholders
+          sentencesList = data
+            .filter((sentence: string) => sentence.includes('{{input}}'))
+            .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
         }
 
-        let inputCounter = 0;
+        console.log('123123123123123123123123', data, sentencesList);
 
-        block.exercises[index]?.sentence.replace(/\{\{input\}\}/g, () => {
-          const inputId = `input_${blockId}_${index}_${inputCounter++}`;
-          results[inputId] = {isCorrect, error: errorMessage};
-          return '';
+        const newBlock: ExerciseBlock = {
+          id: `block_${Date.now()}`,
+          exercises: sentencesList,
+          createdAt: new Date(),
+          isChecking: false
+        };
+
+        set(state => ({
+          exerciseBlocks: [...state.exerciseBlocks, newBlock],
+          state: 'exercises'
+        }));
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+        set({
+          error: `Ошибка при загрузке упражнений: ${errorMessage}`,
+          state: 'topic-selection'
         });
-      });
+      }
+    },
+
+    generateMoreExercises: async ({
+                                    languageId,
+                                    level = 'A1',
+                                    selectedWords = [],
+                                    mode = 'student'
+                                  }: {
+      languageId?: string;
+      level?: string;
+      selectedWords?: DictionaryWord[];
+      mode?: 'student' | 'teacher';
+    } = {}) => {
+      // Получаем topic из URL
+      const urlPath = window.location.pathname;
+      const topicRaw = urlPath.split('/').pop() || '';
+      const topic = topicRaw.replace(/_/g, ' ');
+      set({state: 'loading-exercises', error: ''});
+      try {
+        const data = await ApiService.generateText({
+          mode,
+          topic,
+          languageId,
+          level,
+          selectedWords
+        });
+
+        console.log('responseJson', data);
+
+        let newSentencesList;
+
+        if (mode === 'student') {
+          // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
+          newSentencesList = data.map((sentence: string) => ({
+            sentence: sentence.trim(),
+            correctAnswers: []
+          }));
+        } else {
+          // For train mode, filter sentences with {{input}} placeholders
+          newSentencesList = data
+            .filter((sentence: string) => sentence.includes('{{input}}'))
+            .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
+        }
+
+        const newBlock: ExerciseBlock = {
+          id: `block_${Date.now()}`,
+          exercises: newSentencesList,
+          createdAt: new Date(),
+          isChecking: false
+        };
+
+        set(state => ({
+          exerciseBlocks: [...state.exerciseBlocks, newBlock]
+        }));
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+        set({error: `Ошибка при загрузке дополнительных упражнений: ${errorMessage}`});
+      } finally {
+        set({state: 'exercises'});
+      }
+    },
+
+    handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string }) => {
+      const {exerciseBlocks, selectedTopic} = get();
 
       set(state => ({
         validationResults: {
@@ -179,13 +263,71 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
       // Remove checking state for specific block
       set(state => ({
         exerciseBlocks: state.exerciseBlocks.map(block =>
-          block.id === blockId ? {...block, isChecking: false} : block
-        )
+          block.id === blockId ? {...block, isChecking: true} : block
+        ),
+        error: ''
       }));
-    }
-  },
 
-  clearError: () => {
-    set({error: ''});
-  }
-})));
+      try {
+        const block = exerciseBlocks.find(b => b.id === blockId);
+        if (!block) {
+          throw new Error('Block not found');
+        }
+
+        const answersText = block.exercises
+          .map((exercise, index) => {
+            const inputRegex = /\{\{input\}\}/g;
+            let inputCounter = 0;
+            const filledSentence = exercise.sentence.replace(inputRegex, () => {
+              const inputId = `input_${blockId}_${index}_${inputCounter++}`;
+              return userAnswers[inputId] || '___';
+            });
+            return `${index + 1}. ${filledSentence}`;
+          })
+          .join('\n');
+        const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
+        const data = await ApiService.generateText({prompt: validatePrompt});
+
+        const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
+
+        data.forEach((line: string, index: number) => {
+          const isCorrect = line.includes('CORRECT');
+          let errorMessage: string | undefined;
+
+          if (!isCorrect && line.includes('ERROR:')) {
+            errorMessage = line.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
+          }
+
+          let inputCounter = 0;
+
+          block.exercises[index]?.sentence.replace(/\{\{input\}\}/g, () => {
+            const inputId = `input_${blockId}_${index}_${inputCounter++}`;
+            results[inputId] = {isCorrect, error: errorMessage};
+            return '';
+          });
+        });
+
+        set(state => ({
+          validationResults: {
+            ...state.validationResults,
+            [blockId]: results
+          }
+        }));
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+        set({error: `Ошибка при проверке ответов: ${errorMessage}`});
+      } finally {
+        // Remove checking state for specific block
+        set(state => ({
+          exerciseBlocks: state.exerciseBlocks.map(block =>
+            block.id === blockId ? {...block, isChecking: false} : block
+          )
+        }));
+      }
+    },
+
+    clearError: () => {
+      set({error: ''});
+    }
+  }))
+);

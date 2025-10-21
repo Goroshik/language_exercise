@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AppBar, Box, Toolbar, Typography, IconButton, Tooltip } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import SettingsIcon from '@mui/icons-material/Settings';
@@ -10,11 +10,19 @@ import HistoryIcon from '@mui/icons-material/History';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import SettingsModal from './SettingsModal';
 import AIModelSelector from './AIModelSelector';
+import { useAppStore } from 'src/store/appStore';
 
 const Header: React.FC = () => {
   const route = useRouter();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiModelOpen, setAiModelOpen] = useState(false);
+  const { selectedTopic,  loadLastSelectedTopic, state, isNavigating, setIsNavigating } = useAppStore();
+
+  const isLoading = state === 'loading-exercises' || state === 'loading-topics' || isNavigating;
+
+  useEffect(() => {
+    loadLastSelectedTopic();
+  }, [loadLastSelectedTopic]);
 
   const handleSettingsOpen = () => {
     setSettingsOpen(true);
@@ -32,83 +40,114 @@ const Header: React.FC = () => {
     setAiModelOpen(false);
   };
 
+  const handleNavigation = (path: string) => {
+    if (isLoading) return;
+    setIsNavigating(true);
+    route.push(path);
+  };
+
   return (
     <>
       <AppBar position="static" color="primary">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Изучение английского языка
+            {selectedTopic && (
+              <Typography component="span" variant="subtitle1" sx={{ ml: 2, opacity: 0.9 }}>
+                - {selectedTopic}
+              </Typography>
+            )}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title="Темы">
-              <IconButton
-                color="inherit"
-                onClick={() => route.push('/topics')}
-                sx={{
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { backgroundColor: '#f5f5f5' }
-                }}
-                aria-label="topics"
-              >
-                <TopicIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={() => handleNavigation('/topics')}
+                  disabled={isLoading}
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  }}
+                  aria-label="topics"
+                >
+                  <TopicIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="Словарь">
-              <IconButton
-                color="inherit"
-                onClick={() => route.push('/dictionary')}
-                sx={{
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { backgroundColor: '#f5f5f5' }
-                }}
-                aria-label="dictionary"
-              >
-                <BookIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={() => handleNavigation('/dictionary')}
+                  disabled={isLoading}
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  }}
+                  aria-label="dictionary"
+                >
+                  <BookIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="История">
-              <IconButton
-                color="inherit"
-                onClick={() => route.push('/exercises/generated-history')}
-                sx={{
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { backgroundColor: '#f5f5f5' }
-                }}
-                aria-label="history"
-              >
-                <HistoryIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={() => handleNavigation('/exercises/generated-history')}
+                  disabled={isLoading}
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  }}
+                  aria-label="history"
+                >
+                  <HistoryIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="AI модель">
-              <IconButton
-                color="inherit"
-                onClick={handleAiModelOpen}
-                sx={{
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { backgroundColor: '#f5f5f5' }
-                }}
-                aria-label="ai-model"
-              >
-                <SmartToyIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={handleAiModelOpen}
+                  disabled={isLoading}
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  }}
+                  aria-label="ai-model"
+                >
+                  <SmartToyIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="Настройки">
-              <IconButton
-                color="inherit"
-                onClick={handleSettingsOpen}
-                sx={{
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { backgroundColor: '#f5f5f5' }
-                }}
-                aria-label="settings"
-              >
-                <SettingsIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={handleSettingsOpen}
+                  disabled={isLoading}
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  }}
+                  aria-label="settings"
+                >
+                  <SettingsIcon />
+                </IconButton>
+              </span>
             </Tooltip>
           </Box>
         </Toolbar>

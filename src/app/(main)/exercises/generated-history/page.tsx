@@ -1,9 +1,18 @@
-'use client'
+'use client';
 
-import React, {useEffect, useState} from 'react';
-import {Box, Typography, TextField, Button, Stack, Chip, Autocomplete, MenuItem} from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Stack,
+  Chip,
+  Autocomplete,
+  MenuItem
+} from '@mui/material';
 import LearnModeText from 'src/app/(main)/exercises/[path]/LearnModeText';
-import {useDebounce} from 'src/hooks/useDebounce';
+import { useDebounce } from 'src/hooks/useDebounce';
 
 interface HistoryItem {
   id: string;
@@ -83,7 +92,8 @@ export default function GeneratedHistoryPage() {
     const params = new URLSearchParams();
     if (languageId) params.append('languageId', languageId);
     if (level) params.append('level', level);
-    if (selectedWords.length > 0) params.append('usedWordIds', selectedWords.map(w => w.id).join(','));
+    if (selectedWords.length > 0)
+      params.append('usedWordIds', selectedWords.map(w => w.id).join(','));
     if (searchText) params.append('searchText', searchText);
     const res = await fetch(`/api/ai/generated-history?${params.toString()}`);
     const data = await res.json();
@@ -115,11 +125,11 @@ export default function GeneratedHistoryPage() {
   };
 
   return (
-    <Box sx={{p: 3}}>
-      <Typography variant="h5" sx={{mb: 2}}>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h5" sx={{ mb: 2 }}>
         История сгенерированных предложений
       </Typography>
-      <Stack spacing={2} sx={{mb: 3}}>
+      <Stack spacing={2} sx={{ mb: 3 }}>
         <Stack direction="row" spacing={2}>
           <TextField
             label="Поиск по тексту"
@@ -137,7 +147,7 @@ export default function GeneratedHistoryPage() {
             value={languageId}
             onChange={e => setLanguageId(e.target.value)}
             size="small"
-            sx={{minWidth: 150}}
+            sx={{ minWidth: 150 }}
           >
             <MenuItem value="">
               <em>Все языки</em>
@@ -154,7 +164,7 @@ export default function GeneratedHistoryPage() {
             value={level}
             onChange={e => setLevel(e.target.value)}
             size="small"
-            sx={{minWidth: 200}}
+            sx={{ minWidth: 200 }}
           >
             <MenuItem value="">
               <em>Все уровни</em>
@@ -173,7 +183,9 @@ export default function GeneratedHistoryPage() {
             onChange={(_, value) => setSelectedWords(value)}
             onInputChange={(_, value) => setWordSearchInput(value)}
             loading={wordsLoading}
-            noOptionsText={wordSearchInput.length < 2 ? "Введите минимум 2 символа" : "Слова не найдены"}
+            noOptionsText={
+              wordSearchInput.length < 2 ? 'Введите минимум 2 символа' : 'Слова не найдены'
+            }
             renderInput={params => (
               <TextField
                 {...params}
@@ -182,7 +194,7 @@ export default function GeneratedHistoryPage() {
                 placeholder="Начните вводить слово..."
               />
             )}
-            sx={{minWidth: 300, flex: 1}}
+            sx={{ minWidth: 300, flex: 1 }}
           />
           <Button variant="contained" onClick={fetchHistory} disabled={loading}>
             Поиск
@@ -197,16 +209,21 @@ export default function GeneratedHistoryPage() {
             <Typography color="text.secondary">Нет данных</Typography>
           ) : (
             history.map(item => (
-              <Box key={item.id} sx={{p: 2, border: '1px solid #eee', borderRadius: 2}}>
-                <Box sx={{mb: 1}}>
+              <Box key={item.id} sx={{ p: 2, border: '1px solid #eee', borderRadius: 2 }}>
+                <Box sx={{ mb: 1 }}>
                   <LearnModeText text={item.sentence} />
                 </Box>
                 <Stack direction="row" spacing={1} flexWrap="wrap">
-                  <Chip label={`Язык: ${item.language.nativeName}`} size="small"/>
-                  <Chip label={`Уровень: ${item.level}`} size="small"/>
-                  <Chip label={`Дата: ${new Date(item.createdAt).toLocaleString()}`} size="small"/>
+                  <Chip label={`Язык: ${item.language.nativeName}`} size="small" />
+                  <Chip label={`Уровень: ${item.level}`} size="small" />
+                  <Chip label={`Дата: ${new Date(item.createdAt).toLocaleString()}`} size="small" />
                   {getWordsByIds(item.usedWordIds).map(w => (
-                    <Chip key={w.id} label={`${w.word} (${w.translate})`} size="small" color="primary"/>
+                    <Chip
+                      key={w.id}
+                      label={`${w.word} (${w.translate})`}
+                      size="small"
+                      color="primary"
+                    />
                   ))}
                 </Stack>
               </Box>

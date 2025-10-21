@@ -1,12 +1,15 @@
 # AI Model Selector Testing Guide
 
 ## Overview
+
 This document describes the new AI Model Selector feature and how to test it.
 
 ## Feature Description
+
 A new button has been added to the header that opens a modal for selecting AI models used for text generation.
 
 ### Key Features:
+
 1. **Smart Token Detection**: Only shows models for which the user has API tokens
 2. **Provider Filtering**: When selecting a provider (Gemini, OpenAI, or Claude), only shows models for that provider
 3. **Auto-Selection**: If only one token is available, automatically selects that provider
@@ -16,6 +19,7 @@ A new button has been added to the header that opens a modal for selecting AI mo
 ## Components Added
 
 ### 1. AIModelSelector Modal Component
+
 - Location: `src/components/AIModelSelector.tsx`
 - Features:
   - Fetches available models based on user tokens
@@ -24,12 +28,14 @@ A new button has been added to the header that opens a modal for selecting AI mo
   - Saves selection to database using PATCH request
 
 ### 2. AI Models Constants
+
 - Location: `src/constants/aiModels.ts`
 - Contains:
   - Model definitions with labels and provider mappings
   - Helper functions for filtering and querying models
 
 ### 3. Available Models API Endpoint
+
 - Location: `src/app/api/ai/available-models/route.ts`
 - Returns:
   - List of available providers (based on user tokens)
@@ -37,6 +43,7 @@ A new button has been added to the header that opens a modal for selecting AI mo
   - Boolean indicating if user has any tokens
 
 ### 4. Updated Header Component
+
 - Location: `src/components/Header.tsx`
 - Changes:
   - Added SmartToy icon button for AI model selection
@@ -45,10 +52,12 @@ A new button has been added to the header that opens a modal for selecting AI mo
 ## Testing Steps
 
 ### Prerequisites
+
 1. Login to the application
 2. Ensure you have at least one API token configured (Settings → API Tokens)
 
 ### Test Case 1: User with One Token
+
 1. Login to the application
 2. Go to Settings and add only one token (e.g., Gemini token)
 3. Click the AI model icon (robot icon) in the header
@@ -60,6 +69,7 @@ A new button has been added to the header that opens a modal for selecting AI mo
 9. **Expected**: Selected model should be displayed as "Current model"
 
 ### Test Case 2: User with Multiple Tokens
+
 1. Login to the application
 2. Go to Settings and add tokens for multiple providers (e.g., Gemini and OpenAI)
 3. Click the AI model icon in the header
@@ -72,6 +82,7 @@ A new button has been added to the header that opens a modal for selecting AI mo
 10. Verify the model is saved by reopening the modal
 
 ### Test Case 3: User with No Tokens
+
 1. Login to the application
 2. Go to Settings and delete all API tokens
 3. Click the AI model icon in the header
@@ -83,6 +94,7 @@ A new button has been added to the header that opens a modal for selecting AI mo
 9. **Expected**: Dropdowns should now be visible and functional
 
 ### Test Case 4: Model Persistence
+
 1. Select an AI model using the AI model selector
 2. Click Save
 3. Logout and login again
@@ -92,7 +104,9 @@ A new button has been added to the header that opens a modal for selecting AI mo
 ## API Integration
 
 ### GET /api/ai/available-models
+
 Returns available models based on user's tokens:
+
 ```json
 {
   "providers": ["gemini", "openai"],
@@ -109,7 +123,9 @@ Returns available models based on user's tokens:
 ```
 
 ### PATCH /api/settings
+
 Updates user settings with selected model:
+
 ```json
 {
   "aiModel": "gemini-2.5-flash"
@@ -117,6 +133,7 @@ Updates user settings with selected model:
 ```
 
 ## UI/UX Notes
+
 - Modal title: "Выбор AI модели"
 - Provider dropdown disabled if only one provider available
 - Model dropdown disabled if no provider selected
@@ -125,11 +142,13 @@ Updates user settings with selected model:
 - All text is in Russian to match the application locale
 
 ## Known Limitations
+
 1. Requires authentication to access
 2. Database must have UserSettings table with aiModel field
 3. UserToken table must have tokens for respective providers
 
 ## Files Modified/Created
+
 - **Created**: `src/components/AIModelSelector.tsx`
 - **Created**: `src/constants/aiModels.ts`
 - **Created**: `src/app/api/ai/available-models/route.ts`
