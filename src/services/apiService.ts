@@ -1,7 +1,7 @@
 import { DictionaryWord } from 'src/types';
 
 interface GenerateTextRequest {
-  mode?: 'learn' | 'train';
+  mode?: 'student' | 'teacher';
   topic?: string;
   languageId?: string;
   level?: string;
@@ -12,6 +12,12 @@ interface GenerateTextRequest {
 interface AddWordRequest {
   word: string;
   translate: string;
+}
+
+interface CheckAnswersRequest {
+  topic: string;
+  answersText: string;
+  languageName?: string;
 }
 
 interface Tag {
@@ -35,6 +41,10 @@ export class ApiService {
 
   static async addWord(data: AddWordRequest): Promise<void> {
     return this.post<void>('/api/dictionary/words', data);
+  }
+
+  static async checkAnswers(data: CheckAnswersRequest): Promise<string[]> {
+    return this.post<string[]>('/api/ai/check-answers', data);
   }
 
   private static async post<T>(endpoint: string, data: any): Promise<T> {

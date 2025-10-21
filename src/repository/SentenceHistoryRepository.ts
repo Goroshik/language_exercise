@@ -1,4 +1,5 @@
-import { PrismaClient, Prisma } from 'src/generated/prisma/client';
+import {PrismaClient, Prisma} from 'src/generated/prisma/client';
+
 
 export class SentenceHistoryRepository {
   private client: PrismaClient['sentenceHistory'];
@@ -7,18 +8,13 @@ export class SentenceHistoryRepository {
     this.client = client.sentenceHistory;
   }
 
-  async addHistory({
-    ownerId,
-    sentence,
-    languageId,
-    usedWordIds,
-    level
-  }: {
+  async addHistory({ownerId, sentence, languageId, usedWordIds, level, mode = 'exercise'}: {
     ownerId: string;
     sentence: string;
     languageId: string;
     usedWordIds: string[];
     level: string;
+    mode?: string;
   }) {
     return this.client.create({
       data: {
@@ -26,34 +22,31 @@ export class SentenceHistoryRepository {
         sentence,
         languageId,
         usedWordIds,
-        level
-      }
+        level,
+        mode,
+      },
     });
   }
 
-  async addHistoryBatch(
-    sentences: {
-      ownerId: string;
-      sentence: string;
-      languageId: string;
-      usedWordIds: string[];
-      level: string;
-    }[]
-  ) {
-    if (sentences.length === 0) return { count: 0 };
+  async addHistoryBatch(sentences: {
+    ownerId: string;
+    sentence: string;
+    languageId: string;
+    usedWordIds: string[];
+    level: string;
+    mode?: string;
+  }[]) {
+    if (sentences.length === 0) return {count: 0};
 
     return this.client.createMany({
-      data: sentences
+      data: sentences.map(s => ({
+        ...s,
+        mode: s.mode || 'exercise',
+      })),
     });
   }
 
-  async getHistory({
-    ownerId,
-    languageId,
-    level,
-    usedWordIds,
-    searchText
-  }: {
+  async getHistory({ownerId, languageId, level, usedWordIds, searchText}: {
     ownerId: string;
     languageId?: string;
     level?: string;
@@ -61,23 +54,24 @@ export class SentenceHistoryRepository {
     searchText?: string;
   }) {
     const where: Prisma.SentenceHistoryWhereInput = {
-      ownerId
+      ownerId,
     };
 
     if (languageId) where.languageId = languageId;
     if (level) where.level = level;
     if (usedWordIds && usedWordIds.length > 0) {
-      where.usedWordIds = { hasSome: usedWordIds };
+      where.usedWordIds = {hasSome: usedWordIds};
     }
     if (searchText) {
-      where.sentence = { contains: searchText, mode: 'insensitive' };
+      where.sentence = {contains: searchText, mode: 'insensitive'};
     }
     return this.client.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: {createdAt: 'desc'},
       include: {
-        language: true
-      }
+        language: true,
+      },
     });
   }
 }
+

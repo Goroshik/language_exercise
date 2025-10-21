@@ -32,7 +32,7 @@ interface ExerciseBlockProps {
     [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] };
   };
   onCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => void;
-  mode?: 'learn' | 'train';
+  mode?: 'student' | 'teacher';
 }
 
 const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
@@ -40,8 +40,8 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
   blockIndex,
   validationResults,
   onCheckAnswers,
-  mode = 'train'
-}) => {
+  mode = 'student'
+}) => { 
   const handleCheckAnswers = () => {
     // Collect textarea values instead of individual inputs
     const textareas = document.querySelectorAll(`textarea[id^="textarea_${block.id}_"]`);
@@ -70,7 +70,7 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
           >
             <ExerciseIndex variant="body2">{exerciseIndex + 1}.</ExerciseIndex>
             <ExerciseContent>
-              {mode === 'learn' ? (
+              {mode === 'teacher' ? (
                 <LearnModeText text={exercise.sentence} />
               ) : (
                 <TextWithInputs
@@ -84,7 +84,7 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
         ))}
       </ExerciseBlockInner>
 
-      {mode === 'train' && (
+      {mode === 'student' && (
         <CheckButtonBox>
           <Button
             variant="contained"

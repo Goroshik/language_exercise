@@ -1,44 +1,37 @@
-import { create } from 'zustand';
-import { devtools } from 'zustand/middleware';
+import {create} from 'zustand';
+import {devtools} from 'zustand/middleware';
 
-import { GRAMMAR_PROMPTS } from 'src/prompts';
-import { ApiService } from 'src/services/apiService';
-import { AppState, AppStore, DictionaryWord, ExerciseBlock, ValidationResults } from 'src/types';
+import {GRAMMAR_PROMPTS} from 'src/prompts';
+import {ApiService} from 'src/services/apiService';
+import {AppState, AppStore, DictionaryWord, ExerciseBlock, ValidationResults} from 'src/types';
 
-export const useAppStore = create<AppStore>()(
-  devtools((set, get) => ({
+export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     // Initial state
     state: 'loading-topics',
     selectedTopic: '',
+    selectedLanguageId: undefined,
     exerciseBlocks: [],
     error: '',
     validationResults: {},
-    lastSelectedTopicPath: '',
 
     // Actions
-    handleTopicSelect: async ({
-      languageId,
-      level = 'A1',
-      selectedWords = [],
-      mode = 'train'
-    }: {
+    handleTopicSelect: async ({languageId, level = 'A1', selectedWords = [], mode = 'student'}: {
       languageId?: string;
       level?: string;
       selectedWords?: DictionaryWord[];
-      mode?: 'learn' | 'train';
+      mode?: 'student' | 'teacher';
     } = {}) => {
       // Получаем topic из URL
       const urlPath = window.location.pathname;
       // Предполагаем, что topic — последний сегмент после /exercises/
       const topicRaw = urlPath.split('/').pop() || '';
       const topic = topicRaw.replace(/_/g, ' ');
-
       // Save the last selected topic path
       const topicPath = urlPath.split('/exercises/')[1] || '';
 
       set({
         selectedTopic: topic,
-        lastSelectedTopicPath: topicPath,
+        selectedLanguageId: languageId,
         state: 'loading-exercises',
         error: '',
         validationResults: {}
@@ -48,8 +41,8 @@ export const useAppStore = create<AppStore>()(
       try {
         await fetch('/api/settings', {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ lastSelectedTopic: topicPath })
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({lastSelectedTopic: topicPath})
         });
       } catch (error) {
         console.error('Failed to save last selected topic:', error);
@@ -66,17 +59,14 @@ export const useAppStore = create<AppStore>()(
 
         let sentencesList;
 
-        if (mode === 'learn') {
-          // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
-          sentencesList = data.map((sentence: string) => ({
-            sentence: sentence.trim(),
-            correctAnswers: []
-          }));
+        if (mode === 'student') {
+          // For student mode, sentences have **bold** words that will be converted to blanks by TextWithInputs for practice
+          sentencesList = (data)
+            .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
         } else {
-          // For train mode, filter sentences with {{input}} placeholders
-          sentencesList = data
-            .filter((sentence: string) => sentence.includes('{{input}}'))
-            .map((sentence: string) => ({ sentence: sentence.trim(), correctAnswers: [] }));
+          // For teacher mode, sentences have **bold** words for learning/viewing examples
+          sentencesList = (data)
+            .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
         }
 
         console.log('123123123123123123123123', data, sentencesList);
@@ -101,46 +91,32 @@ export const useAppStore = create<AppStore>()(
       }
     },
 
-    generateMoreExercises: async ({
-      languageId,
-      level = 'A1',
-      selectedWords = [],
-      mode = 'train'
-    }: {
+    generateMoreExercises: async ({languageId, level = 'A1', selectedWords = [], mode = 'student'}: {
       languageId?: string;
       level?: string;
       selectedWords?: DictionaryWord[];
-      mode?: 'learn' | 'train';
+      mode?: 'student' | 'teacher';
     } = {}) => {
       // Получаем topic из URL
       const urlPath = window.location.pathname;
       const topicRaw = urlPath.split('/').pop() || '';
       const topic = topicRaw.replace(/_/g, ' ');
-      set({ state: 'loading-exercises', error: '' });
+      set({state: 'loading-exercises', error: ''});
       try {
-        const data = await ApiService.generateText({
-          mode,
-          topic,
-          languageId,
-          level,
-          selectedWords
-        });
+        const data = await ApiService.generateText({mode, topic, languageId, level, selectedWords});
 
         console.log('responseJson', data);
 
         let newSentencesList;
 
-        if (mode === 'learn') {
-          // For learn mode, sentences don't have {{input}} placeholders, they have **bold** words
-          newSentencesList = data.map((sentence: string) => ({
-            sentence: sentence.trim(),
-            correctAnswers: []
-          }));
+        if (mode === 'student') {
+          // For student mode, sentences have **bold** words that will be converted to blanks by TextWithInputs for practice
+          newSentencesList = (data)
+            .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
         } else {
-          // For train mode, filter sentences with {{input}} placeholders
-          newSentencesList = data
-            .filter((sentence: string) => sentence.includes('{{input}}'))
-            .map((sentence: string) => ({ sentence: sentence.trim(), correctAnswers: [] }));
+          // For teacher mode, sentences have **bold** words for learning/viewing examples
+          newSentencesList = (data)
+            .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
         }
 
         const newBlock: ExerciseBlock = {
@@ -155,19 +131,19 @@ export const useAppStore = create<AppStore>()(
         }));
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
-        set({ error: `Ошибка при загрузке дополнительных упражнений: ${errorMessage}` });
+        set({error: `Ошибка при загрузке дополнительных упражнений: ${errorMessage}`});
       } finally {
-        set({ state: 'exercises' });
+        set({state: 'exercises'});
       }
     },
 
     handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string }) => {
-      const { exerciseBlocks, selectedTopic } = get();
+      const {exerciseBlocks, selectedTopic, selectedLanguageId} = get();
 
       // Set checking state for specific block
       set(state => ({
         exerciseBlocks: state.exerciseBlocks.map(block =>
-          block.id === blockId ? { ...block, isChecking: true } : block
+          block.id === blockId ? {...block, isChecking: true} : block
         ),
         error: ''
       }));
@@ -178,37 +154,89 @@ export const useAppStore = create<AppStore>()(
           throw new Error('Block not found');
         }
 
-        const answersText = block.exercises
-          .map((exercise, index) => {
-            const inputRegex = /\{\{input\}\}/g;
-            let inputCounter = 0;
-            const filledSentence = exercise.sentence.replace(inputRegex, () => {
-              const inputId = `input_${blockId}_${index}_${inputCounter++}`;
-              return userAnswers[inputId] || '___';
-            });
-            return `${index + 1}. ${filledSentence}`;
-          })
-          .join('\n');
-        const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
-        const data = await ApiService.generateText({ prompt: validatePrompt });
+        // Получаем название языка
+        let languageName = 'English';
+        if (selectedLanguageId) {
+          try {
+            const res = await fetch('/api/languages');
+            const data = await res.json();
+            const language = data.data?.find((lang: any) => lang.id === selectedLanguageId);
+            if (language) {
+              languageName = language.name;
+            }
+          } catch (error) {
+            console.error('Failed to fetch language name:', error);
+          }
+        }
 
-        const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
+        // Собираем текст с ответами пользователя (используем textarea значения)
+        const answersText = block.exercises.map((exercise, index) => {
+          const textareaId = `textarea_${blockId}_${index}`;
+          const userAnswer = userAnswers[textareaId] || '';
+          return `${index + 1}. ${userAnswer}`;
+        }).join('\n');
 
-        data.forEach((line: string, index: number) => {
-          const isCorrect = line.includes('CORRECT');
-          let errorMessage: string | undefined;
+        // Вызываем API для проверки ответов (промпт формируется на сервере)
+        const data = await ApiService.checkAnswers({
+          topic: selectedTopic,
+          answersText,
+          languageName
+        });
 
-          if (!isCorrect && line.includes('ERROR:')) {
-            errorMessage = line.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
+        const results: {
+          [key: string]: {
+            isCorrect: boolean;
+            error?: string;
+            incorrectTranslations?: string[];
+          };
+        } = {};
+
+        data.forEach((rawLine: string, index: number) => {
+          const textareaId = `textarea_${blockId}_${index}`;
+          const normalizedLine = rawLine.replace(/^\d+[\.\)]\s*/, '').trim();
+
+          if (!normalizedLine) {
+            results[textareaId] = {
+              isCorrect: false,
+              error: 'Не удалось обработать ответ проверки'
+            };
+            return;
           }
 
-          let inputCounter = 0;
+          const segments = normalizedLine.split('|').map(part => part.trim());
+          const isCorrect = segments.length === 1 && /^CORRECT$/i.test(segments[0]);
 
-          block.exercises[index]?.sentence.replace(/\{\{input\}\}/g, () => {
-            const inputId = `input_${blockId}_${index}_${inputCounter++}`;
-            results[inputId] = { isCorrect, error: errorMessage };
-            return '';
-          });
+          let errorMessage: string | undefined;
+          let incorrectTranslations: string[] | undefined;
+
+          if (!isCorrect) {
+            segments.forEach(segment => {
+              if (/^ERROR:/i.test(segment)) {
+                const message = segment.replace(/^ERROR:\s*/i, '').trim();
+                if (message) {
+                  errorMessage = errorMessage ? `${errorMessage} ${message}`.trim() : message;
+                }
+              } else if (/^TRANSLATION_ERRORS:/i.test(segment)) {
+                const errorsText = segment.replace(/^TRANSLATION_ERRORS:\s*/i, '').trim();
+                if (errorsText) {
+                  incorrectTranslations = errorsText
+                    .split(/,\s*/)
+                    .map(item => item.trim())
+                    .filter(Boolean);
+                } else {
+                  incorrectTranslations = [];
+                }
+              }
+            });
+          }
+
+          results[textareaId] = {
+            isCorrect,
+            ...(errorMessage ? {error: errorMessage} : {}),
+            ...(incorrectTranslations && incorrectTranslations.length > 0
+              ? {incorrectTranslations}
+              : {})
+          };
         });
 
         set(state => ({
@@ -219,19 +247,19 @@ export const useAppStore = create<AppStore>()(
         }));
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
-        set({ error: `Ошибка при проверке ответов: ${errorMessage}` });
+        set({error: `Ошибка при проверке ответов: ${errorMessage}`});
       } finally {
         // Remove checking state for specific block
         set(state => ({
           exerciseBlocks: state.exerciseBlocks.map(block =>
-            block.id === blockId ? { ...block, isChecking: false } : block
+            block.id === blockId ? {...block, isChecking: false} : block
           )
         }));
       }
     },
 
     clearError: () => {
-      set({ error: '' });
+      set({error: ''});
     },
 
     loadLastSelectedTopic: async () => {
@@ -239,7 +267,7 @@ export const useAppStore = create<AppStore>()(
         const response = await fetch('/api/settings');
         const data = await response.json();
         const lastTopic = data.lastSelectedTopic || '';
-        set({ lastSelectedTopicPath: lastTopic });
+        set({lastSelectedTopicPath: lastTopic});
         return lastTopic;
       } catch (error) {
         console.error('Failed to load last selected topic:', error);
