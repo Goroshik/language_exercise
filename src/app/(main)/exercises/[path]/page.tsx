@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import React, {useState, useEffect} from 'react';
+import {useRouter, useParams} from 'next/navigation';
 
-import { Box, Button, ButtonGroup, Stack, Typography, MenuItem, TextField } from '@mui/material';
+import {Box, Button, ButtonGroup, Stack, Typography, MenuItem, TextField} from '@mui/material';
 
-import { useAppStore } from 'src/store/appStore';
+import {useAppStore} from 'src/store/appStore';
 
 import ExerciseBlock from './ExerciseBlock';
 import WordSelector from './WordSelector';
-import { DictionaryWord } from 'src/types';
+import {DictionaryWord} from 'src/types';
 
 interface Language {
   id: string;
@@ -19,7 +19,7 @@ interface Language {
 }
 
 const Page: React.FC = () => {
-  const { topicName } = useParams<{ topicName: string }>();
+  const {topicName} = useParams<{ topicName: string }>();
   const navigate = useRouter();
 
   // State for button selections
@@ -61,20 +61,21 @@ const Page: React.FC = () => {
     validationResults,
     handleTopicSelect,
     generateMoreExercises,
-    handleCheckAnswers
+    handleCheckAnswers,
+    setIsNavigating
   } = useAppStore();
 
   // Update the store's selectedTopic when the component mounts
   useEffect(() => {
     const topicPath = topicName ? decodeURIComponent(topicName) : '';
-    useAppStore.setState({ selectedTopic, lastSelectedTopicPath: topicPath });
+    useAppStore.setState({selectedTopic, lastSelectedTopicPath: topicPath});
 
     // Save to user settings
     if (topicPath) {
       fetch('/api/settings', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lastSelectedTopic: topicPath })
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({lastSelectedTopic: topicPath})
       }).catch(error => console.error('Failed to save topic:', error));
     }
   }, [selectedTopic, topicName]);
@@ -83,7 +84,8 @@ const Page: React.FC = () => {
   const isLoading = state === 'loading-exercises';
 
   const handleBackToTopics = () => {
-    navigate.push('/topics');
+    setIsNavigating(true);
+    navigate.push('/');
   };
 
   const handleGenerateMore = () => {

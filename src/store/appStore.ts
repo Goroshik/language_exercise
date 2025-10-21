@@ -13,7 +13,11 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     exerciseBlocks: [],
     error: '',
     validationResults: {},
+    isNavigating: false,
 
+    setIsNavigating: (isNavigating: boolean) => {
+      set({isNavigating});
+    },
     // Actions
     handleTopicSelect: async ({languageId, level = 'A1', selectedWords = [], mode = 'student'}: {
       languageId?: string;
