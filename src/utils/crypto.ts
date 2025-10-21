@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
 const ALGORITHM = 'aes-256-cbc';
-const TOKEN_ENCRYPTION_KEY = process.env.TOKEN_SECRET as string
+const TOKEN_ENCRYPTION_KEY = process.env.TOKEN_SECRET as string;
 
 function encrypt(plaintext: string, key: string = TOKEN_ENCRYPTION_KEY): string {
   const iv = crypto.randomBytes(16);
@@ -26,4 +26,4 @@ function decrypt(cipherText: string, key: string = TOKEN_ENCRYPTION_KEY): string
   return decrypted;
 }
 
-export {encrypt, decrypt};
+export { encrypt, decrypt };

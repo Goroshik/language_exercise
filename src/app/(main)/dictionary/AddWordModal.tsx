@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import {
   Alert,
@@ -23,7 +23,7 @@ interface AddWordModalProps {
   onWordAdded?: () => void;
 }
 
-const AddWordModal: React.FC<AddWordModalProps> = ({open, onClose, onWordAdded}) => {
+const AddWordModal: React.FC<AddWordModalProps> = ({ open, onClose, onWordAdded }) => {
   const [word, setWord] = useState('');
   const [translate, setTranslate] = useState('');
   const [error, setError] = useState('');
@@ -48,7 +48,6 @@ const AddWordModal: React.FC<AddWordModalProps> = ({open, onClose, onWordAdded})
       return;
     }
 
-
     setError('');
     setLoading(true);
 
@@ -56,12 +55,12 @@ const AddWordModal: React.FC<AddWordModalProps> = ({open, onClose, onWordAdded})
       const response = await fetch('/api/dictionary/words', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           word: word.trim(),
-          translate: translate.trim(),
-        }),
+          translate: translate.trim()
+        })
       });
 
       const data = await response.json();
@@ -86,11 +85,11 @@ const AddWordModal: React.FC<AddWordModalProps> = ({open, onClose, onWordAdded})
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>Добавить новое слово</DialogTitle>
       <DialogContent>
-        <Box sx={{display: 'flex', flexDirection: 'column', gap: 2, mt: 1}}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
           <TextField
             label="Слово"
             value={word}
-            onChange={(e) => setWord(e.target.value)}
+            onChange={e => setWord(e.target.value)}
             fullWidth
             autoFocus
             placeholder="Введите слово"
@@ -99,19 +98,15 @@ const AddWordModal: React.FC<AddWordModalProps> = ({open, onClose, onWordAdded})
           <TextField
             label="Перевод"
             value={translate}
-            onChange={(e) => setTranslate(e.target.value)}
+            onChange={e => setTranslate(e.target.value)}
             fullWidth
             placeholder="Введите перевод"
           />
 
-          {error && (
-            <Alert severity="error">
-              {error}
-            </Alert>
-          )}
+          {error && <Alert severity="error">{error}</Alert>}
         </Box>
       </DialogContent>
-      <DialogActions sx={{px: 3, pb: 2}}>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={handleClose} disabled={loading}>
           Отмена
         </Button>

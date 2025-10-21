@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import React, {useState} from 'react';
-import {AppBar, Box, Toolbar, Typography, IconButton, Tooltip} from '@mui/material';
-import {useRouter} from "next/navigation";
+import React, { useState } from 'react';
+import { AppBar, Box, Toolbar, Typography, IconButton, Tooltip } from '@mui/material';
+import { useRouter } from 'next/navigation';
 import SettingsIcon from '@mui/icons-material/Settings';
 import TopicIcon from '@mui/icons-material/Topic';
 import BookIcon from '@mui/icons-material/Book';
@@ -36,73 +36,87 @@ const Header: React.FC = () => {
     <>
       <AppBar position="static" color="primary">
         <Toolbar>
-          <Typography variant="h6" component="div" sx={{flexGrow: 1}}>
+          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Изучение английского языка
           </Typography>
-          <Box sx={{display: 'flex', gap: 1}}>
+          <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title="Темы">
               <IconButton
                 color="inherit"
                 onClick={() => route.push('/topics')}
-                sx={{backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
+                sx={{
+                  backgroundColor: 'white',
+                  color: 'primary.main',
+                  '&:hover': { backgroundColor: '#f5f5f5' }
+                }}
                 aria-label="topics"
               >
-                <TopicIcon/>
+                <TopicIcon />
               </IconButton>
             </Tooltip>
             <Tooltip title="Словарь">
               <IconButton
                 color="inherit"
                 onClick={() => route.push('/dictionary')}
-                sx={{backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
+                sx={{
+                  backgroundColor: 'white',
+                  color: 'primary.main',
+                  '&:hover': { backgroundColor: '#f5f5f5' }
+                }}
                 aria-label="dictionary"
               >
-                <BookIcon/>
+                <BookIcon />
               </IconButton>
             </Tooltip>
             <Tooltip title="История">
               <IconButton
                 color="inherit"
                 onClick={() => route.push('/exercises/generated-history')}
-                sx={{backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
+                sx={{
+                  backgroundColor: 'white',
+                  color: 'primary.main',
+                  '&:hover': { backgroundColor: '#f5f5f5' }
+                }}
                 aria-label="history"
               >
-                <HistoryIcon/>
+                <HistoryIcon />
               </IconButton>
             </Tooltip>
             <Tooltip title="AI модель">
               <IconButton
                 color="inherit"
                 onClick={handleAiModelOpen}
-                sx={{backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
+                sx={{
+                  backgroundColor: 'white',
+                  color: 'primary.main',
+                  '&:hover': { backgroundColor: '#f5f5f5' }
+                }}
                 aria-label="ai-model"
               >
-                <SmartToyIcon/>
+                <SmartToyIcon />
               </IconButton>
             </Tooltip>
             <Tooltip title="Настройки">
               <IconButton
                 color="inherit"
                 onClick={handleSettingsOpen}
-                sx={{backgroundColor: "white", color: "primary.main", "&:hover": {backgroundColor: "#f5f5f5"}}}
+                sx={{
+                  backgroundColor: 'white',
+                  color: 'primary.main',
+                  '&:hover': { backgroundColor: '#f5f5f5' }
+                }}
                 aria-label="settings"
               >
-                <SettingsIcon/>
+                <SettingsIcon />
               </IconButton>
             </Tooltip>
           </Box>
         </Toolbar>
       </AppBar>
 
-      <SettingsModal
-        open={settingsOpen}
-        onClose={handleSettingsClose}
-      />
+      <SettingsModal open={settingsOpen} onClose={handleSettingsClose} />
 
-      <AIModelSelector
-        open={aiModelOpen}
-        onClose={handleAiModelClose}
-      />
+      <AIModelSelector open={aiModelOpen} onClose={handleAiModelClose} />
     </>
   );
 };

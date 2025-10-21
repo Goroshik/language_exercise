@@ -1,11 +1,11 @@
-"use client"
+'use client';
 
-import React, {Suspense, useState} from 'react';
-import {useRouter, useSearchParams} from "next/navigation";
+import React, { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
-import {signIn} from "next-auth/react";
+import { signIn } from 'next-auth/react';
 
-import {Box, Button, TextField, Typography} from '@mui/material';
+import { Box, Button, TextField, Typography } from '@mui/material';
 
 function LoginForm() {
   const router = useRouter();
@@ -46,7 +46,9 @@ function LoginForm() {
 
   return (
     <Box maxWidth={400} mx="auto" mt={8}>
-      <Typography variant="h5" mb={2}>Вход</Typography>
+      <Typography variant="h5" mb={2}>
+        Вход
+      </Typography>
       <form onSubmit={handleLogin}>
         <TextField
           label="Email"
@@ -64,10 +66,23 @@ function LoginForm() {
           value={password}
           onChange={e => setPassword(e.target.value)}
         />
-        {error && <Typography color="error" mt={1}>{error}</Typography>}
-        <Button type="submit" loading={loading} variant="contained" fullWidth sx={{mt: 2}}>Войти</Button>
-        <Button variant="text" loading={loading} fullWidth sx={{mt: 1}} onClick={() => router.push('/auth/reset')}>Забыли
-          пароль?</Button>
+        {error && (
+          <Typography color="error" mt={1}>
+            {error}
+          </Typography>
+        )}
+        <Button type="submit" loading={loading} variant="contained" fullWidth sx={{ mt: 2 }}>
+          Войти
+        </Button>
+        <Button
+          variant="text"
+          loading={loading}
+          fullWidth
+          sx={{ mt: 1 }}
+          onClick={() => router.push('/auth/reset')}
+        >
+          Забыли пароль?
+        </Button>
       </form>
     </Box>
   );
@@ -75,7 +90,13 @@ function LoginForm() {
 
 export default function Login() {
   return (
-    <Suspense fallback={<Box maxWidth={400} mx="auto" mt={8}><Typography>Загрузка...</Typography></Box>}>
+    <Suspense
+      fallback={
+        <Box maxWidth={400} mx="auto" mt={8}>
+          <Typography>Загрузка...</Typography>
+        </Box>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

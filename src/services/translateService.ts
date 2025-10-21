@@ -13,7 +13,7 @@ export async function translateWordService(userId: string, word: string) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
-      'Authorization': `DeepL-Auth-Key ${deeplTokenObj.token}`
+      Authorization: `DeepL-Auth-Key ${deeplTokenObj.token}`
     },
     body: new URLSearchParams({
       text: word,

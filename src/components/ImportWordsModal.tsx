@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -13,9 +13,9 @@ import {
   List,
   ListItem,
   TextField,
-  Typography,
+  Typography
 } from '@mui/material';
-import {Close as CloseIcon, Delete as DeleteIcon} from '@mui/icons-material';
+import { Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
 
 interface ImportWordsModalProps {
   open: boolean;
@@ -29,7 +29,12 @@ interface ParsedWord {
   translate: string;
 }
 
-const ImportWordsModal: React.FC<ImportWordsModalProps> = ({open, onClose, preFilledWord, preFilledTranslate}) => {
+const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
+  open,
+  onClose,
+  preFilledWord,
+  preFilledTranslate
+}) => {
   const [step, setStep] = useState<'input' | 'parsing' | 'review'>('input');
   const [inputText, setInputText] = useState('');
   const [parsedWords, setParsedWords] = useState<ParsedWord[]>([]);
@@ -39,9 +44,9 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({open, onClose, preFi
     const response = await fetch('/api/dictionary/words', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify({words}),
+      body: JSON.stringify({ words })
     });
 
     const data = await response.json();
@@ -73,7 +78,6 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({open, onClose, preFi
     onClose();
   };
 
-
   const handleParseText = async () => {
     if (!inputText.trim()) return;
 
@@ -85,9 +89,9 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({open, onClose, preFi
       const response = await fetch('/api/ai/parse-words', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({text: inputText}),
+        body: JSON.stringify({ text: inputText })
       });
 
       if (!response.ok) {
@@ -129,9 +133,9 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({open, onClose, preFi
   };
 
   const updateParsedWord = (index: number, field: 'word' | 'translate', value: string) => {
-    setParsedWords(prev => prev.map((word, i) =>
-      i === index ? {...word, [field]: value} : word
-    ));
+    setParsedWords(prev =>
+      prev.map((word, i) => (i === index ? { ...word, [field]: value } : word))
+    );
   };
 
   const removeParsedWord = (index: number) => {
@@ -151,20 +155,20 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({open, onClose, preFi
         }
       }}
     >
-      <DialogTitle sx={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Typography component="h3" variant="h6">
           {step === 'input' && 'Импорт слов из текста'}
           {step === 'parsing' && 'Обработка текста...'}
           {step === 'review' && 'Проверка и редактирование'}
         </Typography>
         <IconButton onClick={handleClose}>
-          <CloseIcon/>
+          <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{display: 'flex', gap: 2, p: 2}}>
+      <DialogContent sx={{ display: 'flex', gap: 2, p: 2 }}>
         {/* Main content area */}
-        <Box flex="1" sx={{pr: 2}}>
+        <Box flex="1" sx={{ pr: 2 }}>
           {step === 'input' && (
             <TextField
               fullWidth
@@ -175,7 +179,7 @@ apple - яблоко
 book - книга
 cat - кот"
               value={inputText}
-              onChange={(e) => setInputText(e.target.value)}
+              onChange={e => setInputText(e.target.value)}
               sx={{
                 '& .MuiInputBase-root': {
                   height: '100%',
@@ -188,11 +192,9 @@ cat - кот"
           {step === 'parsing' && (
             <Box display="flex" justifyContent="center" alignItems="center" height="400px">
               <Box textAlign="center">
-                <CircularProgress size={60} sx={{mb: 2}}/>
+                <CircularProgress size={60} sx={{ mb: 2 }} />
                 <Typography variant="h6">Обработка текста...</Typography>
-                <Typography color="text.secondary">
-                  Пожалуйста, подождите
-                </Typography>
+                <Typography color="text.secondary">Пожалуйста, подождите</Typography>
               </Box>
             </Box>
           )}
@@ -202,7 +204,7 @@ cat - кот"
               <Typography variant="h6" gutterBottom>
                 Найдено слов: {parsedWords.length}
               </Typography>
-              <List sx={{maxHeight: '400px', overflow: 'auto'}}>
+              <List sx={{ maxHeight: '400px', overflow: 'auto' }}>
                 {parsedWords.map((word, index) => (
                   <ListItem key={index} divider>
                     <Box width="100%">
@@ -211,18 +213,18 @@ cat - кот"
                           size="small"
                           label="Слово"
                           value={word.word}
-                          onChange={(e) => updateParsedWord(index, 'word', e.target.value)}
-                          sx={{flex: 1}}
+                          onChange={e => updateParsedWord(index, 'word', e.target.value)}
+                          sx={{ flex: 1 }}
                         />
                         <TextField
                           size="small"
                           label="Перевод"
                           value={word.translate}
-                          onChange={(e) => updateParsedWord(index, 'translate', e.target.value)}
-                          sx={{flex: 1}}
+                          onChange={e => updateParsedWord(index, 'translate', e.target.value)}
+                          sx={{ flex: 1 }}
                         />
                         <IconButton size="small" onClick={() => removeParsedWord(index)}>
-                          <DeleteIcon/>
+                          <DeleteIcon />
                         </IconButton>
                       </Box>
                     </Box>
@@ -234,12 +236,10 @@ cat - кот"
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{p: 2, gap: 1}}>
+      <DialogActions sx={{ p: 2, gap: 1 }}>
         {step === 'input' && (
           <>
-            <Button onClick={handleClose}>
-              Отмена
-            </Button>
+            <Button onClick={handleClose}>Отмена</Button>
             <Button
               variant="contained"
               onClick={handleParseText}
@@ -252,18 +252,14 @@ cat - кот"
 
         {step === 'review' && (
           <>
-            <Button onClick={() => setStep('input')}>
-              Назад
-            </Button>
-            <Button onClick={handleClose}>
-              Отмена
-            </Button>
+            <Button onClick={() => setStep('input')}>Назад</Button>
+            <Button onClick={handleClose}>Отмена</Button>
             <Button
               variant="contained"
               onClick={handleImportWords}
               disabled={parsedWords.length === 0 || isLoading}
             >
-              {isLoading ? <CircularProgress size={20}/> : `Добавить ${parsedWords.length} слов`}
+              {isLoading ? <CircularProgress size={20} /> : `Добавить ${parsedWords.length} слов`}
             </Button>
           </>
         )}

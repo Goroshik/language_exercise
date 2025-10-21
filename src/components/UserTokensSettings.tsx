@@ -1,12 +1,25 @@
 import React, { useEffect, useState } from 'react';
 
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, List, ListItem, ListItemText, MenuItem, Select, TextField } from '@mui/material';
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  MenuItem,
+  Select,
+  TextField
+} from '@mui/material';
 
 const SERVICES = [
   { value: 'google', label: 'Google Translate' },
   { value: 'deepl', label: 'DeepL' },
-  { value: 'ai', label: 'AI' },
+  { value: 'ai', label: 'AI' }
 ];
 
 export const UserTokensSettings: React.FC = () => {
@@ -28,7 +41,7 @@ export const UserTokensSettings: React.FC = () => {
     await fetch('/api/tokens', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ service, token }),
+      body: JSON.stringify({ service, token })
     });
     setToken('');
     setOpen(false);
@@ -43,13 +56,23 @@ export const UserTokensSettings: React.FC = () => {
   return (
     <div>
       <h2>Мои токены для сервисов</h2>
-      <Button variant="contained" onClick={() => setOpen(true)}>Добавить токен</Button>
+      <Button variant="contained" onClick={() => setOpen(true)}>
+        Добавить токен
+      </Button>
       <List>
         {tokens.map((t: any) => (
-          <ListItem key={t.id} secondaryAction={
-            <IconButton edge="end" onClick={() => handleDelete(t.id)}><DeleteIcon /></IconButton>
-          }>
-            <ListItemText primary={SERVICES.find(s => s.value === t.service)?.label || t.service} secondary={t.token} />
+          <ListItem
+            key={t.id}
+            secondaryAction={
+              <IconButton edge="end" onClick={() => handleDelete(t.id)}>
+                <DeleteIcon />
+              </IconButton>
+            }
+          >
+            <ListItemText
+              primary={SERVICES.find(s => s.value === t.service)?.label || t.service}
+              secondary={t.token}
+            />
           </ListItem>
         ))}
       </List>
@@ -57,13 +80,25 @@ export const UserTokensSettings: React.FC = () => {
         <DialogTitle>Добавить токен</DialogTitle>
         <DialogContent>
           <Select value={service} onChange={e => setService(e.target.value as string)} fullWidth>
-            {SERVICES.map(s => <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>)}
+            {SERVICES.map(s => (
+              <MenuItem key={s.value} value={s.value}>
+                {s.label}
+              </MenuItem>
+            ))}
           </Select>
-          <TextField label="Токен" value={token} onChange={e => setToken(e.target.value)} fullWidth margin="normal" />
+          <TextField
+            label="Токен"
+            value={token}
+            onChange={e => setToken(e.target.value)}
+            fullWidth
+            margin="normal"
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpen(false)}>Отмена</Button>
-          <Button onClick={handleAdd} variant="contained">Сохранить</Button>
+          <Button onClick={handleAdd} variant="contained">
+            Сохранить
+          </Button>
         </DialogActions>
       </Dialog>
     </div>

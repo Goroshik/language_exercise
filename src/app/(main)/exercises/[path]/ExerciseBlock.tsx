@@ -28,28 +28,31 @@ interface ExerciseBlockProps {
     isChecking: boolean;
   };
   blockIndex: number;
-  validationResults: { [key: string]: { isCorrect: boolean; error?: string } };
+  validationResults: {
+    [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] };
+  };
   onCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => void;
   mode?: 'learn' | 'train';
 }
 
 const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
-                                                       block,
-                                                       blockIndex,
-                                                       validationResults,
-                                                       onCheckAnswers,
-                                                       mode = 'train'
-                                                     }) => {
+  block,
+  blockIndex,
+  validationResults,
+  onCheckAnswers,
+  mode = 'train'
+}) => {
   const handleCheckAnswers = () => {
-    const inputs = document.querySelectorAll(`input[id^="input_${block.id}_"]`);
+    // Collect textarea values instead of individual inputs
+    const textareas = document.querySelectorAll(`textarea[id^="textarea_${block.id}_"]`);
     const userAnswers: { [key: string]: string } = {};
-    inputs.forEach(input => {
-      userAnswers[input.id] = (input as HTMLInputElement).value;
+    textareas.forEach(textarea => {
+      userAnswers[textarea.id] = (textarea as HTMLTextAreaElement).value;
     });
     onCheckAnswers(block.id, userAnswers);
   };
 
-  console.log(block.exercises)
+  console.log(block.exercises);
 
   return (
     <ExerciseBlockContainer className="exercise-block-compact">
@@ -61,13 +64,14 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
       </ExerciseBlockTitle>
       <ExerciseBlockInner>
         {block.exercises.map((exercise, exerciseIndex) => (
-          <ExerciseRow key={exerciseIndex} sx={{ mb: exerciseIndex < block.exercises.length - 1 ? 2 : 0 }}>
-            <ExerciseIndex variant="body2">
-              {exerciseIndex + 1}.
-            </ExerciseIndex>
+          <ExerciseRow
+            key={exerciseIndex}
+            sx={{ mb: exerciseIndex < block.exercises.length - 1 ? 2 : 0 }}
+          >
+            <ExerciseIndex variant="body2">{exerciseIndex + 1}.</ExerciseIndex>
             <ExerciseContent>
               {mode === 'learn' ? (
-                <LearnModeText text={exercise.sentence}/>
+                <LearnModeText text={exercise.sentence} />
               ) : (
                 <TextWithInputs
                   text={exercise.sentence}
@@ -90,7 +94,7 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
             className="check-button"
           >
             {block.isChecking ? (
-              <CircularProgress size={24}/>
+              <CircularProgress size={24} />
             ) : (
               `Проверить блок #${blockIndex + 1}`
             )}
