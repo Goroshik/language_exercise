@@ -13,8 +13,11 @@ import {
   Typography
 } from '@mui/material';
 
+import { useAppStore } from 'src/store/appStore';
+
 const Page: React.FC = () => {
   const navigate = useRouter();
+  const { setIsNavigating } = useAppStore();
 
   const [topics, setTopics] = useState<Record<string, Record<string, string>>>({});
 
@@ -31,6 +34,7 @@ const Page: React.FC = () => {
       body: JSON.stringify({ lastSelectedTopic: path })
     }).catch(error => console.error('Failed to save topic:', error));
 
+    setIsNavigating(true);
     navigate.push(`/exercises/${path}`);
   };
 
