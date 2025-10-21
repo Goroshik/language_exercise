@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { BaseAIService, AIResponse, ParsedWord } from './baseAI';
 import { userSettingsRepository } from 'src/repository/client';
+import { showAlert } from 'src/utils/alert';
 
 export class OpenAIService extends BaseAIService {
   serviceName = 'openai';
@@ -19,7 +20,7 @@ export class OpenAIService extends BaseAIService {
       // Get user's selected model from settings, default to gpt-4o-mini for parsing
       const model = (await this.getUserModel(userId)) || 'gpt-4o-mini';
 
-      console.log(`Using OpenAI model ${model} for parsing words`);
+      // Using OpenAI model ${model} for parsing words`);
 
       const prompt = `Parse the following text and extract English words or phrases with their Russian translations. 
 Return ONLY a valid JSON array with format: [{"word": "english_word", "translate": "russian_translation"}].
@@ -48,7 +49,7 @@ ${text}`;
       });
 
       const responseText = response.choices[0]?.message?.content || '';
-      console.log('OpenAI response:', responseText);
+      // OpenAI response:, responseText);
 
       // Clean response and extract JSON
       const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
@@ -60,11 +61,11 @@ ${text}`;
         }
         return [];
       } catch (parseError) {
-        console.error('Failed to parse OpenAI response as JSON:', cleanedResponse);
+        showAlert.error('Failed to parse OpenAI response as JSON', cleanedResponse);
         return [];
       }
     } catch (error) {
-      console.error('Error parsing words with OpenAI:', error);
+      showAlert.error('Error parsing words with OpenAI', error);
       return [];
     }
   }
@@ -83,7 +84,7 @@ ${text}`;
       // Get user's selected model from settings
       const model = (await this.getUserModel(userId)) || 'gpt-4o-mini';
 
-      console.log(`Using OpenAI model ${model} for text generation`);
+      // Using OpenAI model ${model} for text generation`);
 
       const response = await openai.chat.completions.create({
         model: model,
@@ -100,7 +101,7 @@ ${text}`;
 
       return { text };
     } catch (error) {
-      console.error('OpenAI API Error:', error);
+      showAlert.error('OpenAI API Error', error);
       return {
         text: '',
         error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -121,7 +122,7 @@ ${text}`;
     // Get user's selected model from settings
     const model = (await this.getUserModel(userId)) || 'gpt-4o-mini';
 
-    console.log(`Using OpenAI model ${model} for streaming text generation`);
+    // Using OpenAI model ${model} for streaming text generation`);
 
     const stream = await openai.chat.completions.create({
       model: model,
@@ -163,7 +164,7 @@ ${text}`;
 
       return null;
     } catch (error) {
-      console.error('Error fetching user model settings:', error);
+      showAlert.error('Error fetching user model settings', error);
       return null;
     }
   }

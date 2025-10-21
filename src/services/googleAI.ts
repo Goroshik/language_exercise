@@ -1,6 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { BaseAIService, AIResponse, ParsedWord } from './baseAI';
 import { userSettingsRepository } from 'src/repository/client';
+import { showAlert } from 'src/utils/alert';
 
 export class GoogleAIService extends BaseAIService {
   serviceName = 'gemini';
@@ -19,8 +20,6 @@ export class GoogleAIService extends BaseAIService {
       const modelName = (await this.getUserModel(userId)) || 'gemini-2.5-flash';
       const model = genAI.getGenerativeModel({ model: modelName });
 
-      console.log(`Using Gemini model ${modelName} for parsing words`);
-
       const prompt = `Parse the following text and extract English words or phrases with their Russian translations. 
 Return ONLY a valid JSON array with format: [{"word": "english_word", "translate": "russian_translation"}].
 Do not include any other text, explanations, or formatting.
@@ -35,8 +34,6 @@ ${text}`;
       const response = await result.response;
       const responseText = response.text();
 
-      console.log('AI response:', responseText);
-
       // NOTE: Clean response and extract JSON
       const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
 
@@ -47,11 +44,11 @@ ${text}`;
         }
         return [];
       } catch (parseError) {
-        console.error('Failed to parse AI response as JSON:', cleanedResponse);
+        showAlert.error('Failed to parse AI response as JSON');
         return [];
       }
     } catch (error) {
-      console.error('Error parsing words with AI:', error);
+      showAlert.error('Error parsing words with AI');
       return [];
     }
   }
@@ -77,7 +74,7 @@ ${text}`;
 
       return { text };
     } catch (error) {
-      console.error('Google AI API Error:', error);
+      showAlert.error('Google AI API Error');
       return {
         text: '',
         error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -127,7 +124,7 @@ ${text}`;
 
       return null;
     } catch (error) {
-      console.error('Error fetching user model settings:', error);
+      showAlert.error('Error fetching user model settings');
       return null;
     }
   }

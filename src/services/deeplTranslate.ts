@@ -31,7 +31,6 @@ export class DeepLTranslateService {
 
     // NOTE: Skip DeepL API in browser due to CORS restrictions, use LibreTranslate directly
     // NOTE: DeepL API doesn't support CORS from browser environments
-    console.log('Using LibreTranslate API for browser compatibility');
 
     // NOTE: Use LibreTranslate API (CORS-enabled for browser usage)
     try {

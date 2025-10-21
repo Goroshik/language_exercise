@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { BaseAIService, AIResponse, ParsedWord } from './baseAI';
 import { userSettingsRepository } from 'src/repository/client';
+import { showAlert } from 'src/utils/alert';
 
 export class ClaudeAIService extends BaseAIService {
   serviceName = 'anthropic';
@@ -19,7 +20,7 @@ export class ClaudeAIService extends BaseAIService {
       // Get user's selected model from settings, default to claude-3-haiku-20240307 for parsing
       const model = (await this.getUserModel(userId)) || 'claude-3-haiku-20240307';
 
-      console.log(`Using Claude model ${model} for parsing words`);
+      // Using Claude model ${model} for parsing words`);
 
       const prompt = `Parse the following text and extract English words or phrases with their Russian translations. 
 Return ONLY a valid JSON array with format: [{"word": "english_word", "translate": "russian_translation"}].
@@ -44,7 +45,7 @@ ${text}`;
       });
 
       const responseText = response.content[0]?.type === 'text' ? response.content[0].text : '';
-      console.log('Claude response:', responseText);
+      // Claude response:, responseText);
 
       // Clean response and extract JSON
       const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
@@ -56,11 +57,11 @@ ${text}`;
         }
         return [];
       } catch (parseError) {
-        console.error('Failed to parse Claude response as JSON:', cleanedResponse);
+        showAlert.error('Failed to parse Claude response as JSON', cleanedResponse);
         return [];
       }
     } catch (error) {
-      console.error('Error parsing words with Claude:', error);
+      showAlert.error('Error parsing words with Claude', error);
       return [];
     }
   }
@@ -79,7 +80,7 @@ ${text}`;
       // Get user's selected model from settings
       const model = (await this.getUserModel(userId)) || 'claude-3-5-sonnet-20241022';
 
-      console.log(`Using Claude model ${model} for text generation`);
+      // Using Claude model ${model} for text generation`);
 
       const response = await anthropic.messages.create({
         model: model,
@@ -97,7 +98,7 @@ ${text}`;
 
       return { text };
     } catch (error) {
-      console.error('Claude API Error:', error);
+      showAlert.error('Claude API Error', error);
       return {
         text: '',
         error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -118,7 +119,7 @@ ${text}`;
     // Get user's selected model from settings
     const model = (await this.getUserModel(userId)) || 'claude-3-5-sonnet-20241022';
 
-    console.log(`Using Claude model ${model} for streaming text generation`);
+    // Using Claude model ${model} for streaming text generation`);
 
     const stream = await anthropic.messages.create({
       model: model,
@@ -160,7 +161,7 @@ ${text}`;
 
       return null;
     } catch (error) {
-      console.error('Error fetching user model settings:', error);
+      showAlert.error('Error fetching user model settings', error);
       return null;
     }
   }
