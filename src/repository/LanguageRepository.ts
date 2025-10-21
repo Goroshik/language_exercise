@@ -23,6 +23,12 @@ export class LanguageRepository {
     });
   }
 
+  async findById(id: string) {
+    return this.client.findUnique({
+      where: { id }
+    });
+  }
+
   async seedInitialLanguages() {
     const existingLanguages = await this.getAll();
     if (existingLanguages.length > 0) {

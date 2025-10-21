@@ -45,13 +45,13 @@ export interface AppStore {
   error: string;
   validationResults: ValidationResults;
   handleTopicSelect: (data: {
-    language?: string;
+    languageId?: string;
     level?: string;
     selectedWords?: DictionaryWord[];
     mode?: 'learn' | 'train';
   }) => Promise<void>;
   generateMoreExercises: (data: {
-    language?: string;
+    languageId?: string;
     level?: string;
     selectedWords?: DictionaryWord[];
     mode?: 'learn' | 'train';

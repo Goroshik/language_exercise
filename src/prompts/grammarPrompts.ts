@@ -1,12 +1,9 @@
 export const GRAMMAR_PROMPTS = {
-  generateExercises: (
-    topic: string,
-    selectedWords?: string[]
-  ) => `You are helping a Russian speaker learn English. Generate 5 English sentences for practicing the topic: "${topic}".
+  generateExercises: (topic: string, languageName: string, selectedWords?: string[]) => `You are helping a Russian speaker learn ${languageName}. Generate 5 ${languageName} sentences for practicing the topic: "${topic}".
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 
-Each sentence should have 1-2 words replaced with {{input}} placeholders where the student needs to fill in the correct English word form.
+Each sentence should have 1-2 words replaced with {{input}} placeholders where the student needs to fill in the correct ${languageName} word form.
 
 At the end of each sentence, add the missing words in brackets in their base form (infinitive for verbs, singular for nouns, positive form for adjectives).
 
@@ -16,14 +13,11 @@ Example format:
 I {{input}} to school every day. (go)
 She {{input}} a beautiful dress yesterday. (buy)`,
 
-  generateMoreExercises: (
-    topic: string,
-    selectedWords?: string[]
-  ) => `You are helping a Russian speaker learn English. Generate 5 NEW English sentences for practicing the topic: "${topic}".
+  generateMoreExercises: (topic: string, languageName: string, selectedWords?: string[]) => `You are helping a Russian speaker learn ${languageName}. Generate 5 NEW ${languageName} sentences for practicing the topic: "${topic}".
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 
-Each sentence should have 1-2 words replaced with {{input}} placeholders where the student needs to fill in the correct English word form.
+Each sentence should have 1-2 words replaced with {{input}} placeholders where the student needs to fill in the correct ${languageName} word form.
 
 At the end of each sentence, add the missing words in brackets in their base form (infinitive for verbs, singular for nouns, positive form for adjectives).
 
@@ -33,10 +27,7 @@ Example format:
 I {{input}} to school every day. (go)
 She {{input}} a beautiful dress yesterday. (buy)`,
 
-  validateAnswers: (
-    topic: string,
-    answersText: string
-  ) => `You are helping a Russian speaker learn English. Check these English sentences for grammatical correctness. Topic: "${topic}".
+  validateAnswers: (topic: string, answersText: string, languageName: string = 'the target language') => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences for grammatical correctness. Topic: "${topic}".
 
 ${answersText}
 
@@ -58,11 +49,7 @@ Format your response as:
 3. TRANSLATION_ERRORS: word - правильный перевод
 etc.`,
 
-  generateTeacherSentences: (
-    topic: string,
-    level: string,
-    selectedWords?: string[]
-  ) => `You are helping create English learning materials for Russian speakers. Generate 10 complete English sentences for a teacher to give to students for practicing the topic: "${topic}" at ${level} proficiency level.
+  generateTeacherSentences: (topic: string, level: string, languageName: string, selectedWords?: string[]) => `You are helping create ${languageName} learning materials for Russian speakers. Generate 10 complete ${languageName} sentences for a teacher to give to students for practicing the topic: "${topic}" at ${level} proficiency level.
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 

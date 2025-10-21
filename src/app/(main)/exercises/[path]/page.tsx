@@ -1,28 +1,58 @@
 'use client';
 
-import React, { useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import React, {useState, useEffect} from 'react';
+import {useRouter, useParams} from "next/navigation";
 
-import { Box, Button, ButtonGroup, Stack, Typography } from '@mui/material';
+import {Box, Button, ButtonGroup, Stack, Typography, MenuItem, TextField} from '@mui/material';
 
-import { useAppStore } from 'src/store/appStore';
+import {useAppStore} from 'src/store/appStore';
 
 import ExerciseBlock from './ExerciseBlock';
 import WordSelector from './WordSelector';
-import { DictionaryWord } from 'src/types';
+import {DictionaryWord} from "src/types";
+
+interface Language {
+  id: string;
+  code: string;
+  name: string;
+  nativeName: string;
+}
 
 const Page: React.FC = () => {
-  const { topicName } = useParams<{ topicName: string }>();
+  const {topicName} = useParams<{ topicName: string }>();
   const navigate = useRouter();
-  const selectedLanguage: string = 'English';
 
   // State for button selections
   const [selectedMode, setSelectedMode] = useState<'learn' | 'train'>('learn');
   const [selectedLevel, setSelectedLevel] = useState<string>('A1');
   const [selectedWords, setSelectedWords] = useState<DictionaryWord[]>([]);
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [selectedLanguageId, setSelectedLanguageId] = useState<string>('');
 
   // Decode the topic name from URL
   const selectedTopic = topicName ? decodeURIComponent(topicName) : '';
+
+  // Fetch languages on mount
+  useEffect(() => {
+    const fetchLanguages = async () => {
+      try {
+        const res = await fetch('/api/languages');
+        const data = await res.json();
+        const langs = data.data || [];
+        setLanguages(langs);
+        // Set default to English if available
+        const englishLang = langs.find((l: Language) => l.code === 'en');
+        if (englishLang) {
+          setSelectedLanguageId(englishLang.id);
+        } else if (langs.length > 0) {
+          setSelectedLanguageId(langs[0].id);
+        }
+      } catch (error) {
+        console.error('Failed to fetch languages:', error);
+      }
+    };
+    fetchLanguages();
+  }, []);
 
   // Use app state store
   const {
@@ -43,7 +73,7 @@ const Page: React.FC = () => {
 
   const handleGenerateMore = () => {
     generateMoreExercises({
-      language: selectedLanguage,
+      languageId: selectedLanguageId,
       level: selectedLevel,
       selectedWords,
       mode: selectedMode
@@ -52,7 +82,7 @@ const Page: React.FC = () => {
 
   const handleGenerateInitial = () => {
     handleTopicSelect({
-      language: selectedLanguage,
+      languageId: selectedLanguageId,
       level: selectedLevel,
       selectedWords,
       mode: selectedMode
@@ -63,45 +93,44 @@ const Page: React.FC = () => {
 
   return (
     <Box>
-      <Stack
-        direction="row"
-        sx={{
-          marginBottom: 2,
-          alignItems: 'center',
-          gap: 1,
-          padding: 2,
-          backgroundColor: '#f5f5f5',
-          borderRadius: 16
-        }}
-      >
-        <Typography variant="h6">Тема: {selectedTopic}</Typography>
+      <Stack direction="row" sx={{
+        marginBottom: 2,
+        alignItems: 'center',
+        gap: 1,
+        padding: 2,
+        backgroundColor: '#f5f5f5',
+        borderRadius: 16
+      }}>
+        <Typography variant="h6">
+          Тема: {selectedTopic}
+        </Typography>
         <Button
           size="small"
           onClick={handleBackToTopics}
           variant="outlined"
-          sx={{ textTransform: 'none' }}
+          sx={{textTransform: 'none'}}
         >
           Выбрать другую тему
         </Button>
       </Stack>
 
-      <Box sx={{ display: 'flex', gap: 3 }}>
+      <Box sx={{display: 'flex', gap: 3}}>
         {/* Main content - left side */}
-        <Box sx={{ flex: 1 }}>
+        <Box sx={{flex: 1}}>
           {/* Generation Mode Selection */}
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3 }}>
+          <Box sx={{display: 'flex', justifyContent: 'center', gap: 2, mb: 3, flexWrap: 'wrap'}}>
             <ButtonGroup variant="outlined" size="medium">
               <Button
                 variant={selectedMode === 'learn' ? 'contained' : 'outlined'}
                 onClick={() => setSelectedMode('learn')}
-                sx={{ textTransform: 'none' }}
+                sx={{textTransform: 'none'}}
               >
                 Учить
               </Button>
               <Button
                 variant={selectedMode === 'train' ? 'contained' : 'outlined'}
                 onClick={() => setSelectedMode('train')}
-                sx={{ textTransform: 'none' }}
+                sx={{textTransform: 'none'}}
               >
                 Тренирова
               </Button>
@@ -109,22 +138,38 @@ const Page: React.FC = () => {
 
             {/* Level Selection */}
             <ButtonGroup variant="outlined" size="medium">
-              {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map(level => (
+              {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map((level) => (
                 <Button
                   key={level}
                   variant={selectedLevel === level ? 'contained' : 'outlined'}
                   onClick={() => setSelectedLevel(level)}
-                  sx={{ textTransform: 'none', minWidth: '50px' }}
+                  sx={{textTransform: 'none', minWidth: '50px'}}
                 >
                   {level}
                 </Button>
               ))}
             </ButtonGroup>
+
+            {/* Language Selection */}
+            <TextField
+              select
+              label="Язык"
+              value={selectedLanguageId}
+              onChange={(e) => setSelectedLanguageId(e.target.value)}
+              size="small"
+              sx={{minWidth: 150}}
+            >
+              {languages.map((lang) => (
+                <MenuItem key={lang.id} value={lang.id}>
+                  {lang.nativeName}
+                </MenuItem>
+              ))}
+            </TextField>
           </Box>
 
           {exerciseBlocks.length === 0 ? (
-            <Box sx={{ textAlign: 'center', mt: 4 }}>
-              <Typography variant="body1" sx={{ mb: 2 }}>
+            <Box sx={{textAlign: 'center', mt: 4}}>
+              <Typography variant="body1" sx={{mb: 2}}>
                 Упражнения для темы &#34;{selectedTopic}&#34; будут загружены здесь.
               </Typography>
               <Button
@@ -150,7 +195,7 @@ const Page: React.FC = () => {
                 />
               ))}
 
-              <Box sx={{ textAlign: 'center', mt: 4 }}>
+              <Box sx={{textAlign: 'center', mt: 4}}>
                 <Button
                   variant="outlined"
                   size="large"
@@ -166,8 +211,11 @@ const Page: React.FC = () => {
         </Box>
 
         {/* Word selector - right side */}
-        <Box sx={{ width: '300px', flexShrink: 0 }}>
-          <WordSelector selectedWords={selectedWords} onWordsChange={setSelectedWords} />
+        <Box sx={{width: '300px', flexShrink: 0}}>
+          <WordSelector
+            selectedWords={selectedWords}
+            onWordsChange={setSelectedWords}
+          />
         </Box>
       </Box>
     </Box>

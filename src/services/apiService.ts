@@ -3,7 +3,7 @@ import { DictionaryWord } from 'src/types';
 interface GenerateTextRequest {
   mode?: 'learn' | 'train';
   topic?: string;
-  language?: string;
+  languageId?: string;
   level?: string;
   selectedWords?: DictionaryWord[];
   prompt?: string;
