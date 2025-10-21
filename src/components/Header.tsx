@@ -16,14 +16,13 @@ const Header: React.FC = () => {
   const route = useRouter();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiModelOpen, setAiModelOpen] = useState(false);
-  const { selectedTopic,  loadLastSelectedTopic } = useAppStore();
+  const { selectedTopic,  loadLastSelectedTopic, state, isNavigating, setIsNavigating } = useAppStore();
+
+  const isLoading = state === 'loading-exercises' || state === 'loading-topics' || isNavigating;
 
   useEffect(() => {
     loadLastSelectedTopic();
   }, [loadLastSelectedTopic]);
-  const { state, isNavigating, setIsNavigating } = useAppStore();
-
-  const isLoading = state === 'loading-exercises' || state === 'loading-topics' || isNavigating;
 
   const handleSettingsOpen = () => {
     setSettingsOpen(true);
@@ -61,18 +60,22 @@ const Header: React.FC = () => {
           </Typography>
           <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title="Темы">
-              <IconButton
-                color="inherit"
-                onClick={() => handleNavigation('/topics')}
-                sx={{
-                  backgroundColor: 'white',
-                  color: 'primary.main',
-                  '&:hover': { backgroundColor: '#f5f5f5' }
-                }}
-                aria-label="topics"
-              >
-                <TopicIcon />
-              </IconButton>
+              <span>
+                <IconButton
+                  color="inherit"
+                  onClick={() => handleNavigation('/topics')}
+                  disabled={isLoading}
+                  sx={{
+                    backgroundColor: 'white',
+                    color: 'primary.main',
+                    '&:hover': { backgroundColor: '#f5f5f5' },
+                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  }}
+                  aria-label="topics"
+                >
+                  <TopicIcon />
+                </IconButton>
+              </span>
             </Tooltip>
             <Tooltip title="Словарь">
               <span>
