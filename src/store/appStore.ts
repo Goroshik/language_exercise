@@ -4,6 +4,7 @@ import {devtools} from "zustand/middleware";
 import {GRAMMAR_PROMPTS} from 'src/prompts';
 import {ApiService} from 'src/services/apiService';
 import {AppState, AppStore, DictionaryWord, ExerciseBlock, ValidationResults} from 'src/types';
+import {showAlert} from 'src/utils/alert';
 
 export const useAppStore = create<AppStore>()(devtools((set, get) => ({
   // Initial state
@@ -49,8 +50,6 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
           .map((sentence: string) => ({sentence: sentence.trim(), correctAnswers: []}));
       }
 
-      console.log('123123123123123123123123', data, sentencesList)
-
       const newBlock: ExerciseBlock = {
         id: `block_${Date.now()}`,
         exercises: sentencesList,
@@ -64,6 +63,7 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
       }));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+      showAlert.error(`Ошибка при загрузке упражнений: ${errorMessage}`);
       set({
         error: `Ошибка при загрузке упражнений: ${errorMessage}`,
         state: 'topic-selection'
@@ -84,8 +84,6 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
     set({state: 'loading-exercises', error: ''});
     try {
       const data = await ApiService.generateText({mode, topic, languageId, level, selectedWords});
-
-      console.log('responseJson', data)
 
       let newSentencesList;
 
@@ -112,6 +110,7 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
       }));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+      showAlert.error(`Ошибка при загрузке дополнительных упражнений: ${errorMessage}`);
       set({error: `Ошибка при загрузке дополнительных упражнений: ${errorMessage}`});
     } finally {
       set({state: 'exercises'});
@@ -174,6 +173,7 @@ export const useAppStore = create<AppStore>()(devtools((set, get) => ({
       }));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+      showAlert.error(`Ошибка при проверке ответов: ${errorMessage}`);
       set({error: `Ошибка при проверке ответов: ${errorMessage}`});
     } finally {
       // Remove checking state for specific block

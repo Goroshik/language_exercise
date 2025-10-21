@@ -16,6 +16,7 @@ import {
   Typography
 } from '@mui/material';
 import { Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { showAlert } from 'src/utils/alert';
 
 interface ImportWordsModalProps {
   open: boolean;
@@ -113,7 +114,7 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
       // NOTE: Fallback to manual parsing if AI returns no results
       throw new Error('AI parsing returned no results');
     } catch (error) {
-      console.error('Error parsing text with AI:', error);
+      showAlert.error('Error parsing text with AI');
       // NOTE: Fallback manual parsing for demo
     } finally {
       setIsLoading(false);
@@ -126,7 +127,7 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
       await addWords(parsedWords);
       handleClose();
     } catch (error) {
-      console.error('Error importing words:', error);
+      showAlert.error('Error importing words');
     } finally {
       setIsLoading(false);
     }

@@ -3,6 +3,7 @@ import {GRAMMAR_PROMPTS} from 'src/prompts/grammarPrompts';
 import {sentenceHistoryRepository, languageRepository} from 'src/repository/client';
 import {AIFactory} from 'src/services/aiFactory';
 import {DictionaryWord} from 'src/types';
+import {showAlert} from 'src/utils/alert';
 
 export type Mode = 'learn' | 'exercise' | string;
 
@@ -70,7 +71,7 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
       if (err instanceof Error && err.message.includes('No token found')) {
         return {status: 402, body: {error: 'AI service token not configured for user'}};
       }
-      console.error('AI service error', err);
+      showAlert.error('AI service error');
       return {status: 502, body: {error: 'Failed to generate text from AI service'}};
     }
 
@@ -110,15 +111,13 @@ export async function processGenerateTextRequest(rawBody: unknown, userId: strin
           await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
         }
       } catch (saveErr) {
-        console.warn('Failed to save generated sentence history', saveErr);
+        showAlert.warning('Failed to save generated sentence history');
       }
     }
 
-    console.log(result)
-
     return {status: 200, body: {success: true, data: result}};
   } catch (err) {
-    console.error('Unexpected error in generateText service:', err);
+    showAlert.error('Unexpected error in generateText service');
     return {status: 500, body: {error: 'Internal server error'}};
   }
 }
