@@ -3,6 +3,7 @@ import { OpenAIService } from './openAI';
 import { ClaudeAIService } from './claudeAI';
 import { IAIService } from './baseAI';
 import { userSettingsRepository } from 'src/repository/client';
+import { showAlert } from 'src/utils/alert';
 
 /**
  * AI Factory for dynamically selecting AI service based on user settings
@@ -28,11 +29,11 @@ export class AIFactory {
         return new ClaudeAIService();
       } else {
         // Default to Gemini if model is not recognized
-        console.warn(`Unknown model ${selectedModel}, falling back to Gemini`);
+        showAlert.warning(`Unknown model ${selectedModel}, falling back to Gemini`);
         return new GoogleAIService();
       }
     } catch (error) {
-      console.error('Error getting AI service:', error);
+      showAlert.error('Error getting AI service');
       // Default to Gemini on error
       return new GoogleAIService();
     }

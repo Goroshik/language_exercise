@@ -23,6 +23,7 @@ import {
   getModelsByProvider,
   getProviderFromModel
 } from 'src/constants/aiModels';
+import { showAlert } from 'src/utils/alert';
 
 interface AIModelSelectorProps {
   open: boolean;
@@ -124,7 +125,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
         }
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
+      showAlert.error('Failed to load data');
       setError('Не удалось загрузить данные');
     } finally {
       setLoading(false);
@@ -162,7 +163,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
         onClose();
       }, 1000);
     } catch (error) {
-      console.error('Failed to save model:', error);
+      showAlert.error('Failed to save model');
       setError('Не удалось сохранить модель');
     }
   };
