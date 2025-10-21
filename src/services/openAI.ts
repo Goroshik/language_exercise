@@ -61,11 +61,11 @@ ${text}`;
         }
         return [];
       } catch (parseError) {
-        showAlert.error('Failed to parse OpenAI response as JSON', cleanedResponse);
+        showAlert.error('Failed to parse OpenAI response as JSON');
         return [];
       }
     } catch (error) {
-      showAlert.error('Error parsing words with OpenAI', error);
+      showAlert.error('Error parsing words with OpenAI');
       return [];
     }
   }
@@ -101,7 +101,7 @@ ${text}`;
 
       return { text };
     } catch (error) {
-      showAlert.error('OpenAI API Error', error);
+      showAlert.error('OpenAI API Error');
       return {
         text: '',
         error: error instanceof Error ? error.message : 'Unknown error occurred'
@@ -164,7 +164,7 @@ ${text}`;
 
       return null;
     } catch (error) {
-      showAlert.error('Error fetching user model settings', error);
+      showAlert.error('Error fetching user model settings');
       return null;
     }
   }
