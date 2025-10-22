@@ -17,26 +17,26 @@ interface AlertStore {
 }
 
 export const useAlertStore = create<AlertStore>()(
-  devtools((set) => ({
+  devtools(set => ({
     alerts: [],
 
     addAlert: (message: string, severity: AlertSeverity = 'info') => {
       const id = `alert_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      set((state) => ({
+      set(state => ({
         alerts: [...state.alerts, { id, message, severity }]
       }));
-      
+
       // Auto-dismiss after 6 seconds
       setTimeout(() => {
-        set((state) => ({
-          alerts: state.alerts.filter((alert) => alert.id !== id)
+        set(state => ({
+          alerts: state.alerts.filter(alert => alert.id !== id)
         }));
       }, 6000);
     },
 
     removeAlert: (id: string) => {
-      set((state) => ({
-        alerts: state.alerts.filter((alert) => alert.id !== id)
+      set(state => ({
+        alerts: state.alerts.filter(alert => alert.id !== id)
       }));
     },
 

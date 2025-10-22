@@ -66,7 +66,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
   // Проверяем какой формат используется: **word** или {{input}}
   const hasBoldFormat = BOLD_WORD_REGEX.test(mainLine);
   let hints: string[] = [];
-  
+
   if (hasBoldFormat) {
     // Новый формат: **word** - преобразуем в поля для ввода
     // Извлекаем слова в **word** как подсказки
@@ -76,7 +76,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     while ((match = boldRegex.exec(mainLine)) !== null) {
       boldWords.push(match[1]);
     }
-    
+
     // Проверяем наличие подсказок в скобках в конце предложения
     // Формат: They **visited** many countries last summer. (visit)
     const hintMatch = mainLine.match(/\s*\(([^)]+)\)\s*$/);
@@ -88,11 +88,11 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
       // Удаляем подсказки из основного текста
       mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
     }
-    
+
     // Заменяем **word** на пустые поля
     const displaySentence = mainLine.replace(/\*\*(.*?)\*\*/g, '_____');
     const prefillSentence = displaySentence;
-    
+
     return {
       displaySentence,
       prefillSentence,
@@ -114,7 +114,9 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     }
 
     if (!translation) {
-      const translationIndex = extraLines.findIndex(line => /^(?:перевод|translation)\b/i.test(line));
+      const translationIndex = extraLines.findIndex(line =>
+        /^(?:перевод|translation)\b/i.test(line)
+      );
       if (translationIndex !== -1) {
         translation = stripTranslationLabel(extraLines[translationIndex]);
         extraLines.splice(translationIndex, 1);

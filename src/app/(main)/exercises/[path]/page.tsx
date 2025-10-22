@@ -5,8 +5,8 @@ import { useRouter, useParams } from 'next/navigation';
 
 import { Box, Button, ButtonGroup, Stack, Typography, MenuItem, TextField } from '@mui/material';
 
-import {useAppStore} from 'src/store/appStore';
-import {showAlert} from 'src/utils/alert';
+import { useAppStore } from 'src/store/appStore';
+import { showAlert } from 'src/utils/alert';
 
 import ExerciseBlock from './ExerciseBlock';
 import WordSelector from './WordSelector';
@@ -69,14 +69,14 @@ const Page: React.FC = () => {
   // Update the store's selectedTopic when the component mounts
   useEffect(() => {
     const topicPath = topicName ? decodeURIComponent(topicName) : '';
-    useAppStore.setState({selectedTopic, lastSelectedTopicPath: topicPath});
+    useAppStore.setState({ selectedTopic, lastSelectedTopicPath: topicPath });
 
     // Save to user settings
     if (topicPath) {
       fetch('/api/settings', {
         method: 'PATCH',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({lastSelectedTopic: topicPath})
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lastSelectedTopic: topicPath })
       }).catch(error => console.error('Failed to save topic:', error));
     }
   }, [selectedTopic, topicName]);
@@ -140,14 +140,14 @@ const Page: React.FC = () => {
               <Button
                 variant={selectedMode === 'student' ? 'contained' : 'outlined'}
                 onClick={() => setSelectedMode('student')}
-                sx={{textTransform: 'none'}}
+                sx={{ textTransform: 'none' }}
               >
                 Студент
               </Button>
               <Button
                 variant={selectedMode === 'teacher' ? 'contained' : 'outlined'}
                 onClick={() => setSelectedMode('teacher')}
-                sx={{textTransform: 'none'}}
+                sx={{ textTransform: 'none' }}
               >
                 Преподаватель
               </Button>

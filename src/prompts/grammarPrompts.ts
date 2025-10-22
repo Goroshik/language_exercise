@@ -1,6 +1,10 @@
 export const GRAMMAR_PROMPTS = {
   // For student mode - create exercises with blanks for students to fill (practice exercises)
-  generateStudentExercises: (topic: string, languageName: string, selectedWords?: string[]) => `You are helping a Russian speaker learn ${languageName}. Generate 5 ${languageName} sentences for practicing the topic: "${topic}".
+  generateStudentExercises: (
+    topic: string,
+    languageName: string,
+    selectedWords?: string[]
+  ) => `You are helping a Russian speaker learn ${languageName}. Generate 5 ${languageName} sentences for practicing the topic: "${topic}".
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 
@@ -24,7 +28,11 @@ Example output for topic "Articles":
 I need **a** new phone.
 **The** sun is shining brightly.`,
 
-  validateAnswers: (topic: string, answersText: string, languageName: string = 'the target language') => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences for grammatical correctness. Topic: "${topic}".
+  validateAnswers: (
+    topic: string,
+    answersText: string,
+    languageName: string = 'the target language'
+  ) => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences for grammatical correctness. Topic: "${topic}".
 
 ${answersText}
 
@@ -47,7 +55,12 @@ Format your response as:
 etc.`,
 
   // For teacher mode - provide correct example sentences for learning/viewing
-  generateTeacherExamples: (topic: string, level: string, languageName: string, selectedWords?: string[]) => `You are helping create ${languageName} learning materials for Russian speakers. Generate 10 complete ${languageName} sentences for students to learn the topic: "${topic}" at ${level} proficiency level.
+  generateTeacherExamples: (
+    topic: string,
+    level: string,
+    languageName: string,
+    selectedWords?: string[]
+  ) => `You are helping create ${languageName} learning materials for Russian speakers. Generate 10 complete ${languageName} sentences for students to learn the topic: "${topic}" at ${level} proficiency level.
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}
 

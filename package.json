@@ -1,7 +1,8 @@
 {
   "name": "next",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build --turbopack",
@@ -41,6 +42,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react-refresh": "^0.4.23",
+    "prettier": "^3.6.2",
     "prisma": "^6.16.3",
     "typescript": "5.9.2"
   }
