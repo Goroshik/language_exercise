@@ -25,7 +25,7 @@ export const AlertProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             maxWidth: 400
           }}
         >
-          {alerts.map((alert) => (
+          {alerts.map(alert => (
             <Alert
               key={alert.id}
               onClose={() => handleClose(alert.id)}

@@ -41,7 +41,7 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
   validationResults,
   onCheckAnswers,
   mode = 'student'
-}) => { 
+}) => {
   const handleCheckAnswers = () => {
     // Collect textarea values instead of individual inputs
     const textareas = document.querySelectorAll(`textarea[id^="textarea_${block.id}_"]`);

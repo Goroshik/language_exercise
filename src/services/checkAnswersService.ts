@@ -55,8 +55,8 @@ export async function processCheckAnswersRequest(
       typeof rawResult === 'string'
         ? rawResult
         : rawResult && typeof rawResult === 'object'
-        ? (rawResult as any).text ?? ''
-        : '';
+          ? ((rawResult as any).text ?? '')
+          : '';
 
     const result = formatAIResponse(text);
 

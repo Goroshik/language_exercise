@@ -1,6 +1,7 @@
 # Alert System Documentation
 
 ## Overview
+
 This project uses a global alert system built with Zustand and MUI components. The system allows displaying error, success, warning, and info messages from anywhere in the application.
 
 ## Usage

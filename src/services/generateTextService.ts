@@ -1,9 +1,9 @@
 import Joi from 'joi';
-import {GRAMMAR_PROMPTS} from 'src/prompts/grammarPrompts';
-import {sentenceHistoryRepository, languageRepository} from 'src/repository/client';
-import {AIFactory} from 'src/services/aiFactory';
-import {DictionaryWord} from 'src/types';
-import {showAlert} from 'src/utils/alert';
+import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
+import { sentenceHistoryRepository, languageRepository } from 'src/repository/client';
+import { AIFactory } from 'src/services/aiFactory';
+import { DictionaryWord } from 'src/types';
+import { showAlert } from 'src/utils/alert';
 
 export type Mode = 'student' | 'teacher' | string;
 
@@ -22,10 +22,14 @@ const schema = Joi.object({
   topic: Joi.string().required(),
   languageId: Joi.string().required(),
   level: Joi.string().required(),
-  selectedWords: Joi.array().items(Joi.object({
-    id: Joi.string().allow(null),
-    word: Joi.string().allow('', null),
-  })).optional(),
+  selectedWords: Joi.array()
+    .items(
+      Joi.object({
+        id: Joi.string().allow(null),
+        word: Joi.string().allow('', null)
+      })
+    )
+    .optional()
 });
 
 export function formatAIResponse(text: string): string[] {
@@ -58,9 +62,10 @@ export async function processGenerateTextRequest(
     }
 
     const words = selectedWords.map(w => w.word || '');
-    const prompt = mode === 'student'
-      ? GRAMMAR_PROMPTS.generateStudentExercises(topic, language.name, words)
-      : GRAMMAR_PROMPTS.generateTeacherExamples(topic, level, language.name, words);
+    const prompt =
+      mode === 'student'
+        ? GRAMMAR_PROMPTS.generateStudentExercises(topic, language.name, words)
+        : GRAMMAR_PROMPTS.generateTeacherExamples(topic, level, language.name, words);
 
     const aiService = await AIFactory.getAIService(userId);
     if (!aiService || typeof aiService.generateText !== 'function') {
@@ -75,10 +80,15 @@ export async function processGenerateTextRequest(
         return { status: 402, body: { error: 'AI service token not configured for user' } };
       }
       showAlert.error('AI service error');
-      return {status: 502, body: {error: 'Failed to generate text from AI service'}};
+      return { status: 502, body: { error: 'Failed to generate text from AI service' } };
     }
 
-    const text = typeof rawResult === 'string' ? rawResult : (rawResult && typeof rawResult === 'object' ? (rawResult as any).text ?? '' : '');
+    const text =
+      typeof rawResult === 'string'
+        ? rawResult
+        : rawResult && typeof rawResult === 'object'
+          ? ((rawResult as any).text ?? '')
+          : '';
     const result = formatAIResponse(text);
 
     if (result.length > 0) {
@@ -111,7 +121,7 @@ export async function processGenerateTextRequest(
             languageId,
             usedWordIds: Array.from(wordsInSentence),
             level,
-            mode, // Сохраняем режим генерации (student/teacher)
+            mode // Сохраняем режим генерации (student/teacher)
           };
         });
 
@@ -123,9 +133,9 @@ export async function processGenerateTextRequest(
       }
     }
 
-    return {status: 200, body: {success: true, data: result}};
+    return { status: 200, body: { success: true, data: result } };
   } catch (err) {
     showAlert.error('Unexpected error in generateText service');
-    return {status: 500, body: {error: 'Internal server error'}};
+    return { status: 500, body: { error: 'Internal server error' } };
   }
 }

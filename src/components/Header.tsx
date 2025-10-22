@@ -16,7 +16,8 @@ const Header: React.FC = () => {
   const route = useRouter();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiModelOpen, setAiModelOpen] = useState(false);
-  const { selectedTopic,  loadLastSelectedTopic, state, isNavigating, setIsNavigating } = useAppStore();
+  const { selectedTopic, loadLastSelectedTopic, state, isNavigating, setIsNavigating } =
+    useAppStore();
 
   const isLoading = state === 'loading-exercises' || state === 'loading-topics' || isNavigating;
 

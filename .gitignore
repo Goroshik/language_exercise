@@ -36,11 +36,10 @@ yarn-error.log*
 # vercel
 .vercel
 
+nul
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
 
 /src/generated/prisma
-
-# temp files
-nul
