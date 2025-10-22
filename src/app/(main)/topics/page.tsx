@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
 import {
   Box,
@@ -18,7 +18,7 @@ import { useAppStore } from 'src/store/appStore';
 
 const Page: React.FC = () => {
   const navigate = useRouter();
-  const { setIsNavigating } = useAppStore();
+  const { setIsNavigating, setState } = useAppStore();
 
   const [topics, setTopics] = useState<Record<string, Record<string, string>>>({});
 
@@ -28,19 +28,20 @@ const Page: React.FC = () => {
       .toLowerCase()
       .replace(/\s+/g, '_');
 
-    // Save the selected topic to user settings
-    fetch('/api/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lastSelectedTopic: path })
-    }).catch(error => console.error('Failed to save topic:', error));
+    // Save to localStorage (client-side only)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('lastSelectedTopicPath', path);
+    }
 
     setIsNavigating(true);
     navigate.push(`/exercises/${path}`);
   };
 
   useEffect(() => {
+    // Reset navigation state when this page loads
+    setIsNavigating(false);
     loadTopics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadTopics = async () => {
@@ -49,8 +50,9 @@ const Page: React.FC = () => {
       const data = await response.json();
       if (data.success) {
         setTopics(data.topics);
+        setState('topics-loaded');
       }
-    } catch (error) {
+    } catch {
       showAlert.error('Failed to load tags');
     }
   };

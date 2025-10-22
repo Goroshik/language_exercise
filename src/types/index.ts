@@ -12,6 +12,7 @@ export interface ExerciseBlock {
 
 export type AppState =
   | 'loading-topics'
+  | 'topics-loaded'
   | 'topic-selection'
   | 'loading-exercises'
   | 'exercises'
@@ -47,6 +48,7 @@ export interface AppStore {
   validationResults: ValidationResults;
   isNavigating: boolean;
   setIsNavigating: (isNavigating: boolean) => void;
+  setState: (state: AppState) => void;
   lastSelectedTopicPath: string;
   loadLastSelectedTopic: () => Promise<string>;
   handleTopicSelect: (data: {

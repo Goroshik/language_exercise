@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import {
   Box,
   Button,
@@ -15,7 +15,7 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import { Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import React, { useEffect, useState } from 'react';
 import { showAlert } from 'src/utils/alert';
 
 interface ImportWordsModalProps {
@@ -157,7 +157,7 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
       }}
     >
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography component="h3" variant="h6">
+        <Typography variant="h6">
           {step === 'input' && 'Импорт слов из текста'}
           {step === 'parsing' && 'Обработка текста...'}
           {step === 'review' && 'Проверка и редактирование'}
