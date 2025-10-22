@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 
-import { Box, Button, ButtonGroup, Stack, Typography, MenuItem, TextField } from '@mui/material';
+import { Box, Button, ButtonGroup, MenuItem, Stack, TextField, Typography } from '@mui/material';
 
 import { useAppStore } from 'src/store/appStore';
 import { showAlert } from 'src/utils/alert';
 
+import { DictionaryWord } from 'src/types';
 import ExerciseBlock from './ExerciseBlock';
 import WordSelector from './WordSelector';
-import { DictionaryWord } from 'src/types';
 
 interface Language {
   id: string;
@@ -48,7 +48,7 @@ const Page: React.FC = () => {
         } else if (langs.length > 0) {
           setSelectedLanguageId(langs[0].id);
         }
-      } catch (error) {
+      } catch {
         showAlert.error('Failed to fetch languages');
       }
     };
@@ -58,6 +58,7 @@ const Page: React.FC = () => {
   // Use app state store
   const {
     state,
+    setState,
     exerciseBlocks,
     validationResults,
     handleTopicSelect,
@@ -68,18 +69,19 @@ const Page: React.FC = () => {
 
   // Update the store's selectedTopic when the component mounts
   useEffect(() => {
+    // Reset navigation state when this page loads
+    setIsNavigating(false);
+
     const topicPath = topicName ? decodeURIComponent(topicName) : '';
     useAppStore.setState({ selectedTopic, lastSelectedTopicPath: topicPath });
 
-    // Save to user settings
-    if (topicPath) {
-      fetch('/api/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lastSelectedTopic: topicPath })
-      }).catch(error => console.error('Failed to save topic:', error));
+    // Save to localStorage (client-side only)
+    if (topicPath && typeof window !== 'undefined') {
+      localStorage.setItem('lastSelectedTopicPath', topicPath);
     }
-  }, [selectedTopic, topicName]);
+
+    setState('topics-loaded');
+  }, [selectedTopic, topicName, setIsNavigating, setState]);
 
   // Check if AI request is in progress
   const isLoading = state === 'loading-exercises';

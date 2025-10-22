@@ -15,10 +15,26 @@ export const useAppStore = create<AppStore>()(
     error: '',
     validationResults: {},
     isNavigating: false,
+    lastSelectedTopicPath: '',
 
     // Actions
     setIsNavigating: (isNavigating: boolean) => {
       set({ isNavigating });
+    },
+
+    setState: (state: AppStore['state']) => {
+      set({ state });
+    },
+
+    loadLastSelectedTopic: async () => {
+      if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('lastSelectedTopicPath');
+        if (stored) {
+          set({ lastSelectedTopicPath: stored });
+          return stored;
+        }
+      }
+      return '';
     },
 
     handleTopicSelect: async ({
@@ -62,10 +78,11 @@ export const useAppStore = create<AppStore>()(
             correctAnswers: []
           }));
         } else {
-          // For teacher mode, filter sentences with {{input}} placeholders
-          sentencesList = data
-            .filter((sentence: string) => sentence.includes('{{input}}'))
-            .map((sentence: string) => ({ sentence: sentence.trim(), correctAnswers: [] }));
+          // For teacher mode, accept both formats: {{input}} and **bold**
+          sentencesList = data.map((sentence: string) => ({
+            sentence: sentence.trim(),
+            correctAnswers: []
+          }));
         }
 
         const newBlock: ExerciseBlock = {
@@ -123,10 +140,11 @@ export const useAppStore = create<AppStore>()(
             correctAnswers: []
           }));
         } else {
-          // For teacher mode, filter sentences with {{input}} placeholders
-          newSentencesList = data
-            .filter((sentence: string) => sentence.includes('{{input}}'))
-            .map((sentence: string) => ({ sentence: sentence.trim(), correctAnswers: [] }));
+          // For teacher mode, accept both formats: {{input}} and **bold**
+          newSentencesList = data.map((sentence: string) => ({
+            sentence: sentence.trim(),
+            correctAnswers: []
+          }));
         }
 
         const newBlock: ExerciseBlock = {
@@ -137,14 +155,16 @@ export const useAppStore = create<AppStore>()(
         };
 
         set(state => ({
-          exerciseBlocks: [...state.exerciseBlocks, newBlock]
+          exerciseBlocks: [...state.exerciseBlocks, newBlock],
+          state: 'exercises'
         }));
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
         showAlert.error(`Ошибка при загрузке дополнительных упражнений: ${errorMessage}`);
-        set({ error: `Ошибка при загрузке дополнительных упражнений: ${errorMessage}` });
-      } finally {
-        set({ state: 'exercises' });
+        set({
+          error: `Ошибка при загрузке дополнительных упражнений: ${errorMessage}`,
+          state: 'exercises'
+        });
       }
     },
 
