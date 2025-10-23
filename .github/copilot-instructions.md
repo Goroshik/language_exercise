@@ -147,6 +147,38 @@ Models defined in `src/constants/aiModels.ts`. To add new model:
 
 Dual translation support: DeepL (preferred) and Google Translate (fallback). Service selection based on available tokens. Located in `src/services/deeplTranslate.ts` and `googleTranslate.ts`.
 
+### Word Import System
+
+**Two import methods** (both use same save endpoint):
+
+1. **Manual addition**: Pre-filled modal from translation panel → Review step → Save single word as array
+2. **AI-powered import**: Text input → AI parsing (`POST /api/ai/parse-words`) → Review/edit → Save multiple words
+
+**Critical Implementation Details**:
+- **API endpoint**: `POST /api/dictionary/words` always expects `{ words: [...] }` array, even for single word
+- **Repository method**: `wordRepository.addManyWord(userId, words)` uses `createMany` for batch insert
+- **AI parsing**: Factory pattern selects provider (Gemini/OpenAI/Claude) based on user settings
+- **Response format**: Parse endpoint returns `{ words: [...] }` NOT `{ success: true, data: [...] }` (see TODO_WORDS.md bug #1.1)
+
+**Component flow**:
+```typescript
+ImportWordsModal (input step)
+  → POST /api/ai/parse-words { text }
+  → parseWordsFromTextService → AIFactory → AI Service
+  → Returns ParsedWord[]
+  → Review step (user edits)
+  → POST /api/dictionary/words { words: [...] }
+  → wordRepository.addManyWord()
+```
+
+**Key files**:
+- `src/components/ImportWordsModal.tsx` - Main UI component with 3 steps (input/parsing/review)
+- `src/services/parseWordsFromTextService.ts` - AI text parsing orchestration
+- `src/services/wordsService.ts` - Word operations (addManyWordService)
+- `src/repository/WordRepository.ts` - Database layer with addManyWord method
+
+**Documentation**: See `WORDS_IMPORT.md` for detailed architecture and `TODO_WORDS.md` for planned improvements.
+
 ## Important Files
 
 - **`src/middleware.ts`**: JWT verification, userId injection, route protection
