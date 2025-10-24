@@ -168,6 +168,7 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
           setStep('input');
         }
       } catch (manualError) {
+        console.error('Manual parsing failed:', manualError);
         showAlert.error('Ошибка при обработке текста. Проверьте формат ввода.');
         setStep('input');
       }
