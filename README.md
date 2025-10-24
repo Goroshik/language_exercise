@@ -20,6 +20,18 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Project Documentation
+
+### Features
+- [Exercise History](./EXERCISE_HISTORY.md) - Comprehensive documentation for the generated sentences history feature
+- [Exercise History AI Guide](./EXERCISE_HISTORY_AI_PROMPT.md) - Quick reference for AI assistants working with exercise history
+- [Exercise History TODO](./EXERCISE_HISTORY_TODO.md) - Future improvements and AI-ready implementation prompts
+
+### Other Documentation
+- [Alert System](./ALERT_SYSTEM.md) - Alert and notification system documentation
+- [AI Model Selector](./AI_MODEL_SELECTOR_TESTING.md) - AI model selection feature testing guide
+- [Implementation Summary](./IMPLEMENTATION_SUMMARY.md) - Summary of key implementations
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
