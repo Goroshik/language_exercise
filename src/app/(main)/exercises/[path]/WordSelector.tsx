@@ -107,6 +107,16 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   // NOTE: Get filtered dictionary words based on search text
   const filteredWords = getFilteredWords(filterText);
 
+  // NOTE: Split words into selected and unselected groups
+  // Selected words always appear at the top, regardless of search
+  const selectedWordsList = selectedWords.filter(
+    word => words.some(w => w.id === word.id) // Ensure selected words are still in the dictionary
+  );
+  const unselectedWords = filteredWords.filter(word => !selectedWords.some(w => w.id === word.id));
+
+  // Combine: selected words first, then unselected filtered words
+  const displayWords = [...selectedWordsList, ...unselectedWords];
+
   return (
     <Paper
       sx={{
@@ -168,12 +178,114 @@ const WordSelector: React.FC<WordSelectorProps> = ({
 
       {/* NOTE: Display filtered dictionary words */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-        {filteredWords.map((dictionaryWord, index) => (
+        {/* Selected words section */}
+        {selectedWordsList.length > 0 && (
+          <>
+            <Typography
+              variant="caption"
+              sx={{
+                px: 2,
+                py: 1,
+                color: 'primary.main',
+                fontWeight: 600,
+                backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                borderRadius: 1,
+                mb: 1
+              }}
+            >
+              Выбранные слова ({selectedWordsList.length})
+            </Typography>
+            {selectedWordsList.map((dictionaryWord, index) => (
+              <Box key={dictionaryWord.id}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={true}
+                      onChange={() => handleWordToggle(dictionaryWord)}
+                      color="primary"
+                    />
+                  }
+                  label={
+                    <Box sx={{ display: 'flex', flexDirection: 'column', py: 1 }}>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '1rem',
+                          color: 'primary.main',
+                          lineHeight: 1.2
+                        }}
+                      >
+                        {dictionaryWord.word}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontSize: '0.9rem',
+                          color: 'text.secondary',
+                          fontStyle: 'italic',
+                          mt: 0.5
+                        }}
+                      >
+                        {dictionaryWord.translate}
+                      </Typography>
+                    </Box>
+                  }
+                  sx={{
+                    margin: 0,
+                    width: '100%',
+                    py: 1,
+                    backgroundColor: 'rgba(25, 118, 210, 0.04)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(25, 118, 210, 0.08)'
+                    }
+                  }}
+                />
+                {index < selectedWordsList.length - 1 && (
+                  <Box
+                    sx={{
+                      height: '1px',
+                      backgroundColor: 'divider',
+                      mx: 2,
+                      opacity: 0.3
+                    }}
+                  />
+                )}
+              </Box>
+            ))}
+
+            {/* Separator between selected and unselected */}
+            {unselectedWords.length > 0 && (
+              <Box sx={{ my: 2, px: 2 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                    display: 'block',
+                    mb: 1
+                  }}
+                >
+                  Доступные слова
+                </Typography>
+                <Box
+                  sx={{
+                    height: '2px',
+                    backgroundColor: 'divider',
+                    opacity: 0.5
+                  }}
+                />
+              </Box>
+            )}
+          </>
+        )}
+
+        {/* Unselected words section */}
+        {unselectedWords.map((dictionaryWord, index) => (
           <Box key={dictionaryWord.id}>
             <FormControlLabel
               control={
                 <Checkbox
-                  checked={selectedWords.some(w => w.id === dictionaryWord.id)}
+                  checked={false}
                   onChange={() => handleWordToggle(dictionaryWord)}
                   disabled={isWordDisabled(dictionaryWord.word)}
                   color="primary"
@@ -214,8 +326,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
                 }
               }}
             />
-            {/* NOTE: Add separator between words except for the last one */}
-            {index < filteredWords.length - 1 && (
+            {index < unselectedWords.length - 1 && (
               <Box
                 sx={{
                   height: '1px',
@@ -230,7 +341,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
       </Box>
 
       {/* NOTE: Show message when no words found */}
-      {filteredWords.length === 0 && isInitialized && (
+      {displayWords.length === 0 && isInitialized && (
         <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
           {words.length === 0 ? 'Словарь пуст' : 'Слова не найдены'}
         </Typography>
