@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     const userId = getUserIdFromRequest(request);
     const { text } = await safeJson(request);
     const words = await parseWordsFromTextService(text, userId);
-    return NextResponse.json({ words });
+    return NextResponse.json({ success: true, data: words });
   } catch (error) {
     console.error('Error in parse-words API:', error);
     if (error instanceof NextResponseError) {
@@ -17,11 +17,11 @@ export async function POST(request: NextRequest) {
     }
     if (error instanceof Error && error.message.includes('No token found')) {
       return NextResponse.json(
-        { error: 'AI service token not configured for user' },
+        { success: false, error: 'AI service token not configured for user' },
         { status: 402 }
       );
     }
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 

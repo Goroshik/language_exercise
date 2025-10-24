@@ -140,7 +140,7 @@ export async function POST(request: NextRequest) {
   // AI service handles the parsing
   const words = await parseWordsFromTextService(text, userId);
   
-  return NextResponse.json({ words });
+  return NextResponse.json({ success: true, data: words });
 }
 ```
 
@@ -317,7 +317,8 @@ async searchWords(userId: string, query: string) {
 **Success Response** (200):
 ```json
 {
-  "words": [
+  "success": true,
+  "data": [
     { "word": "apple", "translate": "яблоко" },
     { "word": "book", "translate": "книга" },
     { "word": "cat", "translate": "кот" }
@@ -328,6 +329,7 @@ async searchWords(userId: string, query: string) {
 **Error Response** (402 - No AI Token):
 ```json
 {
+  "success": false,
   "error": "AI service token not configured for user"
 }
 ```
@@ -335,6 +337,7 @@ async searchWords(userId: string, query: string) {
 **Error Response** (500):
 ```json
 {
+  "success": false,
   "error": "Internal server error"
 }
 ```
@@ -350,10 +353,32 @@ async searchWords(userId: string, query: string) {
 
 The modal handles various error scenarios:
 
-1. **AI parsing failure**: Falls back to manual parsing (or shows error)
+1. **AI parsing failure**: Falls back to manual parsing with common separators (-, :, =, tab, or whitespace)
 2. **Network errors**: Shows user-friendly error messages via alert system
 3. **Empty results**: Prevents saving if no words are parsed
 4. **Invalid tokens**: Returns 402 error if user hasn't configured AI tokens
+
+### Fallback Manual Parsing
+
+When AI parsing fails (network error, no token, or invalid response), the system automatically attempts manual parsing using common text patterns:
+
+**Supported formats**:
+- `word - translation` (hyphen separator)
+- `word : translation` (colon separator)
+- `word = translation` (equals separator)
+- `word	translation` (tab separator)
+- `word translation` (whitespace - first word is source, rest is translation)
+
+Example:
+```
+apple - яблоко
+book : книга
+cat = кот
+dog	собака
+bird птица
+```
+
+The system tries each separator in order and uses the first match. If manual parsing succeeds, a warning alert is shown to the user indicating that manual parsing was used and results should be reviewed.
 
 ## Testing Considerations
 

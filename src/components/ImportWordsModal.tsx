@@ -41,6 +41,44 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
   const [parsedWords, setParsedWords] = useState<ParsedWord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Manual parsing fallback for common text formats
+  const parseTextManually = (text: string): ParsedWord[] => {
+    const lines = text.split('\n').filter(line => line.trim());
+    const parsed: ParsedWord[] = [];
+
+    for (const line of lines) {
+      // Try different separators: -, :, =, tab
+      const separators = [' - ', ' : ', ' = ', '\t'];
+      let matched = false;
+
+      for (const separator of separators) {
+        if (line.includes(separator)) {
+          const [word, translate] = line.split(separator).map(s => s.trim());
+          if (word && translate) {
+            parsed.push({ word, translate });
+            matched = true;
+            break;
+          }
+        }
+      }
+
+      // If no separator found, check for just spaces (two words)
+      if (!matched) {
+        const parts = line.trim().split(/\s+/);
+        if (parts.length >= 2) {
+          // Take first word as source, rest as translation
+          const word = parts[0];
+          const translate = parts.slice(1).join(' ');
+          if (word && translate) {
+            parsed.push({ word, translate });
+          }
+        }
+      }
+    }
+
+    return parsed;
+  };
+
   const addWords = async (words: ParsedWord[]) => {
     const response = await fetch('/api/dictionary/words', {
       method: 'POST',
@@ -95,27 +133,44 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
         body: JSON.stringify({ text: inputText })
       });
 
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-
       const data = await response.json();
 
-      if (data.success && data.data && data.data.length > 0) {
-        const parsed: ParsedWord[] = data.data.map((item: any) => ({
+      if (response.ok && data.success && data.data && data.data.length > 0) {
+        const parsed: ParsedWord[] = data.data.map((item: ParsedWord) => ({
           word: item.word || '',
           translate: item.translate || ''
         }));
         setParsedWords(parsed);
         setStep('review');
+        setIsLoading(false);
         return;
       }
 
-      // NOTE: Fallback to manual parsing if AI returns no results
-      throw new Error('AI parsing returned no results');
+      // If AI parsing failed or returned no results, fall back to manual parsing
+      throw new Error(data.error || 'AI parsing returned no results');
     } catch (error) {
-      showAlert.error('Error parsing text with AI');
-      // NOTE: Fallback manual parsing for demo
+      console.log('AI parsing failed, attempting manual parsing:', error);
+
+      // Fallback to manual parsing
+      try {
+        const manuallyParsed = parseTextManually(inputText);
+
+        if (manuallyParsed.length > 0) {
+          setParsedWords(manuallyParsed);
+          setStep('review');
+          showAlert.warning(
+            `Использован ручной парсинг. Найдено слов: ${manuallyParsed.length}. Проверьте результаты.`
+          );
+        } else {
+          showAlert.error(
+            'Не удалось распознать слова в тексте. Используйте формат: "word - translation"'
+          );
+          setStep('input');
+        }
+      } catch (manualError) {
+        showAlert.error('Ошибка при обработке текста. Проверьте формат ввода.');
+        setStep('input');
+      }
     } finally {
       setIsLoading(false);
     }
@@ -125,9 +180,11 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
     setIsLoading(true);
     try {
       await addWords(parsedWords);
+      showAlert.success(`Успешно добавлено слов: ${parsedWords.length}`);
       handleClose();
     } catch (error) {
-      showAlert.error('Error importing words');
+      console.error('Error importing words:', error);
+      showAlert.error('Ошибка при добавлении слов');
     } finally {
       setIsLoading(false);
     }

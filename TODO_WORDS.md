@@ -5,48 +5,40 @@ This document contains planned improvements and known issues for the word import
 ## Priority 1: Critical Issues
 
 ### 1.1 AI Response Format Inconsistency
-**Status**: ⚠️ Needs Fix
+**Status**: ✅ Fixed
 
-**Issue**: The API route expects `data.data` but the service might return directly `data.words`:
-```typescript
-// ImportWordsModal.tsx line 104
-if (data.success && data.data && data.data.length > 0) {
-  const parsed: ParsedWord[] = data.data.map((item: any) => ({
-```
+**Issue**: The API route expected different response formats between frontend and backend.
 
-But the API returns:
-```typescript
-// route.ts line 12
-return NextResponse.json({ words });
-```
+**Fix Applied**: 
+- Updated `/api/ai/parse-words` to return consistent format: `{ success: true, data: words }`
+- Updated error responses to include `success: false` flag
+- Frontend now correctly handles `data.success && data.data` check
+- Fixed TypeScript type annotations (removed `any` type in favor of `ParsedWord`)
 
-**Expected Fix**: Standardize response format. Either:
-- Option A: API returns `{ success: true, data: words }`
-- Option B: Frontend expects `{ words }` directly
-
-**Agent Prompt**: 
-> "Fix the inconsistency between the parse-words API response format and the ImportWordsModal expectations. The API returns `{ words }` but the frontend expects `{ success: true, data }`. Standardize to one format and update both files accordingly."
+**Files Modified**:
+- `src/app/api/ai/parse-words/route.ts` - Updated response format
+- `src/components/ImportWordsModal.tsx` - Fixed response handling
 
 ---
 
 ### 1.2 Fallback Manual Parsing Not Implemented
-**Status**: ⚠️ Incomplete
+**Status**: ✅ Implemented
 
-**Issue**: ImportWordsModal.tsx line 115-118 mentions fallback manual parsing but doesn't implement it:
-```typescript
-} catch (error) {
-  showAlert.error('Error parsing text with AI');
-  // NOTE: Fallback manual parsing for demo
-}
-```
+**Issue**: ImportWordsModal mentioned fallback manual parsing but didn't implement it.
 
-**Expected Behavior**: When AI parsing fails, attempt to parse the text manually using regex patterns:
-- Pattern 1: `word - translation` (line by line)
-- Pattern 2: `word : translation`
-- Pattern 3: `word = translation`
+**Fix Applied**:
+- Implemented `parseTextManually()` function supporting multiple separator formats:
+  - Pattern 1: `word - translation` (hyphen)
+  - Pattern 2: `word : translation` (colon)
+  - Pattern 3: `word = translation` (equals)
+  - Pattern 4: `word	translation` (tab)
+  - Pattern 5: `word translation` (whitespace)
+- Automatic fallback when AI parsing fails
+- User notification via warning alert when fallback is used
+- Proper error handling for invalid text formats
 
-**Agent Prompt**:
-> "Implement fallback manual text parsing in ImportWordsModal when AI parsing fails. Support common patterns like 'word - translation', 'word : translation', and 'word = translation'. Parse line by line and return array of {word, translate} objects. Show appropriate alerts to user about using fallback method."
+**Files Modified**:
+- `src/components/ImportWordsModal.tsx` - Added manual parsing function and fallback logic
 
 ---
 
