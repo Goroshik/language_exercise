@@ -7,7 +7,7 @@ This document describes the word import functionality in the Language Exercise a
 1. **Manual Addition** - Adding a single word with translation via a form
 2. **AI-Powered Import** - Parsing text to extract multiple words using AI
 
-Both methods ultimately use the same API endpoint for saving words to the database.
+**Both methods use the same bulk API endpoint** (`/api/dictionary/words`) for consistency and code efficiency. This unified approach means single word addition sends an array with 1 element, while AI import sends an array with N elements.
 
 ## Architecture
 
