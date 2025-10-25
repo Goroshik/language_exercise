@@ -101,8 +101,8 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
 
       const data = await response.json();
 
-      if (data.success && data.data && data.data.length > 0) {
-        const parsed: ParsedWord[] = data.data.map((item: any) => ({
+      if (data.words && data.words.length > 0) {
+        const parsed: ParsedWord[] = data.words.map((item: any) => ({
           word: item.word || '',
           translate: item.translate || ''
         }));

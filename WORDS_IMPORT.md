@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
 }
 ```
 
-**Important Note**: Even when adding a single word manually, the request body contains an **array** with one element:
+**Important Note**: Even when adding a single word manually, the request body contains an **array** with one element. This is the intended design - both manual addition and AI-powered import use the same bulk API endpoint for consistency and code reuse:
 ```json
 {
   "words": [
@@ -88,6 +88,12 @@ export async function POST(request: NextRequest) {
   ]
 }
 ```
+
+This unified approach means:
+- Single word addition = array with 1 element
+- AI import = array with N elements
+- Both use `/api/dictionary/words` with `addManyWordService`
+- Database operation uses `createMany` for efficiency
 
 ## AI-Powered Text Import
 
@@ -121,7 +127,7 @@ const handleParseText = async () => {
   });
   
   const data = await response.json();
-  const parsed: ParsedWord[] = data.data.map((item: any) => ({
+  const parsed: ParsedWord[] = data.words.map((item: any) => ({
     word: item.word || '',
     translate: item.translate || ''
   }));

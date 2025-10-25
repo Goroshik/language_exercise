@@ -5,27 +5,11 @@ This document contains planned improvements and known issues for the word import
 ## Priority 1: Critical Issues
 
 ### 1.1 AI Response Format Inconsistency
-**Status**: ⚠️ Needs Fix
+**Status**: ✅ Fixed
 
-**Issue**: The API route expects `data.data` but the service might return directly `data.words`:
-```typescript
-// ImportWordsModal.tsx line 104
-if (data.success && data.data && data.data.length > 0) {
-  const parsed: ParsedWord[] = data.data.map((item: any) => ({
-```
+**Issue**: The API route was returning `{ words }` but the frontend expected `{ success: true, data }`.
 
-But the API returns:
-```typescript
-// route.ts line 12
-return NextResponse.json({ words });
-```
-
-**Expected Fix**: Standardize response format. Either:
-- Option A: API returns `{ success: true, data: words }`
-- Option B: Frontend expects `{ words }` directly
-
-**Agent Prompt**: 
-> "Fix the inconsistency between the parse-words API response format and the ImportWordsModal expectations. The API returns `{ words }` but the frontend expects `{ success: true, data }`. Standardize to one format and update both files accordingly."
+**Fix Applied**: Updated ImportWordsModal.tsx to expect `{ words }` format directly, matching the API response from `/api/ai/parse-words`. The API returns `{ words }` and the frontend now correctly accesses `data.words`.
 
 ---
 
