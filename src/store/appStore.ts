@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
-import { GRAMMAR_PROMPTS } from 'src/prompts';
 import { ApiService } from 'src/services/apiService';
 import { AppStore, DictionaryWord, ExerciseBlock } from 'src/types';
 import { showAlert } from 'src/utils/alert';
@@ -185,38 +184,61 @@ export const useAppStore = create<AppStore>()(
           throw new Error('Block not found');
         }
 
-        const answersText = block.exercises
-          .map((exercise, index) => {
-            const inputRegex = /\{\{input\}\}/g;
-            let inputCounter = 0;
-            const filledSentence = exercise.sentence.replace(inputRegex, () => {
-              const inputId = `input_${blockId}_${index}_${inputCounter++}`;
-              return userAnswers[inputId] || '___';
-            });
-            return `${index + 1}. ${filledSentence}`;
-          })
-          .join('\n');
+        // Формируем массив предложений с ответами студента
+        const sentencesWithAnswers = block.exercises.map((exercise, index) => {
+          const textareaId = `textarea_${blockId}_${index}`;
+          return userAnswers[textareaId] || '';
+        });
 
-        const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
-        const data = await ApiService.generateText({ prompt: validatePrompt });
+        // Отправляем на бэк только предложения с ответами
+        const data = await ApiService.checkAnswers({
+          topic: selectedTopic,
+          sentences: sentencesWithAnswers
+        });
 
-        const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
+        const results: {
+          [key: string]: {
+            isCorrect: boolean;
+            error?: string;
+            incorrectTranslations?: string[];
+          };
+        } = {};
 
+        // Обрабатываем результаты от AI
         data.forEach((line: string, index: number) => {
-          const isCorrect = line.includes('CORRECT');
-          let errorMessage: string | undefined;
-
-          if (!isCorrect && line.includes('ERROR:')) {
-            errorMessage = line.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
+          // Пропускаем пустые предложения
+          if (line === 'SKIPPED') {
+            return;
           }
 
-          let inputCounter = 0;
+          const isCorrect = line.includes('CORRECT');
+          let errorMessage: string | undefined;
+          let incorrectTranslations: string[] | undefined;
 
-          block.exercises[index]?.sentence.replace(/\{\{input\}\}/g, () => {
-            const inputId = `input_${blockId}_${index}_${inputCounter++}`;
-            results[inputId] = { isCorrect, error: errorMessage };
-            return '';
-          });
+          // Извлекаем грамматические ошибки
+          if (!isCorrect && line.includes('ERROR:')) {
+            const errorPart = line.split('|')[0]; // Берём часть до разделителя |
+            errorMessage = errorPart.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
+          }
+
+          // Извлекаем ошибки перевода
+          if (line.includes('TRANSLATION_ERRORS:')) {
+            const translationPart = line.split('TRANSLATION_ERRORS:')[1];
+            if (translationPart) {
+              incorrectTranslations = translationPart
+                .split(',')
+                .map(item => item.trim())
+                .filter(Boolean);
+            }
+          }
+
+          // Привязываем результат к textarea ID
+          const textareaId = `textarea_${blockId}_${index}`;
+          results[textareaId] = {
+            isCorrect,
+            error: errorMessage,
+            incorrectTranslations
+          };
         });
 
         set(state => ({

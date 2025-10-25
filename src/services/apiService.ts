@@ -16,7 +16,7 @@ interface AddWordRequest {
 
 interface CheckAnswersRequest {
   topic: string;
-  answersText: string;
+  sentences: string[];
   languageName?: string;
 }
 
@@ -24,11 +24,6 @@ interface Tag {
   id: string;
   name: string;
 }
-
-type ApiResponse<T> = {
-  success: true;
-  data: T;
-};
 
 export class ApiService {
   static async generateText(data: GenerateTextRequest): Promise<string[]> {
@@ -47,7 +42,11 @@ export class ApiService {
     return this.post<string[]>('/api/ai/check-answers', data);
   }
 
-  private static async post<T>(endpoint: string, data: any): Promise<T> {
+  private static async post<T>(
+    endpoint: string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    data: any
+  ): Promise<T> {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

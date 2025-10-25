@@ -6,13 +6,13 @@ import { formatAIResponse, ServiceResponse } from 'src/services/generateTextServ
 
 interface CheckAnswersRequest {
   topic: string;
-  answersText: string;
+  sentences: string[];
   languageName?: string;
 }
 
 const schema = Joi.object<CheckAnswersRequest>({
   topic: Joi.string().required(),
-  answersText: Joi.string().required(),
+  sentences: Joi.array().items(Joi.string().allow('')).required(),
   languageName: Joi.string().optional()
 });
 
@@ -31,14 +31,34 @@ export async function processCheckAnswersRequest(
       return { status: 400, body: { error: messages.join('; ') } };
     }
 
-    const { topic, answersText, languageName = 'English' } = value as CheckAnswersRequest;
+    const { topic, sentences, languageName = 'English' } = value as CheckAnswersRequest;
 
     const aiService = await AIFactory.getAIService(userId);
     if (!aiService || typeof aiService.generateText !== 'function') {
       return { status: 502, body: { error: 'AI service not available for user' } };
     }
 
-    const prompt = GRAMMAR_PROMPTS.validateAnswers(topic, answersText, languageName);
+    // Создаём карту индексов для непустых предложений
+    const sentenceIndexMap: number[] = [];
+    const nonEmptySentences = sentences.filter((sentence, index) => {
+      const isNonEmpty = sentence.trim().length > 0;
+      if (isNonEmpty) {
+        sentenceIndexMap.push(index);
+      }
+      return isNonEmpty;
+    });
+
+    // Если нет ни одного предложения для проверки
+    if (nonEmptySentences.length === 0) {
+      return { status: 400, body: { error: 'No sentences to check' } };
+    }
+
+    // Формируем текст с нумерованными предложениями для промпта
+    const numberedSentences = nonEmptySentences
+      .map((sentence, index) => `${index + 1}. ${sentence}`)
+      .join('\n');
+
+    const prompt = GRAMMAR_PROMPTS.validateAnswers(topic, numberedSentences, languageName);
 
     let rawResult: unknown;
     try {
@@ -55,12 +75,21 @@ export async function processCheckAnswersRequest(
       typeof rawResult === 'string'
         ? rawResult
         : rawResult && typeof rawResult === 'object'
-          ? ((rawResult as any).text ?? '')
+          ? ((rawResult as { text?: string }).text ?? '')
           : '';
 
-    const result = formatAIResponse(text);
+    const aiResults = formatAIResponse(text);
 
-    return { status: 200, body: { success: true, data: result } };
+    // Создаём полный массив результатов с сохранением индексов
+    const fullResults = sentences.map((sentence, index) => {
+      if (sentence.trim().length === 0) {
+        return 'SKIPPED'; // Пустые предложения пропускаем
+      }
+      const aiIndex = sentenceIndexMap.indexOf(index);
+      return aiIndex >= 0 ? aiResults[aiIndex] : 'SKIPPED';
+    });
+
+    return { status: 200, body: { success: true, data: fullResults } };
   } catch (err) {
     console.error('Unexpected error in checkAnswers service:', err);
     return { status: 500, body: { error: 'Internal server error' } };

@@ -32,26 +32,36 @@ I need **a** new phone.
     topic: string,
     answersText: string,
     languageName: string = 'the target language'
-  ) => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences for grammatical correctness. Topic: "${topic}".
+  ) => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences that a student has written as answers to exercises. Topic: "${topic}".
 
+The student's answers:
 ${answersText}
 
 For each sentence:
-1. Check if it's grammatically correct
+1. Check if it's grammatically correct in the context of the topic "${topic}"
 2. Check if Russian translations (if provided in the sentence) are accurate
+3. Provide helpful feedback if there are errors
 
 Response format:
 - If everything is correct: "CORRECT"
-- If there are grammar errors: "ERROR: [explanation in Russian]"
+- If there are grammar errors: "ERROR: [clear explanation in Russian of what's wrong and how to fix it]"
 - If there are incorrect translations: "TRANSLATION_ERRORS: word1 - правильный перевод, word2 - правильный перевод"
 
-You can combine both errors if needed:
+You can combine both types of errors if needed:
 "ERROR: [grammar explanation] | TRANSLATION_ERRORS: word1 - правильный перевод"
+
+IMPORTANT:
+- Number your responses (1., 2., 3., etc.) to match the sentence numbers
+- Be specific about the error and how to correct it
+- Consider the topic context when evaluating correctness
+- If a sentence has multiple errors, mention all of them
+- Check translations carefully - students may include Russian words/phrases in their answers
 
 Format your response as:
 1. CORRECT
-2. ERROR: объяснение ошибки
+2. ERROR: объяснение ошибки и как её исправить
 3. TRANSLATION_ERRORS: word - правильный перевод
+4. ERROR: грамматическая ошибка | TRANSLATION_ERRORS: word - перевод
 etc.`,
 
   // For teacher mode - provide correct example sentences for learning/viewing
