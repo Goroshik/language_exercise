@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
     const userId = getUserIdFromRequest(request);
 
     const { words } = await safeJson(request);
-    if (!words.length) {
+    if (!words?.length) {
       return NextResponse.json(
         { success: false, error: 'Word and translate are required' },
         { status: 400 }

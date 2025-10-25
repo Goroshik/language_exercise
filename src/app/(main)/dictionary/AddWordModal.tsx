@@ -59,8 +59,12 @@ const AddWordModal: React.FC<AddWordModalProps> = ({ open, onClose, onWordAdded 
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          word: word.trim(),
-          translate: translate.trim()
+          words: [
+            {
+              word: word.trim(),
+              translate: translate.trim()
+            }
+          ]
         })
       });
 
