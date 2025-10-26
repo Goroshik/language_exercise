@@ -101,8 +101,9 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
 
       const data = await response.json();
 
-      if (data.success && data.data && data.data.length > 0) {
-        const parsed: ParsedWord[] = data.data.map((item: any) => ({
+      // NOTE: Server returns { words: [...] } format
+      if (data.words && data.words.length > 0) {
+        const parsed: ParsedWord[] = data.words.map((item: ParsedWord) => ({
           word: item.word || '',
           translate: item.translate || ''
         }));
@@ -113,8 +114,9 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
 
       // NOTE: Fallback to manual parsing if AI returns no results
       throw new Error('AI parsing returned no results');
-    } catch (error) {
-      showAlert.error('Error parsing text with AI');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      showAlert.error(`Error parsing text with AI: ${message}`);
       // NOTE: Fallback manual parsing for demo
     } finally {
       setIsLoading(false);
@@ -126,8 +128,9 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
     try {
       await addWords(parsedWords);
       handleClose();
-    } catch (error) {
-      showAlert.error('Error importing words');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      showAlert.error(`Error importing words: ${message}`);
     } finally {
       setIsLoading(false);
     }
