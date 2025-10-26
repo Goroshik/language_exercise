@@ -62,14 +62,10 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     mainLine = dashMatch[1].trim();
     translation = stripTranslationLabel(dashMatch[2]);
   }
-
-  // Проверяем какой формат используется: **word** или {{input}}
   const hasBoldFormat = BOLD_WORD_REGEX.test(mainLine);
   let hints: string[] = [];
 
   if (hasBoldFormat) {
-    // Новый формат: **word** - преобразуем в поля для ввода
-    // Извлекаем слова в **word** как подсказки
     const boldWords: string[] = [];
     let match;
     const boldRegex = /\*\*(.*?)\*\*/g;
@@ -77,19 +73,16 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
       boldWords.push(match[1]);
     }
 
-    // Проверяем наличие подсказок в скобках в конце предложения
-    // Формат: They **visited** many countries last summer. (visit)
     const hintMatch = mainLine.match(/\s*\(([^)]+)\)\s*$/);
     if (hintMatch) {
       hints = hintMatch[1]
         .split(/[,;]+/)
         .map(part => part.trim())
         .filter(Boolean);
-      // Удаляем подсказки из основного текста
+
       mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
     }
 
-    // Заменяем **word** на пустые поля
     const displaySentence = mainLine.replace(/\*\*(.*?)\*\*/g, '_____');
     const prefillSentence = displaySentence;
 
@@ -101,7 +94,6 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
       additionalNotes: extraLines
     };
   } else {
-    // Старый формат: {{input}} с подсказками в скобках
     const hintMatch = mainLine.match(/\(([^)]+)\)\s*$/);
     hints = hintMatch
       ? hintMatch[1]
@@ -177,11 +169,9 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
     if (!selection || selection.rangeCount === 0) return;
 
     const range = selection.getRangeAt(0);
-    
-    // Получаем текст из selection (более надёжно для разных случаев)
+
     let selectedText = range.toString().trim();
-    
-    // Если ничего не выбрано, пробуем получить слово по клику
+
     if (!selectedText) {
       const target = event.target as HTMLElement;
       const clickedText = target.textContent || '';
@@ -199,9 +189,8 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
       }
     }
 
-    // Очищаем от пунктуации и проверяем
     const cleanWord = selectedText.replace(/[^\w]/g, '');
-    
+
     if (cleanWord && /^[a-zA-Z]+$/.test(cleanWord)) {
       const position = {
         x: event.clientX,
@@ -344,6 +333,7 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
 
       {translationPanel && (
         <WordTranslationPanel
+          key={translationPanel.word}
           word={translationPanel.word}
           position={translationPanel.position}
           onClose={handleCloseTranslationPanel}
