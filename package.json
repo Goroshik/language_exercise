@@ -8,7 +8,12 @@
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "postinstall": "prisma generate",
+    "docker:build": "docker build -t language-exercise .",
+    "docker:prod": "docker-compose -f docker-compose.production.yml up -d",
+    "docker:prod:down": "docker-compose -f docker-compose.production.yml down",
+    "docker:prod:logs": "docker-compose -f docker-compose.production.yml logs -f"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.65.0",
