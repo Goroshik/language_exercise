@@ -20,6 +20,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    console.log(process.env);
+
     const user = await userRepository.getUserByEmail(email);
 
     console.log(user);
