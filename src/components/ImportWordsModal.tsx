@@ -28,6 +28,7 @@ interface ImportWordsModalProps {
 interface ParsedWord {
   word: string;
   translate: string;
+  isDuplicate?: boolean;
 }
 
 const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
@@ -67,10 +68,36 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
           translate: preFilledTranslate
         };
         setParsedWords([preFilledParsedWord]);
+        // NOTE: Check for duplicates on server side
+        checkPrefilledWordDuplicate(preFilledParsedWord);
         setStep('review');
       }
     }
   }, [open, preFilledWord, preFilledTranslate]);
+
+  const checkPrefilledWordDuplicate = async (word: ParsedWord) => {
+    try {
+      const response = await fetch('/api/dictionary/words/check-duplicates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ words: [word.word] })
+      });
+
+      if (!response.ok) {
+        throw new Error(`API request failed: ${response.status}`);
+      }
+
+      const data = await response.json();
+      if (data.success && data.duplicates && data.duplicates[0]) {
+        setParsedWords([{ ...word, isDuplicate: true }]);
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Error checking duplicates:', message);
+    }
+  };
 
   const handleClose = () => {
     setStep('input');
@@ -101,11 +128,12 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
 
       const data = await response.json();
 
-      // NOTE: Server returns { words: [...] } format
+      // NOTE: Server returns { words: [...] } format with isDuplicate flags
       if (data.words && data.words.length > 0) {
         const parsed: ParsedWord[] = data.words.map((item: ParsedWord) => ({
           word: item.word || '',
-          translate: item.translate || ''
+          translate: item.translate || '',
+          isDuplicate: item.isDuplicate || false
         }));
         setParsedWords(parsed);
         setStep('review');
@@ -126,7 +154,12 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
   const handleImportWords = async () => {
     setIsLoading(true);
     try {
-      await addWords(parsedWords);
+      const wordsToAdd = parsedWords.filter(word => !word.isDuplicate);
+      if (wordsToAdd.length === 0) {
+        showAlert.error('Все слова уже существуют в словаре');
+        return;
+      }
+      await addWords(wordsToAdd.map(({ word, translate }) => ({ word, translate })));
       handleClose();
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
@@ -207,18 +240,52 @@ cat - кот"
             <Box>
               <Typography variant="h6" gutterBottom>
                 Найдено слов: {parsedWords.length}
+                {parsedWords.some(w => w.isDuplicate) && (
+                  <Typography
+                    component="span"
+                    color="warning.main"
+                    sx={{ ml: 2, fontSize: '0.9rem' }}
+                  >
+                    (дубликаты: {parsedWords.filter(w => w.isDuplicate).length})
+                  </Typography>
+                )}
               </Typography>
               <List sx={{ maxHeight: '400px', overflow: 'auto' }}>
                 {parsedWords.map((word, index) => (
-                  <ListItem key={index} divider>
+                  <ListItem
+                    key={index}
+                    divider
+                    sx={{
+                      border: word.isDuplicate ? '3px solid' : 'none',
+                      borderColor: word.isDuplicate ? 'warning.main' : 'transparent',
+                      borderRadius: 1,
+                      mb: word.isDuplicate ? 1 : 0,
+                      '&:hover': {
+                        bgcolor: 'action.hover'
+                      }
+                    }}
+                  >
                     <Box width="100%">
-                      <Box display="flex" gap={2} mb={1}>
+                      <Box display="flex" gap={2} mb={1} alignItems="center">
+                        {word.isDuplicate && (
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              color: 'warning.dark',
+                              fontWeight: 'bold',
+                              minWidth: '80px'
+                            }}
+                          >
+                            Дубликат
+                          </Typography>
+                        )}
                         <TextField
                           size="small"
                           label="Слово"
                           value={word.word}
                           onChange={e => updateParsedWord(index, 'word', e.target.value)}
                           sx={{ flex: 1 }}
+                          disabled={word.isDuplicate}
                         />
                         <TextField
                           size="small"
@@ -226,6 +293,7 @@ cat - кот"
                           value={word.translate}
                           onChange={e => updateParsedWord(index, 'translate', e.target.value)}
                           sx={{ flex: 1 }}
+                          disabled={word.isDuplicate}
                         />
                         <IconButton size="small" onClick={() => removeParsedWord(index)}>
                           <DeleteIcon />
@@ -261,9 +329,13 @@ cat - кот"
             <Button
               variant="contained"
               onClick={handleImportWords}
-              disabled={parsedWords.length === 0 || isLoading}
+              disabled={parsedWords.filter(w => !w.isDuplicate).length === 0 || isLoading}
             >
-              {isLoading ? <CircularProgress size={20} /> : `Добавить ${parsedWords.length} слов`}
+              {isLoading ? (
+                <CircularProgress size={20} />
+              ) : (
+                `Добавить ${parsedWords.filter(w => !w.isDuplicate).length} слов`
+              )}
             </Button>
           </>
         )}

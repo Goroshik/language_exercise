@@ -96,4 +96,18 @@ export class WordRepository {
       }
     });
   }
+
+  async findManyByWords(userId: string, words: string[]) {
+    return this.client.findMany({
+      where: {
+        ownerId: userId,
+        word: {
+          in: words.map(w => w.toLowerCase())
+        }
+      },
+      select: {
+        word: true
+      }
+    });
+  }
 }
