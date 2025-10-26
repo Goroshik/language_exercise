@@ -173,36 +173,43 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const handleTextDoubleClick = (event: React.MouseEvent) => {
     if (typeof window === 'undefined') return;
 
-    const target = event.target as HTMLElement;
     const selection = window.getSelection();
-
     if (!selection || selection.rangeCount === 0) return;
 
     const range = selection.getRangeAt(0);
-    const clickedText = target.textContent || '';
+    
+    // Получаем текст из selection (более надёжно для разных случаев)
+    let selectedText = range.toString().trim();
+    
+    // Если ничего не выбрано, пробуем получить слово по клику
+    if (!selectedText) {
+      const target = event.target as HTMLElement;
+      const clickedText = target.textContent || '';
+      const clickOffset = range.startOffset;
+      const words = clickedText.split(/\s+/);
+      let currentOffset = 0;
 
-    const clickOffset = range.startOffset;
-    const words = clickedText.split(/\s+/);
-    let currentOffset = 0;
-    let selectedWord = '';
-
-    for (const word of words) {
-      const wordEnd = currentOffset + word.length;
-      if (clickOffset >= currentOffset && clickOffset <= wordEnd) {
-        selectedWord = word.replace(/[^\w]/g, '');
-        break;
+      for (const word of words) {
+        const wordEnd = currentOffset + word.length;
+        if (clickOffset >= currentOffset && clickOffset <= wordEnd) {
+          selectedText = word;
+          break;
+        }
+        currentOffset = wordEnd + 1;
       }
-      currentOffset = wordEnd + 1;
     }
 
-    if (selectedWord && /^[a-zA-Z]+$/.test(selectedWord)) {
+    // Очищаем от пунктуации и проверяем
+    const cleanWord = selectedText.replace(/[^\w]/g, '');
+    
+    if (cleanWord && /^[a-zA-Z]+$/.test(cleanWord)) {
       const position = {
         x: event.clientX,
         y: event.clientY + 10
       };
 
       setTranslationPanel({
-        word: selectedWord.toLowerCase(),
+        word: cleanWord.toLowerCase(),
         position
       });
     }
@@ -244,7 +251,10 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
           ))}
 
           {hints.length > 0 && (
-            <Typography variant="caption" sx={{ color: '#777', whiteSpace: 'pre-wrap' }}>
+            <Typography
+              variant="caption"
+              sx={{ color: '#777', whiteSpace: 'pre-wrap', cursor: 'text' }}
+            >
               Подсказка: {hints.join(', ')}
             </Typography>
           )}
