@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo, useState } from 'react';
 import { Box, Button, Stack, TextField, Typography } from '@mui/material';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import WordTranslationPanel from './WordTranslationPanel';
 
@@ -301,11 +301,15 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
               color: '#d32f2f',
               padding: 1,
               backgroundColor: '#ffebee',
-              borderRadius: 1
+              borderRadius: 1,
+              '& strong': {
+                fontWeight: 700
+              }
             }}
-          >
-            {errorMessage}
-          </Box>
+            dangerouslySetInnerHTML={{
+              __html: errorMessage.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            }}
+          />
         )}
 
         {isValidated && incorrectTranslations && incorrectTranslations.length > 0 && (
