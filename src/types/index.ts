@@ -28,6 +28,18 @@ export interface ValidationResults {
   [key: string]: { [key: string]: ValidationResult };
 }
 
+// Standardized result item returned by the check-answers API
+export interface CheckAnswerItem {
+  // True if grammar and translation are correct
+  isCorrect: boolean;
+  // Optional, present when grammar is wrong
+  grammarError?: string;
+  // Optional list of translation mistakes (free-form strings)
+  translationErrors?: string[];
+  // Indicates that the original sentence was skipped (empty input)
+  skipped?: boolean;
+}
+
 export interface DictionaryWord {
   id: string;
   word: string;

@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { ApiService } from 'src/services/apiService';
-import { AppStore, DictionaryWord, ExerciseBlock } from 'src/types';
+import { AppStore, CheckAnswerItem, DictionaryWord, ExerciseBlock } from 'src/types';
 import { showAlert } from 'src/utils/alert';
 
 export const useAppStore = create<AppStore>()(
@@ -204,40 +204,15 @@ export const useAppStore = create<AppStore>()(
           };
         } = {};
 
-        // Обрабатываем результаты от AI
-        data.forEach((line: string, index: number) => {
-          // Пропускаем пустые предложения
-          if (line === 'SKIPPED') {
-            return;
-          }
+        // Обрабатываем структурированные результаты от AI
+        (data as CheckAnswerItem[]).forEach((item, index) => {
+          if (item.skipped) return; // Пропускаем пустые ответы
 
-          const isCorrect = line.includes('CORRECT');
-          let errorMessage: string | undefined;
-          let incorrectTranslations: string[] | undefined;
-
-          // Извлекаем грамматические ошибки
-          if (!isCorrect && line.includes('ERROR:')) {
-            const errorPart = line.split('|')[0]; // Берём часть до разделителя |
-            errorMessage = errorPart.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
-          }
-
-          // Извлекаем ошибки перевода
-          if (line.includes('TRANSLATION_ERRORS:')) {
-            const translationPart = line.split('TRANSLATION_ERRORS:')[1];
-            if (translationPart) {
-              incorrectTranslations = translationPart
-                .split(',')
-                .map(item => item.trim())
-                .filter(Boolean);
-            }
-          }
-
-          // Привязываем результат к textarea ID
           const textareaId = `textarea_${blockId}_${index}`;
           results[textareaId] = {
-            isCorrect,
-            error: errorMessage,
-            incorrectTranslations
+            isCorrect: Boolean(item.isCorrect),
+            error: item.grammarError,
+            incorrectTranslations: item.translationErrors
           };
         });
 
