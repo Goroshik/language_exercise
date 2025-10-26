@@ -1,4 +1,4 @@
-import { DictionaryWord } from 'src/types';
+import { CheckAnswerItem, DictionaryWord } from 'src/types';
 
 interface GenerateTextRequest {
   mode?: 'student' | 'teacher';
@@ -38,8 +38,8 @@ export class ApiService {
     return this.post<void>('/api/dictionary/words', data);
   }
 
-  static async checkAnswers(data: CheckAnswersRequest): Promise<string[]> {
-    return this.post<string[]>('/api/ai/check-answers', data);
+  static async checkAnswers(data: CheckAnswersRequest): Promise<CheckAnswerItem[]> {
+    return this.post<CheckAnswerItem[]>('/api/ai/check-answers', data);
   }
 
   private static async post<T>(

@@ -3,6 +3,7 @@ import Joi from 'joi';
 import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
 import { AIFactory } from 'src/services/aiFactory';
 import { formatAIResponse, ServiceResponse } from 'src/services/generateTextService';
+import { CheckAnswerItem } from 'src/types';
 
 interface CheckAnswersRequest {
   topic: string;
@@ -80,13 +81,46 @@ export async function processCheckAnswersRequest(
 
     const aiResults = formatAIResponse(text);
 
-    // Создаём полный массив результатов с сохранением индексов
-    const fullResults = sentences.map((sentence, index) => {
+    // Вспомогательный парсер строки ответа AI в структурированный формат
+    const parseLineToItem = (line: string): CheckAnswerItem => {
+      const lower = line.toLowerCase();
+      if (lower.includes('correct')) {
+        return { isCorrect: true };
+      }
+
+      const item: CheckAnswerItem = { isCorrect: false };
+
+      // Грамматическая ошибка
+      if (line.includes('ERROR:')) {
+        const beforePipe = line.split('|')[0];
+        const grammar = beforePipe
+          .replace(/^\d+\.?\s*/, '')
+          .replace(/^ERROR:\s*/i, '')
+          .trim();
+        if (grammar) item.grammarError = grammar;
+      }
+
+      // Ошибки перевода
+      if (line.includes('TRANSLATION_ERRORS:')) {
+        const after = line.split('TRANSLATION_ERRORS:')[1] || '';
+        const list = after
+          .split(/[,\n]/)
+          .map(s => s.trim())
+          .filter(Boolean);
+        if (list.length) item.translationErrors = list;
+      }
+
+      return item;
+    };
+
+    // Создаём полный массив результатов с сохранением индексов (структурированный)
+    const fullResults: CheckAnswerItem[] = sentences.map((sentence, index) => {
       if (sentence.trim().length === 0) {
-        return 'SKIPPED'; // Пустые предложения пропускаем
+        return { isCorrect: true, skipped: true };
       }
       const aiIndex = sentenceIndexMap.indexOf(index);
-      return aiIndex >= 0 ? aiResults[aiIndex] : 'SKIPPED';
+      const line = aiIndex >= 0 ? aiResults[aiIndex] : '';
+      return line ? parseLineToItem(line) : { isCorrect: true };
     });
 
     return { status: 200, body: { success: true, data: fullResults } };
