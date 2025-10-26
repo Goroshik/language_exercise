@@ -46,3 +46,18 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Production Deployment
+
+For comprehensive deployment instructions including environment setup, database configuration, and deployment to various platforms (Vercel, Railway, Render, DigitalOcean, Docker), see [DEPLOYMENT.md](./DEPLOYMENT.md).
+
+### Quick Start
+1. Copy `.env.example` to `.env` and configure environment variables
+2. Set up MongoDB database (MongoDB Atlas recommended)
+3. Choose your deployment platform and follow the guide
+4. Deploy and enjoy!
+
+### Key Requirements
+- Node.js 20+
+- MongoDB with replica set support (required for Prisma transactions)
+- Environment variables properly configured
