@@ -101,9 +101,9 @@ export class WordRepository {
     return this.client.findMany({
       where: {
         ownerId: userId,
-        word: {
-          in: words.map(w => w.toLowerCase())
-        }
+        OR: words.map(word => ({
+          word: { equals: word, mode: 'insensitive' }
+        }))
       },
       select: {
         word: true
