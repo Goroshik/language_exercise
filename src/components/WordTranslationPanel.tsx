@@ -47,6 +47,7 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
 
     const getTranslation = async (word: string) => {
       setIsLoading(true);
+
       try {
         const response = await fetch('/api/translate', {
           method: 'POST',
