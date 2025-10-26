@@ -39,7 +39,7 @@ JWT_COOKIE_NAME="app_token"
 JWT_EXPIRES_IN="7d"
 
 # Token Encryption - MUST BE CHANGED IN PRODUCTION
-TOKEN_SECRET="generate-a-32-character-hex-string-here"
+TOKEN_SECRET="generate-a-32-character-string-here"
 ```
 
 ### Optional Variables
@@ -60,7 +60,7 @@ For `JWT_SECRET` and `TOKEN_SECRET`, generate strong random strings:
 # Generate JWT_SECRET (any length, but at least 32 characters)
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
-# Generate TOKEN_SECRET (must be 32 characters hex)
+# Generate TOKEN_SECRET (must be exactly 32 characters)
 node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 ```
 
@@ -459,7 +459,7 @@ npx tsc --noEmit
 - Restart the application after adding variables
 
 **Issue:** Token encryption fails
-- Verify TOKEN_SECRET is exactly 32 hex characters
+- Verify TOKEN_SECRET is exactly 32 characters
 - Generate new secret: `node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"`
 
 **Issue:** AI features not working

@@ -11,7 +11,7 @@
   # JWT_SECRET
   node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
   
-  # TOKEN_SECRET (32 символа hex)
+  # TOKEN_SECRET (должен быть ровно 32 символа)
   node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
   ```
 
@@ -22,7 +22,7 @@
 ### Обязательные:
 - [ ] `DATABASE_URL` - Строка подключения к MongoDB
 - [ ] `JWT_SECRET` - Секретный ключ для JWT токенов
-- [ ] `TOKEN_SECRET` - Ключ для шифрования API токенов пользователей
+- [ ] `TOKEN_SECRET` - Ключ для шифрования API токенов пользователей (должен быть ровно 32 символа)
 - [ ] `JWT_COOKIE_NAME` - Имя cookie для JWT (по умолчанию: app_token)
 - [ ] `JWT_EXPIRES_IN` - Время жизни JWT токена (по умолчанию: 7d)
 

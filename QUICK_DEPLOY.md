@@ -28,7 +28,7 @@ Run these commands in your terminal to generate secure secrets:
 # Generate JWT_SECRET
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
-# Generate TOKEN_SECRET
+# Generate TOKEN_SECRET (must be exactly 32 characters)
 node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 ```
 
@@ -81,7 +81,7 @@ Your app is now live! Vercel will give you a URL like `https://your-app.vercel.a
 ### "Application error"
 - Check Function Logs in Vercel dashboard
 - Verify `JWT_SECRET` and `TOKEN_SECRET` are set
-- Make sure `TOKEN_SECRET` is exactly 32 hex characters
+- Make sure `TOKEN_SECRET` is exactly 32 characters (use the generation command from Step 2)
 
 ### Need More Help?
 

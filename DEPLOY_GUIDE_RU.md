@@ -23,7 +23,7 @@
 # JWT_SECRET
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 
-# TOKEN_SECRET (32 символа hex)
+# TOKEN_SECRET (должен быть ровно 32 символа)
 node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 ```
 
@@ -172,7 +172,7 @@ node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
 **Важно изменить в production:**
 
 1. `JWT_SECRET` - сгенерировать сильный случайный ключ
-2. `TOKEN_SECRET` - точно 32 символа hex
+2. `TOKEN_SECRET` - должен быть ровно 32 символа (используйте команду генерации)
 3. `DATABASE_URL` - использовать безопасное подключение
 4. Ограничить доступ к БД по IP (в MongoDB Atlas)
 
