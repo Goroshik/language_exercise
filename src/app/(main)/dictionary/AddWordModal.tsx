@@ -10,47 +10,62 @@ import {
   DialogTitle,
   TextField
 } from '@mui/material';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import { showAlert } from 'src/utils/alert';
-
-interface Tag {
-  id: string;
-  name: string;
-}
 
 interface AddWordModalProps {
   open: boolean;
   onClose: () => void;
   onWordAdded?: () => void;
+  defaultWord?: string;
+  defaultTranslate?: string;
 }
 
-const AddWordModal: React.FC<AddWordModalProps> = ({ open, onClose, onWordAdded }) => {
-  const [word, setWord] = useState('');
-  const [translate, setTranslate] = useState('');
+interface FormData {
+  word: string;
+  translate: string;
+}
+
+const AddWordModal: React.FC<AddWordModalProps> = ({
+  open,
+  onClose,
+  onWordAdded,
+  defaultWord,
+  defaultTranslate
+}) => {
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { isSubmitting, errors }
+  } = useForm<FormData>({
+    defaultValues: {
+      word: '',
+      translate: ''
+    }
+  });
+
+  useEffect(() => {
+    if (open) {
+      reset({
+        word: defaultWord ?? '',
+        translate: defaultTranslate ?? ''
+      });
+      setError('');
+    }
+  }, [open, defaultWord, defaultTranslate, reset]);
 
   const handleClose = () => {
-    setWord('');
-    setTranslate('');
+    reset();
     setError('');
     onClose();
   };
 
-  const handleSubmit = async () => {
-    // Validation
-    if (!word.trim()) {
-      setError('Введите слово');
-      return;
-    }
-
-    if (!translate.trim()) {
-      setError('Введите перевод');
-      return;
-    }
-
+  const onSubmit = async (data: FormData) => {
     setError('');
-    setLoading(true);
 
     try {
       const response = await fetch('/api/dictionary/words', {
@@ -61,68 +76,89 @@ const AddWordModal: React.FC<AddWordModalProps> = ({ open, onClose, onWordAdded 
         body: JSON.stringify({
           words: [
             {
-              word: word.trim(),
-              translate: translate.trim()
+              word: data.word.trim(),
+              translate: data.translate.trim()
             }
           ]
         })
       });
 
-      const data = await response.json();
+      const result = await response.json();
 
-      if (data.success) {
+      if (result.success) {
         if (onWordAdded) {
           onWordAdded();
         }
         handleClose();
       } else {
-        setError(data.error || 'Не удалось добавить слово. Попробуйте еще раз');
+        setError(result.error || 'Не удалось добавить слово. Попробуйте еще раз');
       }
     } catch (error) {
+      console.error('Failed to add word', error);
       showAlert.error('Failed to add word');
       setError('Не удалось добавить слово. Попробуйте еще раз');
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>Добавить новое слово</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
-          <TextField
-            label="Слово"
-            value={word}
-            onChange={e => setWord(e.target.value)}
-            fullWidth
-            autoFocus
-            placeholder="Введите слово"
-          />
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>
+            <Controller
+              name="word"
+              control={control}
+              rules={{
+                required: 'Введите слово',
+                validate: value => value.trim() !== '' || 'Введите слово'
+              }}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Слово"
+                  fullWidth
+                  autoFocus
+                  placeholder="Введите слово"
+                  error={!!errors.word}
+                  helperText={errors.word?.message}
+                  disabled={isSubmitting}
+                />
+              )}
+            />
 
-          <TextField
-            label="Перевод"
-            value={translate}
-            onChange={e => setTranslate(e.target.value)}
-            fullWidth
-            placeholder="Введите перевод"
-          />
+            <Controller
+              name="translate"
+              control={control}
+              rules={{
+                required: 'Введите перевод',
+                validate: value => value.trim() !== '' || 'Введите перевод'
+              }}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Перевод"
+                  fullWidth
+                  placeholder="Введите перевод"
+                  error={!!errors.translate}
+                  helperText={errors.translate?.message}
+                  disabled={isSubmitting}
+                />
+              )}
+            />
 
-          {error && <Alert severity="error">{error}</Alert>}
-        </Box>
-      </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={handleClose} disabled={loading}>
-          Отмена
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          variant="contained"
-          disabled={loading || !word.trim() || !translate.trim()}
-        >
-          {loading ? 'Добавление...' : 'Добавить'}
-        </Button>
-      </DialogActions>
+            {error && <Alert severity="error">{error}</Alert>}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={handleClose} disabled={isSubmitting}>
+            Отмена
+          </Button>
+          <Button type="submit" variant="contained" disabled={isSubmitting}>
+            {isSubmitting ? 'Добавление...' : 'Добавить'}
+          </Button>
+        </DialogActions>
+      </form>
     </Dialog>
   );
 };
