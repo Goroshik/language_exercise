@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Box, Button, CircularProgress, IconButton, Paper, Typography } from '@mui/material';
 import { Add as AddIcon, Close as CloseIcon } from '@mui/icons-material';
+import { Box, Button, CircularProgress, IconButton, Paper, Typography } from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react';
 import ImportWordsModal from './ImportWordsModal';
 
 interface WordTranslationPanelProps {
@@ -13,6 +13,7 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
   const [translation, setTranslation] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [wordExists, setWordExists] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // NOTE: Handle clicks outside the panel to close it
@@ -36,6 +37,8 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
 
   // NOTE: Get word translation when component mounts
   useEffect(() => {
+    let isSubscribed = true; // Prevent state updates on unmounted component
+
     const getTranslation = async (word: string) => {
       setIsLoading(true);
       try {
@@ -45,28 +48,42 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
           body: JSON.stringify({ word })
         });
         const data = await response.json();
+
+        if (!isSubscribed) return; // Don't update state if component unmounted
+
         if (data.text) {
           setTranslation(data.text.trim() || 'Перевод не найден');
+          setWordExists(data.exists === true);
         } else {
           setTranslation(data.error || 'Ошибка при переводе');
+          setWordExists(false);
         }
-      } catch (error) {
-        setTranslation('Ошибка при переводе');
+      } catch {
+        if (isSubscribed) {
+          setTranslation('Ошибка при переводе');
+          setWordExists(false);
+        }
       } finally {
-        setIsLoading(false);
+        if (isSubscribed) {
+          setIsLoading(false);
+        }
       }
     };
 
     getTranslation(word);
+
+    return () => {
+      isSubscribed = false; // Cleanup: prevent state updates after unmount
+    };
   }, [word]);
 
   const handleAddToDictionary = () => {
     setIsModalOpen(true);
-    onClose(); // Close the translation panel when opening the modal
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    onClose(); // Close the translation panel after modal closes
   };
 
   // NOTE: Prevent modal backdrop clicks from propagating to parent components
@@ -110,9 +127,19 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
               </Typography>
             </Box>
           ) : (
-            <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
-              {translation}
-            </Typography>
+            <>
+              <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
+                {translation}
+              </Typography>
+              {wordExists && (
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'success.main', mt: 0.5, display: 'block' }}
+                >
+                  ✓ Слово уже в словаре
+                </Typography>
+              )}
+            </>
           )}
         </Box>
 
@@ -121,11 +148,13 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
           size="small"
           startIcon={<AddIcon />}
           onClick={handleAddToDictionary}
-          disabled={isLoading || !translation || translation === 'Ошибка при переводе'}
+          disabled={
+            isLoading || !translation || translation === 'Ошибка при переводе' || wordExists
+          }
           fullWidth
           sx={{ textTransform: 'none' }}
         >
-          Добавить в словарь
+          {wordExists ? 'Уже в словаре' : 'Добавить в словарь'}
         </Button>
       </Paper>
 

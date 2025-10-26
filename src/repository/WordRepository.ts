@@ -87,4 +87,13 @@ export class WordRepository {
       where: { id: wordId, ownerId: userId }
     });
   }
+
+  async findByWord(userId: string, word: string) {
+    return this.client.findFirst({
+      where: {
+        ownerId: userId,
+        word: { equals: word, mode: 'insensitive' }
+      }
+    });
+  }
 }
