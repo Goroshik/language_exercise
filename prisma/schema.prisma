@@ -11,7 +11,7 @@ generator client {
 
 datasource db {
   provider = "mongodb"
-  url      = "mongodb+srv://Vercel-Admin-exercises:1iAJ90399t6CVVCF@exercises.uf0ifav.mongodb.net/exercises?retryWrites=true&w=majority"
+  url      = env("DATABASE_URL")
 }
 
 model Tag {
