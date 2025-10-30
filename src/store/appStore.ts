@@ -15,6 +15,7 @@ export const useAppStore = create<AppStore>()(
     validationResults: {},
     isNavigating: false,
     lastSelectedTopicPath: '',
+    savedAnswers: {},
 
     // Actions
     setIsNavigating: (isNavigating: boolean) => {
@@ -60,7 +61,7 @@ export const useAppStore = create<AppStore>()(
       });
 
       try {
-        const data = await ApiService.generateText({
+        const response = await ApiService.generateText({
           mode,
           topic,
           languageId,
@@ -68,19 +69,24 @@ export const useAppStore = create<AppStore>()(
           selectedWords
         });
 
+        const data = response.data || [];
+        const sentenceIds = response.sentenceIds || [];
+
         let sentencesList;
 
         if (mode === 'student') {
           // For student mode, sentences don't have {{input}} placeholders, they have **bold** words
-          sentencesList = data.map((sentence: string) => ({
+          sentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
-            correctAnswers: []
+            correctAnswers: [],
+            sentenceId: sentenceIds[index] || undefined
           }));
         } else {
           // For teacher mode, accept both formats: {{input}} and **bold**
-          sentencesList = data.map((sentence: string) => ({
+          sentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
-            correctAnswers: []
+            correctAnswers: [],
+            sentenceId: sentenceIds[index] || undefined
           }));
         }
 
@@ -95,6 +101,11 @@ export const useAppStore = create<AppStore>()(
           exerciseBlocks: [...state.exerciseBlocks, newBlock],
           state: 'exercises'
         }));
+
+        // Load saved answers for these sentences
+        if (mode === 'student') {
+          get().loadSavedAnswers(sentenceIds);
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
         showAlert.error(`Ошибка при загрузке упражнений: ${errorMessage}`);
@@ -122,7 +133,7 @@ export const useAppStore = create<AppStore>()(
       const topic = topicRaw.replace(/_/g, ' ');
       set({ state: 'loading-exercises', error: '' });
       try {
-        const data = await ApiService.generateText({
+        const response = await ApiService.generateText({
           mode,
           topic,
           languageId,
@@ -130,19 +141,24 @@ export const useAppStore = create<AppStore>()(
           selectedWords
         });
 
+        const data = response.data || [];
+        const sentenceIds = response.sentenceIds || [];
+
         let newSentencesList;
 
         if (mode === 'student') {
           // For student mode, sentences don't have {{input}} placeholders, they have **bold** words
-          newSentencesList = data.map((sentence: string) => ({
+          newSentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
-            correctAnswers: []
+            correctAnswers: [],
+            sentenceId: sentenceIds[index] || undefined
           }));
         } else {
           // For teacher mode, accept both formats: {{input}} and **bold**
-          newSentencesList = data.map((sentence: string) => ({
+          newSentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
-            correctAnswers: []
+            correctAnswers: [],
+            sentenceId: sentenceIds[index] || undefined
           }));
         }
 
@@ -157,6 +173,11 @@ export const useAppStore = create<AppStore>()(
           exerciseBlocks: [...state.exerciseBlocks, newBlock],
           state: 'exercises'
         }));
+
+        // Load saved answers for these sentences
+        if (mode === 'student') {
+          get().loadSavedAnswers(sentenceIds);
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
         showAlert.error(`Ошибка при загрузке дополнительных упражнений: ${errorMessage}`);
@@ -238,6 +259,39 @@ export const useAppStore = create<AppStore>()(
 
     clearError: () => {
       set({ error: '' });
+    },
+
+    loadSavedAnswers: async (sentenceIds: string[]) => {
+      const validIds = sentenceIds.filter(id => id);
+      if (validIds.length === 0) return;
+
+      try {
+        const answers = await ApiService.getUserAnswers(validIds);
+        const answersMap: { [key: string]: string } = {};
+        answers.forEach(answer => {
+          answersMap[answer.sentenceId] = answer.answer;
+        });
+        set({ savedAnswers: { ...get().savedAnswers, ...answersMap } });
+      } catch (err) {
+        console.error('Failed to load saved answers:', err);
+      }
+    },
+
+    saveAnswer: async (sentenceId: string, answer: string) => {
+      if (!sentenceId) return;
+
+      try {
+        await ApiService.saveUserAnswer(sentenceId, answer);
+        set({ savedAnswers: { ...get().savedAnswers, [sentenceId]: answer } });
+      } catch (err) {
+        console.error('Failed to save answer:', err);
+        showAlert.error('Не удалось сохранить ответ');
+      }
     }
   }))
 );
+
+// Expose store globally for components that can't use hooks
+if (typeof window !== 'undefined') {
+  (window as any).__appStore = useAppStore;
+}
