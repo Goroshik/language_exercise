@@ -49,9 +49,9 @@ const Header: React.FC = () => {
   };
 
   const handleLanguageChange = (_language: string) => {
-    // If on topics page, reload it
-    if (typeof window !== 'undefined' && window.location.pathname === '/topics') {
-      window.location.reload();
+    // Dispatch custom event to notify topics page
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('learningLanguageChanged'));
     }
   };
 

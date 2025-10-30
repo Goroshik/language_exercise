@@ -42,6 +42,17 @@ const Page: React.FC = () => {
     // Reset navigation state when this page loads
     setIsNavigating(false);
     loadUserSettings();
+
+    // Listen for language change events
+    const handleLanguageChange = () => {
+      loadUserSettings();
+    };
+
+    window.addEventListener('learningLanguageChanged', handleLanguageChange);
+
+    return () => {
+      window.removeEventListener('learningLanguageChanged', handleLanguageChange);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
