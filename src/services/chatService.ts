@@ -28,8 +28,9 @@ export class ChatService {
     // Get AI service based on user settings
     const aiService = await AIFactory.getAIService(userId);
 
-    if (!aiService.generateText) {
-      throw new Error('AI service does not support text generation');
+    // Validate that the service supports text generation
+    if (typeof aiService.generateText !== 'function') {
+      throw new Error('Selected AI service does not support chat functionality');
     }
 
     // Build the prompt using the chat prompt template

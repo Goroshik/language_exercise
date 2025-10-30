@@ -17,6 +17,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import { useChatStore } from 'src/store/chatStore';
 import { showAlert } from 'src/utils/alert';
+import ConfirmDialog from './ConfirmDialog';
 
 interface ChatModalProps {
   open: boolean;
@@ -26,6 +27,7 @@ interface ChatModalProps {
 const ChatModal: React.FC<ChatModalProps> = ({ open, onClose }) => {
   const { messages, isLoading, addMessage, clearMessages, setIsLoading } = useChatStore();
   const [inputMessage, setInputMessage] = useState('');
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const messagesEndRef = useRef<globalThis.HTMLDivElement | null>(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -82,14 +84,22 @@ const ChatModal: React.FC<ChatModalProps> = ({ open, onClose }) => {
   };
 
   const handleRefresh = () => {
-    if (window.confirm('Вы уверены, что хотите очистить историю чата?')) {
-      clearMessages();
-      showAlert.success('История чата очищена');
-    }
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmClear = () => {
+    clearMessages();
+    setConfirmOpen(false);
+    showAlert.success('История чата очищена');
+  };
+
+  const handleCancelClear = () => {
+    setConfirmOpen(false);
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <>
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">AI Помощник</Typography>
@@ -207,6 +217,17 @@ const ChatModal: React.FC<ChatModalProps> = ({ open, onClose }) => {
         </Box>
       </DialogContent>
     </Dialog>
+
+      <ConfirmDialog
+        open={confirmOpen}
+        title="Очистить историю чата"
+        message="Вы уверены, что хотите очистить историю чата? Это действие нельзя отменить."
+        onConfirm={handleConfirmClear}
+        onCancel={handleCancelClear}
+        confirmText="Очистить"
+        cancelText="Отмена"
+      />
+    </>
   );
 };
 

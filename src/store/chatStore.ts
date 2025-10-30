@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
+export const CHAT_STORAGE_KEY = 'chat-storage';
+
 export interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
@@ -49,7 +51,7 @@ export const useChatStore = create<ChatStore>()(
         }
       }),
       {
-        name: 'chat-storage' // localStorage key
+        name: CHAT_STORAGE_KEY
       }
     )
   )
