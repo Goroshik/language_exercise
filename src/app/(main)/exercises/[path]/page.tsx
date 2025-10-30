@@ -64,10 +64,7 @@ const Page: React.FC = () => {
     handleTopicSelect,
     generateMoreExercises,
     handleCheckAnswers,
-    setIsNavigating,
-    savedAnswers,
-    saveAnswer,
-    loadSavedAnswers
+    setIsNavigating
   } = useAppStore();
 
   // Update the store's selectedTopic when the component mounts

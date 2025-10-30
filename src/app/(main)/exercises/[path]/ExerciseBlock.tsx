@@ -18,6 +18,7 @@ import LearnModeText from './LearnModeText';
 interface Exercise {
   sentence: string;
   correctAnswers: string[];
+  sentenceId?: string;
 }
 
 interface ExerciseBlockProps {
