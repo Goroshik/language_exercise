@@ -67,6 +67,7 @@ model User {
   tokens          UserToken[]
   settings        UserSettings?
   sentenceHistory SentenceHistory[]
+  chatMessages    ChatMessage[]
 
   @@map("users")
 }
@@ -131,4 +132,16 @@ model SentenceHistory {
   // Связь с Word (неявная, через usedWordIds)
   // Можно добавить ownerId, если нужна привязка к пользователю
   @@map("sentence_history")
+}
+
+model ChatMessage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  role      String   // 'user' or 'assistant'
+  content   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
 }
