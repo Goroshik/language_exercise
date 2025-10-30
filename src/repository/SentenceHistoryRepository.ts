@@ -49,14 +49,20 @@ export class SentenceHistoryRepository {
       topic?: string;
     }[]
   ) {
-    if (sentences.length === 0) return { count: 0 };
+    if (sentences.length === 0) return [];
 
-    return this.client.createMany({
-      data: sentences.map(s => ({
-        ...s,
-        mode: s.mode || 'exercise'
-      }))
-    });
+    const createdSentences = await Promise.all(
+      sentences.map(s =>
+        this.client.create({
+          data: {
+            ...s,
+            mode: s.mode || 'exercise'
+          }
+        })
+      )
+    );
+
+    return createdSentences;
   }
 
   async getHistory({

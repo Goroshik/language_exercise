@@ -131,19 +131,7 @@ export async function processGenerateTextRequest(
 
         if (sentencesToSave.length > 0) {
           const savedSentences = await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
-          
-          // Get the IDs of saved sentences
-          // Since addHistoryBatch returns a count, we need to fetch the recently created sentences
-          const recentSentences = await sentenceHistoryRepository.getHistory({
-            ownerId: userId,
-            languageId,
-            level
-          });
-          
-          // Match sentences to get IDs (take the most recent ones matching our count)
-          sentenceIds = recentSentences
-            .slice(0, result.length)
-            .map(s => s.id);
+          sentenceIds = savedSentences.map(s => s.id);
         }
       } catch (saveErr) {
         showAlert.warning('Failed to save generated sentence history');
