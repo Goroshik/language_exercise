@@ -10,6 +10,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import SettingsModal from './SettingsModal';
 import AIModelSelector from './AIModelSelector';
+import LanguageSelector from './LanguageSelector';
 import { useAppStore } from 'src/store/appStore';
 
 const Header: React.FC = () => {
@@ -47,6 +48,13 @@ const Header: React.FC = () => {
     route.push(path);
   };
 
+  const handleLanguageChange = (_language: string) => {
+    // If on topics page, reload it
+    if (typeof window !== 'undefined' && window.location.pathname === '/topics') {
+      window.location.reload();
+    }
+  };
+
   return (
     <>
       <AppBar position="static" color="primary">
@@ -59,7 +67,8 @@ const Header: React.FC = () => {
               </Typography>
             )}
           </Typography>
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <LanguageSelector onChange={handleLanguageChange} />
             <Tooltip title="Темы">
               <span>
                 <IconButton

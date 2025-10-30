@@ -13,6 +13,7 @@ export class UserSettingsRepository {
     aiModel?: string;
     language?: string;
     translationLang?: string;
+    learningLanguage?: string;
     customSettings?: any;
   }) {
     return this.client.create({ data });
@@ -31,6 +32,7 @@ export class UserSettingsRepository {
       aiModel?: string;
       language?: string;
       translationLang?: string;
+      learningLanguage?: string;
       customSettings?: any;
     }
   ) {
@@ -47,6 +49,7 @@ export class UserSettingsRepository {
       aiModel?: string;
       language?: string;
       translationLang?: string;
+      learningLanguage?: string;
       customSettings?: any;
     }
   ) {
@@ -54,7 +57,8 @@ export class UserSettingsRepository {
       theme: data.theme,
       aiModel: data.aiModel,
       language: data.language,
-      translationLang: data.translationLang
+      translationLang: data.translationLang,
+      learningLanguage: data.learningLanguage
     };
 
     return this.client.upsert({

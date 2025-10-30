@@ -15,6 +15,7 @@ interface SettingsRequest {
   aiModel: string;
   language: string;
   translationLang: string;
+  learningLanguage: string;
   customSettings: Record<string, any>;
 }
 

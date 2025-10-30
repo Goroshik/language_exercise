@@ -7,7 +7,8 @@ export async function getUserSettingsService(userId: string) {
       theme: 'light',
       aiModel: 'gemini-2.5-flash',
       language: 'en',
-      translationLang: 'RU'
+      translationLang: 'RU',
+      learningLanguage: 'en'
     };
   }
   return userSettings;
