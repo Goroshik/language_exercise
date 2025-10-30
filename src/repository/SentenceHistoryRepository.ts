@@ -24,7 +24,7 @@ export class SentenceHistoryRepository {
     mode?: string;
     topic?: string;
   }) {
-    return this.client.create({
+    const result = await this.client.create({
       data: {
         ownerId,
         sentence,
@@ -35,6 +35,7 @@ export class SentenceHistoryRepository {
         topic
       }
     });
+    return result;
   }
 
   async addHistoryBatch(
