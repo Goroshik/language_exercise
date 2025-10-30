@@ -121,7 +121,8 @@ export async function processGenerateTextRequest(
             languageId,
             usedWordIds: Array.from(wordsInSentence),
             level,
-            mode // Сохраняем режим генерации (student/teacher)
+            mode, // Сохраняем режим генерации (student/teacher)
+            topic // Сохраняем топик, под которым были сгенерированы предложения
           };
         });
 
