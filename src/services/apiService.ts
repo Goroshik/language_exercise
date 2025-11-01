@@ -26,8 +26,8 @@ interface Tag {
 }
 
 export class ApiService {
-  static async generateText(data: GenerateTextRequest): Promise<string[]> {
-    return this.post<string[]>('/api/ai/generate-text', data);
+  static async generateText(data: GenerateTextRequest): Promise<{ data: string[]; sentenceIds: string[] }> {
+    return this.post<{ data: string[]; sentenceIds: string[] }>('/api/ai/generate-text', data);
   }
 
   static async getTags(): Promise<Tag[]> {
@@ -40,6 +40,15 @@ export class ApiService {
 
   static async checkAnswers(data: CheckAnswersRequest): Promise<CheckAnswerItem[]> {
     return this.post<CheckAnswerItem[]>('/api/ai/check-answers', data);
+  }
+
+  static async saveUserAnswer(sentenceId: string, answer: string): Promise<void> {
+    return this.post<void>('/api/user-answers', { sentenceId, answer });
+  }
+
+  static async getUserAnswers(sentenceIds: string[]): Promise<Array<{ sentenceId: string; answer: string }>> {
+    const queryString = sentenceIds.join(',');
+    return this.get<Array<{ sentenceId: string; answer: string }>>(`/api/user-answers?sentenceIds=${queryString}`);
   }
 
   private static async post<T>(
