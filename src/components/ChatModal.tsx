@@ -20,8 +20,7 @@ import { showAlert } from 'src/utils/alert';
 import ConfirmDialog from './ConfirmDialog';
 
 const ChatModal: React.FC = () => {
-  const { messages, isOpen, isLoading, addMessage, clearMessages, setIsOpen, setIsLoading } =
-    useChatStore();
+  const { messages, isOpen, isLoading, clearMessages, setIsOpen, sendMessage } = useChatStore();
   const [inputMessage, setInputMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const messagesEndRef = useRef<globalThis.HTMLDivElement | null>(null);
@@ -33,43 +32,11 @@ const ChatModal: React.FC = () => {
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
-
-    const userMessage = inputMessage.trim();
+    
+    const message = inputMessage.trim();
     setInputMessage('');
-
-    // Immediately add user message to local store for instant UI feedback
-    addMessage({
-      role: 'user',
-      content: userMessage,
-      timestamp: Date.now()
-    });
-
-    setIsLoading(true);
-
-    try {
-      const response = await fetch('/api/chat/message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: userMessage })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to send message');
-      }
-
-      // Add AI assistant's response to local store
-      addMessage({
-        role: 'assistant',
-        content: data.message.content,
-        timestamp: Date.now()
-      });
-    } catch (error) {
-      showAlert.error(error instanceof Error ? error.message : 'Ошибка при отправке сообщения');
-    } finally {
-      setIsLoading(false);
-    }
+    
+    await sendMessage(message);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

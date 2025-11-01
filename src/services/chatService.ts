@@ -25,6 +25,13 @@ export class ChatService {
   static async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
     const { message, userId } = request;
 
+    // Save user message to database first
+    await chatMessageRepository.addMessage({
+      userId,
+      role: 'user',
+      content: message
+    });
+
     // Get AI service based on user settings
     const aiService = await AIFactory.getAIService(userId);
 
@@ -42,13 +49,6 @@ export class ChatService {
     if (aiResponse.error) {
       throw new Error(aiResponse.error);
     }
-
-    // Save user message to database
-    await chatMessageRepository.addMessage({
-      userId,
-      role: 'user',
-      content: message
-    });
 
     // Save assistant response to database
     await chatMessageRepository.addMessage({
