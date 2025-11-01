@@ -7,6 +7,7 @@ import { UserTokenRepository } from './UserTokenRepository';
 import { UserSettingsRepository } from './UserSettingsRepository';
 import { SentenceHistoryRepository } from './SentenceHistoryRepository';
 import { LanguageRepository } from './LanguageRepository';
+import { UserAnswerRepository } from './UserAnswerRepository';
 
 // Singleton Prisma client instance
 const prisma = new PrismaClient();
@@ -20,5 +21,6 @@ export const userTokenRepository = new UserTokenRepository(prisma);
 export const userSettingsRepository = new UserSettingsRepository(prisma);
 export const sentenceHistoryRepository = new SentenceHistoryRepository(prisma);
 export const languageRepository = new LanguageRepository(prisma);
+export const userAnswerRepository = new UserAnswerRepository(prisma);
 // Export Prisma client instance for direct access if needed
 export { prisma };
