@@ -12,6 +12,7 @@ import SettingsModal from './SettingsModal';
 import AIModelSelector from './AIModelSelector';
 import LanguageSelector from './LanguageSelector';
 import { useAppStore } from 'src/store/appStore';
+import { useSettingsStore } from 'src/store/settingsStore';
 
 const Header: React.FC = () => {
   const route = useRouter();
@@ -19,12 +20,14 @@ const Header: React.FC = () => {
   const [aiModelOpen, setAiModelOpen] = useState(false);
   const { selectedTopic, loadLastSelectedTopic, state, isNavigating, setIsNavigating } =
     useAppStore();
+  const { loadSettings } = useSettingsStore();
 
   const isLoading = state === 'loading-exercises' || state === 'loading-topics' || isNavigating;
 
   useEffect(() => {
     loadLastSelectedTopic();
-  }, [loadLastSelectedTopic]);
+    loadSettings();
+  }, [loadLastSelectedTopic, loadSettings]);
 
   const handleSettingsOpen = () => {
     setSettingsOpen(true);
@@ -48,13 +51,6 @@ const Header: React.FC = () => {
     route.push(path);
   };
 
-  const handleLanguageChange = (_language: string) => {
-    // Dispatch custom event to notify topics page
-    if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('learningLanguageChanged'));
-    }
-  };
-
   return (
     <>
       <AppBar position="static" color="primary">
@@ -68,7 +64,7 @@ const Header: React.FC = () => {
             )}
           </Typography>
           <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-            <LanguageSelector onChange={handleLanguageChange} />
+            <LanguageSelector />
             <Tooltip title="Темы">
               <span>
                 <IconButton

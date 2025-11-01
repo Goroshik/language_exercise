@@ -1,60 +1,34 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Select, MenuItem, FormControl, SelectChangeEvent, Box } from '@mui/material';
 import { showAlert } from 'src/utils/alert';
+import { useSettingsStore } from 'src/store/settingsStore';
 
 interface LanguageSelectorProps {
   onChange?: (language: string) => void;
 }
 
 const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onChange }) => {
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('en');
-  const [loading, setLoading] = useState<boolean>(false);
+  const { settings, isLoading, loadSettings, updateLearningLanguage } = useSettingsStore();
 
   useEffect(() => {
-    loadCurrentLanguage();
-  }, []);
-
-  const loadCurrentLanguage = async () => {
-    try {
-      const response = await fetch('/api/settings');
-      if (response.ok) {
-        const settings = await response.json();
-        setSelectedLanguage(settings.learningLanguage || 'en');
-      }
-    } catch (error) {
-      console.error('Failed to load language setting:', error);
+    if (!settings) {
+      loadSettings();
     }
-  };
+  }, [settings, loadSettings]);
 
   const handleLanguageChange = async (event: SelectChangeEvent<string>) => {
     const newLanguage = event.target.value;
-    setLoading(true);
 
     try {
-      const response = await fetch('/api/settings', {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ learningLanguage: newLanguage })
-      });
-
-      if (response.ok) {
-        setSelectedLanguage(newLanguage);
-        showAlert.success('Язык изучения изменён');
-        if (onChange) {
-          onChange(newLanguage);
-        }
-      } else {
-        showAlert.error('Не удалось изменить язык');
+      await updateLearningLanguage(newLanguage);
+      showAlert.success('Язык изучения изменён');
+      if (onChange) {
+        onChange(newLanguage);
       }
     } catch (error) {
       showAlert.error('Ошибка при изменении языка');
-      console.error('Error changing language:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -62,9 +36,9 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onChange }) => {
     <Box sx={{ minWidth: 120 }}>
       <FormControl fullWidth size="small">
         <Select
-          value={selectedLanguage}
+          value={settings?.learningLanguage || 'en'}
           onChange={handleLanguageChange}
-          disabled={loading}
+          disabled={isLoading}
           sx={{
             backgroundColor: 'white',
             color: 'primary.main',

@@ -15,13 +15,14 @@ import {
 import { showAlert } from 'src/utils/alert';
 
 import { useAppStore } from 'src/store/appStore';
+import { useSettingsStore } from 'src/store/settingsStore';
 
 const Page: React.FC = () => {
   const navigate = useRouter();
   const { setIsNavigating, setState } = useAppStore();
+  const { settings, loadSettings } = useSettingsStore();
 
   const [topics, setTopics] = useState<Record<string, Record<string, string>>>({});
-  const [learningLanguage, setLearningLanguage] = useState<string>('en');
 
   const handleTopicSelect = (topic: string) => {
     const path = topic
@@ -41,36 +42,16 @@ const Page: React.FC = () => {
   useEffect(() => {
     // Reset navigation state when this page loads
     setIsNavigating(false);
-    loadUserSettings();
-
-    // Listen for language change events
-    const handleLanguageChange = () => {
-      loadUserSettings();
-    };
-
-    window.addEventListener('learningLanguageChanged', handleLanguageChange);
-
-    return () => {
-      window.removeEventListener('learningLanguageChanged', handleLanguageChange);
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadUserSettings = async () => {
-    try {
-      const response = await fetch('/api/settings');
-      if (response.ok) {
-        const settings = await response.json();
-        const language = settings.learningLanguage || 'en';
-        setLearningLanguage(language);
-        loadTopics(language);
-      } else {
-        loadTopics('en');
-      }
-    } catch {
-      loadTopics('en');
+    if (!settings) {
+      loadSettings();
     }
-  };
+  }, [settings, loadSettings, setIsNavigating]);
+
+  useEffect(() => {
+    if (settings?.learningLanguage) {
+      loadTopics(settings.learningLanguage);
+    }
+  }, [settings?.learningLanguage]);
 
   const loadTopics = async (language: string) => {
     try {
@@ -88,7 +69,7 @@ const Page: React.FC = () => {
   return (
     <Box>
       <Typography variant="h6">
-        {learningLanguage === 'pl'
+        {settings?.learningLanguage === 'pl'
           ? 'Wybierz temat gramatyki polskiej do nauki:'
           : 'Выберите тему английской грамматики для изучения:'}
       </Typography>
