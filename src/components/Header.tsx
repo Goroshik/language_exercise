@@ -19,7 +19,7 @@ const Header: React.FC = () => {
   const route = useRouter();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiModelOpen, setAiModelOpen] = useState(false);
-  const { isOpen: chatOpen, setIsOpen: setChatOpen } = useChatStore();
+  const { setIsOpen: setChatOpen } = useChatStore();
   const { selectedTopic, loadLastSelectedTopic, state, isNavigating, setIsNavigating } =
     useAppStore();
 
@@ -47,10 +47,6 @@ const Header: React.FC = () => {
 
   const handleChatOpen = () => {
     setChatOpen(true);
-  };
-
-  const handleChatClose = () => {
-    setChatOpen(false);
   };
 
   const handleNavigation = (path: string) => {
@@ -188,7 +184,7 @@ const Header: React.FC = () => {
 
       <AIModelSelector open={aiModelOpen} onClose={handleAiModelClose} />
 
-      <ChatModal open={chatOpen} onClose={handleChatClose} />
+      <ChatModal />
     </>
   );
 };

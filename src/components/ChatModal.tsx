@@ -19,18 +19,14 @@ import { useChatStore } from 'src/store/chatStore';
 import { showAlert } from 'src/utils/alert';
 import ConfirmDialog from './ConfirmDialog';
 
-interface ChatModalProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-const ChatModal: React.FC<ChatModalProps> = ({ open, onClose }) => {
-  const { messages, isLoading, addMessage, clearMessages, setIsLoading } = useChatStore();
+const ChatModal: React.FC = () => {
+  const { messages, isOpen, isLoading, addMessage, clearMessages, setIsOpen, setIsLoading } =
+    useChatStore();
   const [inputMessage, setInputMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const messagesEndRef = useRef<globalThis.HTMLDivElement | null>(null);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -41,7 +37,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ open, onClose }) => {
     const userMessage = inputMessage.trim();
     setInputMessage('');
 
-    // Add user message to local store immediately
+    // Immediately add user message to local store for instant UI feedback
     addMessage({
       role: 'user',
       content: userMessage,
@@ -63,7 +59,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ open, onClose }) => {
         throw new Error(data.error || 'Failed to send message');
       }
 
-      // Add assistant's response to local store
+      // Add AI assistant's response to local store
       addMessage({
         role: 'assistant',
         content: data.message.content,
@@ -99,7 +95,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ open, onClose }) => {
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <Dialog open={isOpen} onClose={() => setIsOpen(false)} maxWidth="md" fullWidth>
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">AI Помощник</Typography>
@@ -107,7 +103,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ open, onClose }) => {
             <IconButton onClick={handleRefresh} size="small" sx={{ mr: 1 }}>
               <RefreshIcon />
             </IconButton>
-            <IconButton onClick={onClose} size="small">
+            <IconButton onClick={() => setIsOpen(false)} size="small">
               <CloseIcon />
             </IconButton>
           </Box>
@@ -142,7 +138,7 @@ const ChatModal: React.FC<ChatModalProps> = ({ open, onClose }) => {
                 }}
               >
                 <Typography color="text.secondary">
-                  Начните диалог с AI помощником по изучению польского языка
+                  Начните диалог с AI помощником
                 </Typography>
               </Box>
             )}
