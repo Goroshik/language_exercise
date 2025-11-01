@@ -283,6 +283,7 @@ export const useAppStore = create<AppStore>()(
       try {
         await ApiService.saveUserAnswer(sentenceId, answer);
         set({ savedAnswers: { ...get().savedAnswers, [sentenceId]: answer } });
+        showAlert.success('Ответ сохранен');
       } catch (err) {
         console.error('Failed to save answer:', err);
         showAlert.error('Не удалось сохранить ответ');

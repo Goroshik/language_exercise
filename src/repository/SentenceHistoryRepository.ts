@@ -24,7 +24,7 @@ export class SentenceHistoryRepository {
     mode?: string;
     topic?: string;
   }) {
-    const result = await this.client.create({
+    return this.client.create({
       data: {
         ownerId,
         sentence,
@@ -35,7 +35,6 @@ export class SentenceHistoryRepository {
         topic
       }
     });
-    return result;
   }
 
   async addHistoryBatch(
@@ -49,20 +48,14 @@ export class SentenceHistoryRepository {
       topic?: string;
     }[]
   ) {
-    if (sentences.length === 0) return [];
+    if (sentences.length === 0) return { count: 0 };
 
-    const createdSentences = await Promise.all(
-      sentences.map(s =>
-        this.client.create({
-          data: {
-            ...s,
-            mode: s.mode || 'exercise'
-          }
-        })
-      )
-    );
-
-    return createdSentences;
+    return this.client.createMany({
+      data: sentences.map(s => ({
+        ...s,
+        mode: s.mode || 'exercise'
+      }))
+    });
   }
 
   async getHistory({

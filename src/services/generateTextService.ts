@@ -130,8 +130,18 @@ export async function processGenerateTextRequest(
         });
 
         if (sentencesToSave.length > 0) {
-          const savedSentences = await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
-          sentenceIds = savedSentences.map(s => s.id);
+          await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
+          
+          // Fetch the recently created sentences to get their IDs
+          const recentSentences = await sentenceHistoryRepository.getHistory({
+            ownerId: userId,
+            languageId,
+            level,
+            ...(topic && { searchText: topic })
+          });
+          
+          // Get the most recent sentence IDs matching our batch size
+          sentenceIds = recentSentences.slice(0, sentencesToSave.length).map(s => s.id);
         }
       } catch (saveErr) {
         showAlert.warning('Failed to save generated sentence history');
