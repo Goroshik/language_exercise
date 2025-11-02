@@ -8,18 +8,14 @@ import TopicIcon from '@mui/icons-material/Topic';
 import BookIcon from '@mui/icons-material/Book';
 import HistoryIcon from '@mui/icons-material/History';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import ChatIcon from '@mui/icons-material/Chat';
 import SettingsModal from './SettingsModal';
 import AIModelSelector from './AIModelSelector';
-import ChatModal from './ChatModal';
 import { useAppStore } from 'src/store/appStore';
-import { useChatStore } from 'src/store/chatStore';
 
 const Header: React.FC = () => {
   const route = useRouter();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiModelOpen, setAiModelOpen] = useState(false);
-  const { setIsOpen: setChatOpen } = useChatStore();
   const { selectedTopic, loadLastSelectedTopic, state, isNavigating, setIsNavigating } =
     useAppStore();
 
@@ -43,10 +39,6 @@ const Header: React.FC = () => {
 
   const handleAiModelClose = () => {
     setAiModelOpen(false);
-  };
-
-  const handleChatOpen = () => {
-    setChatOpen(true);
   };
 
   const handleNavigation = (path: string) => {
@@ -140,24 +132,6 @@ const Header: React.FC = () => {
                 </IconButton>
               </span>
             </Tooltip>
-            <Tooltip title="AI чат">
-              <span>
-                <IconButton
-                  color="inherit"
-                  onClick={handleChatOpen}
-                  disabled={isLoading}
-                  sx={{
-                    backgroundColor: 'white',
-                    color: 'primary.main',
-                    '&:hover': { backgroundColor: '#f5f5f5' },
-                    '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
-                  }}
-                  aria-label="chat"
-                >
-                  <ChatIcon />
-                </IconButton>
-              </span>
-            </Tooltip>
             <Tooltip title="Настройки">
               <span>
                 <IconButton
@@ -183,8 +157,6 @@ const Header: React.FC = () => {
       <SettingsModal open={settingsOpen} onClose={handleSettingsClose} />
 
       <AIModelSelector open={aiModelOpen} onClose={handleAiModelClose} />
-
-      <ChatModal />
     </>
   );
 };
