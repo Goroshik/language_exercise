@@ -21,7 +21,6 @@ interface ParsedExerciseContent {
 }
 
 const PLACEHOLDER_REGEX = /\{\{input\}\}/gi;
-const BOLD_WORD_REGEX = /\*\*(.*?)\*\*/g;
 
 const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
   displaySentence: '',
@@ -63,7 +62,8 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     mainLine = dashMatch[1].trim();
     translation = stripTranslationLabel(dashMatch[2]);
   }
-  const hasBoldFormat = BOLD_WORD_REGEX.test(mainLine);
+  // Create a new regex instance to avoid state persistence issues with global regex
+  const hasBoldFormat = /\*\*(.*?)\*\*/.test(mainLine);
   let hints: string[] = [];
 
   if (hasBoldFormat) {
