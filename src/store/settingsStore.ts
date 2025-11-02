@@ -15,12 +15,15 @@ interface SettingsStore {
   settings: UserSettings | null;
   isLoading: boolean;
   error: string | null;
+  topics: Record<string, Record<string, string>> | null;
+  isLoadingTopics: boolean;
 
   // Actions
   loadSettings: () => Promise<void>;
   updateLearningLanguage: (language: string) => Promise<void>;
   updateSettings: (updates: Partial<UserSettings>) => Promise<void>;
   setSettings: (settings: UserSettings) => void;
+  loadTopics: (language: string) => Promise<void>;
 }
 
 const defaultSettings: UserSettings = {
@@ -36,6 +39,8 @@ export const useSettingsStore = create<SettingsStore>()(
     settings: null,
     isLoading: false,
     error: null,
+    topics: null,
+    isLoadingTopics: false,
 
     loadSettings: async () => {
       set({ isLoading: true, error: null });
@@ -126,6 +131,25 @@ export const useSettingsStore = create<SettingsStore>()(
 
     setSettings: (settings: UserSettings) => {
       set({ settings });
+    },
+
+    loadTopics: async (language: string) => {
+      set({ isLoadingTopics: true, error: null });
+      try {
+        const response = await fetch(`/api/topics?language=${language}`);
+        const data = await response.json();
+        if (data.success) {
+          set({ topics: data.topics, isLoadingTopics: false });
+        } else {
+          set({ isLoadingTopics: false, error: 'Failed to load topics' });
+        }
+      } catch (error) {
+        console.error('Failed to load topics:', error);
+        set({ 
+          isLoadingTopics: false, 
+          error: 'Failed to load topics' 
+        });
+      }
     }
   }))
 );

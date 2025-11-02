@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import {
   Box,
@@ -12,7 +12,6 @@ import {
   Stack,
   Typography
 } from '@mui/material';
-import { showAlert } from 'src/utils/alert';
 
 import { useAppStore } from 'src/store/appStore';
 import { useSettingsStore } from 'src/store/settingsStore';
@@ -20,9 +19,7 @@ import { useSettingsStore } from 'src/store/settingsStore';
 const Page: React.FC = () => {
   const navigate = useRouter();
   const { setIsNavigating, setState } = useAppStore();
-  const { settings, loadSettings } = useSettingsStore();
-
-  const [topics, setTopics] = useState<Record<string, Record<string, string>>>({});
+  const { settings, topics, loadSettings, loadTopics } = useSettingsStore();
 
   const handleTopicSelect = (topic: string) => {
     const path = topic
@@ -50,21 +47,9 @@ const Page: React.FC = () => {
   useEffect(() => {
     if (settings?.learningLanguage) {
       loadTopics(settings.learningLanguage);
+      setState('topics-loaded');
     }
-  }, [settings?.learningLanguage]);
-
-  const loadTopics = async (language: string) => {
-    try {
-      const response = await fetch(`/api/topics?language=${language}`);
-      const data = await response.json();
-      if (data.success) {
-        setTopics(data.topics);
-        setState('topics-loaded');
-      }
-    } catch {
-      showAlert.error('Failed to load topics');
-    }
-  };
+  }, [settings?.learningLanguage, loadTopics, setState]);
 
   return (
     <Box>
@@ -75,7 +60,7 @@ const Page: React.FC = () => {
       </Typography>
       <Stack direction="column" alignItems="center">
         <List sx={{ width: '1000px', alignItems: 'center' }}>
-          {Object.entries(topics).map(([topicTitle, topicItems]) => (
+          {topics && Object.entries(topics).map(([topicTitle, topicItems]) => (
             <ListItem key={topicTitle} disablePadding sx={{ alignItems: 'flex-start' }}>
               <ListItemText sx={{ flex: 1 }}>
                 <Typography variant="h5">{topicTitle}</Typography>
