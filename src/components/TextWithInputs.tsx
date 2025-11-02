@@ -21,7 +21,8 @@ interface ParsedExerciseContent {
 }
 
 const PLACEHOLDER_REGEX = /\{\{input\}\}/gi;
-const BOLD_WORD_REGEX = /\*\*(.*?)\*\*/g;
+// Pattern for bold markdown format (e.g., **word**)
+const BOLD_PATTERN = '\\*\\*(.*?)\\*\\*';
 
 const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
   displaySentence: '',
@@ -63,13 +64,14 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     mainLine = dashMatch[1].trim();
     translation = stripTranslationLabel(dashMatch[2]);
   }
-  const hasBoldFormat = BOLD_WORD_REGEX.test(mainLine);
+  // Create a new regex instance to avoid state persistence issues with global regex
+  const hasBoldFormat = new RegExp(BOLD_PATTERN).test(mainLine);
   let hints: string[] = [];
 
   if (hasBoldFormat) {
     const boldWords: string[] = [];
     let match;
-    const boldRegex = /\*\*(.*?)\*\*/g;
+    const boldRegex = new RegExp(BOLD_PATTERN, 'g');
     while ((match = boldRegex.exec(mainLine)) !== null) {
       boldWords.push(match[1]);
     }
@@ -84,7 +86,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
       mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
     }
 
-    const displaySentence = mainLine.replace(/\*\*(.*?)\*\*/g, '_____');
+    const displaySentence = mainLine.replace(new RegExp(BOLD_PATTERN, 'g'), '_____');
     const prefillSentence = displaySentence;
 
     return {
