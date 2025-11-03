@@ -38,6 +38,7 @@ Your application is now fully prepared for production deployment! Here's what wa
    - Get connection string
 
 2. **Generate secrets**
+
    ```bash
    node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"  # JWT_SECRET
    node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"    # TOKEN_SECRET
@@ -60,13 +61,13 @@ Your application is now fully prepared for production deployment! Here's what wa
 
 ## 📋 Platform Comparison
 
-| Platform | Setup Time | Free Tier | MongoDB | Best For |
-|----------|-----------|-----------|---------|----------|
-| **Vercel** | 5 min | ✅ Yes | Use Atlas | Quick start, small projects |
-| **Railway** | 10 min | Limited | ✅ Built-in | Full-stack apps |
-| **Render** | 10 min | ✅ Yes | Use Atlas | Simple hosting |
-| **DigitalOcean** | 15 min | ❌ No | Optional | Production apps |
-| **Docker/VPS** | 30 min | ❌ No | Self-hosted | Large scale, full control |
+| Platform         | Setup Time | Free Tier | MongoDB     | Best For                    |
+| ---------------- | ---------- | --------- | ----------- | --------------------------- |
+| **Vercel**       | 5 min      | ✅ Yes    | Use Atlas   | Quick start, small projects |
+| **Railway**      | 10 min     | Limited   | ✅ Built-in | Full-stack apps             |
+| **Render**       | 10 min     | ✅ Yes    | Use Atlas   | Simple hosting              |
+| **DigitalOcean** | 15 min     | ❌ No     | Optional    | Production apps             |
+| **Docker/VPS**   | 30 min     | ❌ No     | Self-hosted | Large scale, full control   |
 
 ### Recommended Choices:
 
@@ -80,14 +81,17 @@ Your application is now fully prepared for production deployment! Here's what wa
 ## 📖 Documentation Guide
 
 ### For Quick Deployment:
+
 1. Start with **[QUICK_DEPLOY.md](./QUICK_DEPLOY.md)** (English)
 2. Or **[DEPLOY_GUIDE_RU.md](./DEPLOY_GUIDE_RU.md)** (Russian)
 
 ### For Detailed Instructions:
+
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete guide with all platforms
 - **[DEPLOYMENT_CHECKLIST_RU.md](./DEPLOYMENT_CHECKLIST_RU.md)** - Russian checklist
 
 ### For Each Platform:
+
 - Vercel: Section in DEPLOYMENT.md
 - Railway: Section in DEPLOYMENT.md
 - Docker: Section in DEPLOYMENT.md + docker-compose.production.yml
@@ -113,6 +117,7 @@ REACT_APP_GOOGLE_TRANSLATE_API_KEY="[your-key]"
 ```
 
 ### Generate Secrets:
+
 ```bash
 # JWT_SECRET
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
@@ -159,6 +164,7 @@ npx prisma generate        # Regenerate Prisma client
 ## ✅ Security
 
 All sensitive data is properly secured:
+
 - ✅ Environment variables are not committed to Git
 - ✅ `.env.example` template provided
 - ✅ Strong secret generation commands included
@@ -195,5 +201,5 @@ Your application is fully prepared for production deployment. Choose your platfo
 
 ---
 
-*Created by GitHub Copilot for issue: "first deploy"*
-*All documentation available in English and Russian*
+_Created by GitHub Copilot for issue: "first deploy"_
+_All documentation available in English and Russian_

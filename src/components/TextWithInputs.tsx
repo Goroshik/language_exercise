@@ -33,7 +33,7 @@ const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
 };
 
 const stripTranslationLabel = (value: string) =>
-  value.replace(/^(?:перевод|translation)\s*[:\-]?\s*/i, '').trim();
+  value.replace(/^(?:перевод|translation)\s*[:−-]?\s*/i, '').trim();
 
 const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
   if (!rawText) {
@@ -45,7 +45,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     return EMPTY_PARSED_CONTENT;
   }
 
-  const withoutNumbering = normalized.replace(/^[\d)\-\*\.\s]+/, '').trim();
+  const withoutNumbering = normalized.replace(/^[\d).*\s-]+/, '').trim();
   const lines = withoutNumbering
     .split('\n')
     .map(line => line.trim())

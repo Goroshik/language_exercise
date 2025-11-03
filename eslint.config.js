@@ -8,12 +8,25 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
+  // Ignore patterns
   {
-    ignores: ['dist', 'build', 'node_modules', '.react-router', '.next']
+    ignores: [
+      'dist',
+      'build',
+      'node_modules',
+      '.react-router',
+      '.next',
+      'src/generated/**',
+      '*.config.js',
+      '*.config.ts',
+      'next-env.d.ts'
+    ]
   },
+  // Base JavaScript config
   js.configs.recommended,
+  // TypeScript and React configuration
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['**/*.{ts,tsx,js,jsx}'],
     languageOptions: {
       parser: tsparser,
       parserOptions: {
@@ -21,26 +34,56 @@ export default [
         sourceType: 'module',
         ecmaFeatures: {
           jsx: true
-        }
+        },
+        project: null // Disable project-based linting for performance
       },
       globals: {
+        // Browser globals
         window: 'readonly',
         document: 'readonly',
         navigator: 'readonly',
         console: 'readonly',
+        alert: 'readonly',
+        fetch: 'readonly',
+        localStorage: 'readonly',
+        sessionStorage: 'readonly',
+        location: 'readonly',
+        history: 'readonly',
+        // HTML Elements
+        HTMLElement: 'readonly',
+        HTMLTextAreaElement: 'readonly',
+        HTMLInputElement: 'readonly',
+        HTMLDivElement: 'readonly',
+        Element: 'readonly',
+        Event: 'readonly',
+        MouseEvent: 'readonly',
+        KeyboardEvent: 'readonly',
+        CustomEvent: 'readonly',
+        // Node.js globals
         process: 'readonly',
         Buffer: 'readonly',
         __dirname: 'readonly',
         __filename: 'readonly',
-        HTMLElement: 'readonly',
-        HTMLTextAreaElement: 'readonly',
-        HTMLInputElement: 'readonly',
-        fetch: 'readonly',
-        alert: 'readonly',
+        global: 'readonly',
+        // Web APIs
+        URL: 'readonly',
         URLSearchParams: 'readonly',
+        FormData: 'readonly',
+        Headers: 'readonly',
+        Request: 'readonly',
+        Response: 'readonly',
+        ReadableStream: 'readonly',
+        TextEncoder: 'readonly',
+        TextDecoder: 'readonly',
+        AbortController: 'readonly',
+        // Timers
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        // React
         React: 'readonly',
-        localStorage: 'readonly',
-        sessionStorage: 'readonly'
+        JSX: 'readonly'
       }
     },
     plugins: {
@@ -51,14 +94,50 @@ export default [
       prettier: prettier
     },
     rules: {
+      // Extend recommended configs
       ...tseslint.configs.recommended.rules,
       ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       ...prettierConfig.rules,
-      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+
+      // Prettier integration
+      'prettier/prettier': [
+        'warn',
+        {
+          semi: true,
+          trailingComma: 'none',
+          singleQuote: true,
+          printWidth: 100,
+          tabWidth: 2,
+          useTabs: false,
+          arrowParens: 'avoid',
+          endOfLine: 'auto'
+        }
+      ],
+
+      // React rules
       'react/react-in-jsx-scope': 'off',
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
-      'prettier/prettier': 'warn'
+      'react/prop-types': 'off',
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+
+      // TypeScript rules
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_'
+        }
+      ],
+      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/explicit-module-boundary-types': 'off',
+      '@typescript-eslint/no-non-null-assertion': 'warn',
+
+      // General rules
+      'no-console': 'off',
+      'no-undef': 'error',
+      'prefer-const': 'warn',
+      'no-var': 'error'
     },
     settings: {
       react: {

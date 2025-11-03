@@ -7,16 +7,19 @@ The Exercise History feature automatically saves all AI-generated sentences with
 ## Critical Implementation Details
 
 ### Data Flow
+
 ```
 AI Generation → Format & Parse → Save to DB → Display in History
 ```
 
 ### Sentence Format
+
 **Generated**: `They **visited** many countries last summer. (visit)`  
 **Stored**: `They **visited** many countries last summer.`  
 **Display**: Blank/input field for `**visited**`
 
 ### Key Files
+
 - **Schema**: `prisma/schema.prisma` - SentenceHistory model
 - **Repository**: `src/repository/SentenceHistoryRepository.ts`
 - **Service**: `src/services/generateTextService.ts` (saving logic)
@@ -28,6 +31,7 @@ AI Generation → Format & Parse → Save to DB → Display in History
 ## Code Patterns
 
 ### Saving Sentences After Generation
+
 ```typescript
 // Location: src/services/generateTextService.ts (lines 94-134)
 
@@ -59,6 +63,7 @@ await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
 ```
 
 ### Retrieving with Filters
+
 ```typescript
 // Location: src/services/generatedHistoryService.ts
 
@@ -79,6 +84,7 @@ export async function getGeneratedHistoryService(
 ```
 
 ### Repository Filter Implementation
+
 ```typescript
 // Location: src/repository/SentenceHistoryRepository.ts (lines 57-89)
 
@@ -110,17 +116,20 @@ return this.client.findMany({
 ### GET /api/ai/generated-history
 
 **Query Parameters**:
+
 - `languageId`: String (optional) - Filter by language
 - `level`: String (optional) - Filter by level (A1, A2, B1, B2, C1, C2)
 - `usedWordIds`: String (optional) - Comma-separated word IDs
 - `searchText`: String (optional) - Case-insensitive text search
 
 **Example Request**:
+
 ```
 GET /api/ai/generated-history?languageId=abc123&level=B1&searchText=visited
 ```
 
 **Response Structure**:
+
 ```typescript
 {
   success: boolean;
@@ -154,10 +163,10 @@ model SentenceHistory {
   mode        String   @default("exercise") // 'student' or 'teacher'
   ownerId     String   @db.ObjectId
   createdAt   DateTime @default(now())
-  
+
   owner    User     @relation(...)
   language Language @relation(...)
-  
+
   @@map("sentence_history")
 }
 ```
@@ -165,40 +174,48 @@ model SentenceHistory {
 ## Prompt Format Requirements
 
 ### Student Mode (Exercise)
+
 ```typescript
-GRAMMAR_PROMPTS.generateStudentExercises(topic, languageName, selectedWords)
+GRAMMAR_PROMPTS.generateStudentExercises(topic, languageName, selectedWords);
 ```
+
 - Generates **5 sentences**
 - One word in **bold** (`**word**`)
 - Hints in parentheses when appropriate: `(infinitive)`
 - NO hints for articles or "to be"
 
 ### Teacher Mode (Learning)
+
 ```typescript
-GRAMMAR_PROMPTS.generateTeacherExamples(topic, level, languageName, selectedWords)
+GRAMMAR_PROMPTS.generateTeacherExamples(topic, level, languageName, selectedWords);
 ```
+
 - Generates **10 sentences**
 - One word in **bold** (`**word**`)
 - NO hints (for learning/viewing)
 
 ### Both Modes Follow Same Format
+
 This ensures parsing and display logic is consistent.
 
 ## Important Constants
 
 ### Levels
+
 ```typescript
-['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
+['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
 ```
 
 ### Modes
+
 ```typescript
-'student' | 'teacher'
+'student' | 'teacher';
 ```
 
 ## Common Tasks
 
 ### Task: Add new filter type
+
 1. Add parameter to `getHistory()` in `SentenceHistoryRepository.ts`
 2. Add to `where` clause with appropriate MongoDB operator
 3. Add query parameter parsing in `route.ts`
@@ -206,12 +223,14 @@ This ensures parsing and display logic is consistent.
 5. Update types in `generatedHistoryService.ts`
 
 ### Task: Modify sentence format
+
 1. Update prompt in `grammarPrompts.ts`
 2. Update parsing logic in `generateTextService.ts` (lines 100-116)
 3. Update display logic in `LearnModeText.tsx` component
 4. Test both student and teacher modes
 
 ### Task: Change saved data structure
+
 1. Update `schema.prisma` model
 2. Run `prisma generate`
 3. Update repository methods
@@ -221,6 +240,7 @@ This ensures parsing and display logic is consistent.
 ## Testing Checklist
 
 When working with exercise history:
+
 - [ ] Verify sentences save after generation
 - [ ] Check hints are removed before saving
 - [ ] Test text search is case-insensitive
@@ -253,21 +273,25 @@ When working with exercise history:
 ## Integration Points
 
 ### With AI Generation
+
 - `processGenerateTextRequest()` in `generateTextService.ts`
 - Saves automatically after successful generation
 - Error handling: Fails gracefully if save errors (doesn't block generation response)
 
 ### With Dictionary
+
 - Word IDs from user's dictionary
 - Used to track which words were used in generation
 - Enables future word-based filtering
 
 ### With Languages
+
 - Language model relation for display
 - Language name used in prompts
 - Filterable by language
 
 ### With User Settings
+
 - Level from user settings or request
 - Owner ID from auth middleware
 - Per-user history isolation
@@ -275,6 +299,7 @@ When working with exercise history:
 ## Quick Debugging
 
 ### Sentences not appearing in history?
+
 ```typescript
 // Check in generateTextService.ts around line 128
 console.log('Sentences to save:', sentencesToSave);
@@ -282,12 +307,14 @@ console.log('Save result:', await sentenceHistoryRepository.addHistoryBatch(sent
 ```
 
 ### Filters not working?
+
 ```typescript
 // Check in SentenceHistoryRepository.ts
 console.log('Where clause:', JSON.stringify(where, null, 2));
 ```
 
 ### Word extraction failing?
+
 ```typescript
 // Check in generateTextService.ts around line 104
 console.log('Extracted words:', Array.from(wordsInSentence));
