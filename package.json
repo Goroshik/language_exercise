@@ -24,7 +24,7 @@
     "@mui/icons-material": "^7.3.2",
     "@mui/material": "^7.3.4",
     "@mui/material-nextjs": "^7.3.3",
-    "@prisma/client": "^6.16.3",
+    "@prisma/client": "6.18.0",
     "bcryptjs": "^3.0.2",
     "joi": "^17.9.2",
     "jose": "^5.9.6",
@@ -34,6 +34,9 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.64.0",
+    "react-markdown": "^10.1.0",
+    "react-syntax-highlighter": "^16.1.0",
+    "remark-gfm": "^4.0.1",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
@@ -41,12 +44,13 @@
     "@types/node": "20.6.0",
     "@types/react": "19.0.12",
     "@types/react-dom": "19.0.4",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "eslint": "9.36.0",
     "eslint-config-next": "15.5.4",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react-refresh": "^0.4.23",
-    "prisma": "^6.16.3",
+    "prisma": "6.18.0",
     "standard-version": "^9.5.0",
     "typescript": "5.9.2"
   }
