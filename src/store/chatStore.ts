@@ -1,6 +1,6 @@
+import { showAlert } from 'src/utils/alert';
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import { showAlert } from 'src/utils/alert';
 
 export const CHAT_STORAGE_KEY = 'chat-storage';
 

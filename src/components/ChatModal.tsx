@@ -1,23 +1,22 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  Box,
-  TextField,
-  IconButton,
-  Paper,
-  Typography,
-  CircularProgress
-} from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
 import CloseIcon from '@mui/icons-material/Close';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import SendIcon from '@mui/icons-material/Send';
+import {
+  Box,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  TextField,
+  Typography
+} from '@mui/material';
+import React, { useEffect, useRef, useState } from 'react';
 import { useChatStore } from 'src/store/chatStore';
-import { showAlert } from 'src/utils/alert';
 import ConfirmDialog from './ConfirmDialog';
+import MarkdownMessage from './MarkdownMessage';
 
 const ChatModal: React.FC = () => {
   const { messages, isOpen, isLoading, setIsOpen, sendMessage, loadHistory, clearHistory } = useChatStore();
@@ -68,7 +67,20 @@ const ChatModal: React.FC = () => {
 
   return (
     <>
-      <Dialog open={isOpen} onClose={() => setIsOpen(false)} maxWidth="md" fullWidth>
+      <Dialog 
+        open={isOpen} 
+        onClose={() => setIsOpen(false)} 
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            height: '80vh',
+            maxHeight: '800px',
+            display: 'flex',
+            flexDirection: 'column'
+          }
+        }}
+      >
       <DialogTitle>
         <Box display="flex" justifyContent="space-between" alignItems="center">
           <Typography variant="h6">AI Помощник</Typography>
@@ -82,12 +94,13 @@ const ChatModal: React.FC = () => {
           </Box>
         </Box>
       </DialogTitle>
-      <DialogContent>
+      <DialogContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 0 }}>
         <Box
           sx={{
-            height: '500px',
+            flex: 1,
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            p: 2
           }}
         >
           {/* Messages area */}
@@ -98,7 +111,9 @@ const ChatModal: React.FC = () => {
               mb: 2,
               p: 2,
               backgroundColor: '#f5f5f5',
-              borderRadius: 1
+              borderRadius: 1,
+              display: 'flex',
+              flexDirection: 'column'
             }}
           >
             {messages.length === 0 && (
@@ -117,30 +132,11 @@ const ChatModal: React.FC = () => {
             )}
 
             {messages.map((message, index) => (
-              <Paper
+              <MarkdownMessage
                 key={index}
-                sx={{
-                  p: 2,
-                  mb: 1,
-                  backgroundColor: message.role === 'user' ? '#e3f2fd' : '#fff',
-                  alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
-                  maxWidth: '80%',
-                  ml: message.role === 'user' ? 'auto' : 0,
-                  mr: message.role === 'assistant' ? 'auto' : 0
-                }}
-                elevation={1}
-              >
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ display: 'block', mb: 0.5 }}
-                >
-                  {message.role === 'user' ? 'Вы' : 'AI Помощник'}
-                </Typography>
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {message.content}
-                </Typography>
-              </Paper>
+                content={message.content}
+                role={message.role}
+              />
             ))}
 
             {isLoading && (

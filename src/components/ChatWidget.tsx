@@ -1,29 +1,39 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import {
-  Box,
-  TextField,
-  IconButton,
-  Paper,
-  Typography,
-  CircularProgress,
-  Collapse,
-  Fab
-} from '@mui/material';
-import SendIcon from '@mui/icons-material/Send';
+import ChatIcon from '@mui/icons-material/Chat';
 import CloseIcon from '@mui/icons-material/Close';
 import RefreshIcon from '@mui/icons-material/Refresh';
-import ChatIcon from '@mui/icons-material/Chat';
+import SendIcon from '@mui/icons-material/Send';
+import {
+  Box,
+  CircularProgress,
+  Collapse,
+  Fab,
+  IconButton,
+  Paper,
+  TextField,
+  Typography
+} from '@mui/material';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from 'src/store/chatStore';
-import { showAlert } from 'src/utils/alert';
 import ConfirmDialog from './ConfirmDialog';
+import MarkdownMessage from './MarkdownMessage';
+
+const MIN_WIDTH = 320;
+const MIN_HEIGHT = 400;
+const MAX_WIDTH = 800;
+const MAX_HEIGHT = 900;
+const DEFAULT_WIDTH = 380;
+const DEFAULT_HEIGHT = 500;
 
 const ChatWidget: React.FC = () => {
   const { messages, isOpen, isLoading, setIsOpen, sendMessage, loadHistory, clearHistory } = useChatStore();
   const [inputMessage, setInputMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
+  const [isResizing, setIsResizing] = useState(false);
   const messagesEndRef = useRef<globalThis.HTMLDivElement | null>(null);
+  const resizeRef = useRef<{ startX: number; startY: number; startWidth: number; startHeight: number } | null>(null);
 
   // Load history when widget opens
   useEffect(() => {
@@ -38,6 +48,61 @@ const ChatWidget: React.FC = () => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isOpen]);
+
+  // Handle resize start
+  const handleResizeStart = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    resizeRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startWidth: size.width,
+      startHeight: size.height
+    };
+  }, [size]);
+
+  // Handle resize move
+  const handleResizeMove = useCallback((e: MouseEvent) => {
+    if (!isResizing || !resizeRef.current) return;
+
+    const deltaX = resizeRef.current.startX - e.clientX;
+    const deltaY = resizeRef.current.startY - e.clientY;
+
+    const newWidth = Math.min(
+      MAX_WIDTH,
+      Math.max(MIN_WIDTH, resizeRef.current.startWidth + deltaX)
+    );
+    const newHeight = Math.min(
+      MAX_HEIGHT,
+      Math.max(MIN_HEIGHT, resizeRef.current.startHeight + deltaY)
+    );
+
+    setSize({ width: newWidth, height: newHeight });
+  }, [isResizing]);
+
+  // Handle resize end
+  const handleResizeEnd = useCallback(() => {
+    setIsResizing(false);
+    resizeRef.current = null;
+  }, []);
+
+  // Add/remove mouse event listeners for resize
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResizeMove);
+      document.addEventListener('mouseup', handleResizeEnd);
+      document.body.style.cursor = 'nwse-resize';
+      document.body.style.userSelect = 'none';
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleResizeMove);
+      document.removeEventListener('mouseup', handleResizeEnd);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+    };
+  }, [isResizing, handleResizeMove, handleResizeEnd]);
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
@@ -93,17 +158,52 @@ const ChatWidget: React.FC = () => {
             position: 'fixed',
             bottom: 96,
             right: 24,
-            width: 380,
+            width: `${size.width}px`,
+            height: `${size.height}px`,
             maxWidth: 'calc(100vw - 48px)',
-            height: 500,
             maxHeight: 'calc(100vh - 120px)',
             zIndex: 1000,
             display: 'flex',
             flexDirection: 'column',
             borderRadius: 2,
-            overflow: 'hidden'
+            overflow: 'hidden',
+            transition: isResizing ? 'none' : 'opacity 0.3s'
           }}
         >
+          {/* Resize Handle */}
+          <Box
+            onMouseDown={handleResizeStart}
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: 40,
+              height: 40,
+              cursor: 'nwse-resize',
+              zIndex: 10,
+              display: 'flex',
+              alignItems: 'flex-start',
+              justifyContent: 'flex-start',
+              '&:hover .resize-indicator': {
+                opacity: 1
+              }
+            }}
+          >
+            <Box
+              className="resize-indicator"
+              sx={{
+                width: 0,
+                height: 0,
+                borderLeft: '20px solid transparent',
+                borderTop: '20px solid',
+                borderTopColor: 'rgba(255, 255, 255, 0.3)',
+                opacity: 0.5,
+                transition: 'opacity 0.2s',
+                pointerEvents: 'none'
+              }}
+            />
+          </Box>
+
           {/* Header */}
           <Box
             sx={{
@@ -156,28 +256,11 @@ const ChatWidget: React.FC = () => {
             )}
 
             {messages.map((message, index) => (
-              <Paper
+              <MarkdownMessage
                 key={index}
-                sx={{
-                  p: 1.5,
-                  backgroundColor: message.role === 'user' ? '#e3f2fd' : '#fff',
-                  alignSelf: message.role === 'user' ? 'flex-end' : 'flex-start',
-                  maxWidth: '85%',
-                  wordBreak: 'break-word'
-                }}
-                elevation={1}
-              >
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ display: 'block', mb: 0.5, fontWeight: 600 }}
-                >
-                  {message.role === 'user' ? 'Вы' : 'AI'}
-                </Typography>
-                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {message.content}
-                </Typography>
-              </Paper>
+                content={message.content}
+                role={message.role}
+              />
             ))}
 
             {isLoading && (
