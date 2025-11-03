@@ -26,8 +26,30 @@ interface Tag {
 }
 
 export class ApiService {
-  static async generateText(data: GenerateTextRequest): Promise<{ data: string[]; sentenceIds: string[] }> {
+  static async generateText(
+    data: GenerateTextRequest
+  ): Promise<{ data: string[]; sentenceIds: string[] }> {
     return this.post<{ data: string[]; sentenceIds: string[] }>('/api/ai/generate-text', data);
+  }
+
+  static async getTrainingExercises(data: {
+    topic: string;
+    languageId: string;
+    level: string;
+    limit?: number;
+  }): Promise<{ data: string[]; sentenceIds: string[] }> {
+    return this.post<{ data: string[]; sentenceIds: string[] }>('/api/ai/training-exercises', data);
+  }
+
+  static async checkHistoryAvailability(data: {
+    topic: string;
+    languageId: string;
+    level: string;
+  }): Promise<{ available: boolean; count: number }> {
+    return this.post<{ available: boolean; count: number }>(
+      '/api/ai/check-history-availability',
+      data
+    );
   }
 
   static async getTags(): Promise<Tag[]> {
@@ -46,9 +68,13 @@ export class ApiService {
     return this.post<void>('/api/user-answers', { sentenceId, answer });
   }
 
-  static async getUserAnswers(sentenceIds: string[]): Promise<Array<{ sentenceId: string; answer: string }>> {
+  static async getUserAnswers(
+    sentenceIds: string[]
+  ): Promise<Array<{ sentenceId: string; answer: string }>> {
     const queryString = sentenceIds.join(',');
-    return this.get<Array<{ sentenceId: string; answer: string }>>(`/api/user-answers?sentenceIds=${queryString}`);
+    return this.get<Array<{ sentenceId: string; answer: string }>>(
+      `/api/user-answers?sentenceIds=${queryString}`
+    );
   }
 
   private static async post<T>(

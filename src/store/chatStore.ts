@@ -67,11 +67,14 @@ export const useChatStore = create<ChatStore>()(
 
         setCurrentLanguage: (language: string) => {
           const previousLanguage = get().currentLanguage;
-          console.log('[ChatStore] setCurrentLanguage:', { previousLanguage, newLanguage: language });
-          
+          console.log('[ChatStore] setCurrentLanguage:', {
+            previousLanguage,
+            newLanguage: language
+          });
+
           // Update language
           set({ currentLanguage: language });
-          
+
           // If language changed (and it's not the first initialization), reload chat history
           if (previousLanguage && previousLanguage !== language) {
             console.log('[ChatStore] Language changed, clearing and reloading history');
@@ -110,9 +113,9 @@ export const useChatStore = create<ChatStore>()(
             const response = await fetch('/api/chat/message', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ 
+              body: JSON.stringify({
                 message: userMessage,
-                chatId: get().chatId 
+                chatId: get().chatId
               })
             });
 
@@ -148,7 +151,10 @@ export const useChatStore = create<ChatStore>()(
             const response = await fetch('/api/chat/message');
             const data = await response.json();
 
-            console.log('[ChatStore] loadHistory response:', { chatId: data.chatId, messagesCount: data.messages?.length });
+            console.log('[ChatStore] loadHistory response:', {
+              chatId: data.chatId,
+              messagesCount: data.messages?.length
+            });
 
             if (!response.ok) {
               throw new Error(data.error || 'Failed to load chat history');
@@ -160,11 +166,13 @@ export const useChatStore = create<ChatStore>()(
             }
 
             // Convert DB messages to store format
-            const historyMessages: ChatMessage[] = (data.messages || []).map((msg: { role: string; content: string }) => ({
-              role: msg.role as 'user' | 'assistant',
-              content: msg.content,
-              timestamp: Date.now() // DB doesn't have timestamp in current schema
-            }));
+            const historyMessages: ChatMessage[] = (data.messages || []).map(
+              (msg: { role: string; content: string }) => ({
+                role: msg.role as 'user' | 'assistant',
+                content: msg.content,
+                timestamp: Date.now() // DB doesn't have timestamp in current schema
+              })
+            );
 
             set({ messages: historyMessages });
           } catch (error) {

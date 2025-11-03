@@ -26,4 +26,3 @@ export const userAnswerRepository = new UserAnswerRepository(prisma);
 export const chatMessageRepository = new ChatMessageRepository(prisma);
 // Export Prisma client instance for direct access if needed
 export { prisma };
-

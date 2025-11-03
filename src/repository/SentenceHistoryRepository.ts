@@ -91,4 +91,58 @@ export class SentenceHistoryRepository {
       }
     });
   }
+
+  async getRandomSentencesByTopicAndLevel({
+    ownerId,
+    topic,
+    languageId,
+    level,
+    limit = 5
+  }: {
+    ownerId: string;
+    topic: string;
+    languageId: string;
+    level: string;
+    limit?: number;
+  }) {
+    const where: Prisma.SentenceHistoryWhereInput = {
+      ownerId,
+      languageId,
+      level,
+      topic
+    };
+
+    // Get all matching sentences
+    const allSentences = await this.client.findMany({
+      where,
+      include: {
+        language: true
+      }
+    });
+
+    // Shuffle and take the requested number
+    const shuffled = allSentences.sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, limit);
+  }
+
+  async countSentencesByTopicAndLevel({
+    ownerId,
+    topic,
+    languageId,
+    level
+  }: {
+    ownerId: string;
+    topic: string;
+    languageId: string;
+    level: string;
+  }) {
+    return this.client.count({
+      where: {
+        ownerId,
+        languageId,
+        level,
+        topic
+      }
+    });
+  }
 }

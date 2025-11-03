@@ -78,6 +78,12 @@ export interface AppStore {
     selectedWords?: DictionaryWord[];
     mode?: 'student' | 'teacher';
   }) => Promise<void>;
+  loadTrainingExercises: (data: {
+    languageId?: string;
+    level?: string;
+    mode?: 'student' | 'teacher';
+    limit?: number;
+  }) => Promise<void>;
   handleCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => Promise<void>;
   clearError: () => void;
   loadSavedAnswers: (sentenceIds: string[]) => Promise<void>;

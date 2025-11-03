@@ -1,20 +1,24 @@
 'use client';
 
-import { Close as CloseIcon, Delete as DeleteIcon, Language as LanguageIcon } from '@mui/icons-material';
 import {
-    Box,
-    Button,
-    Chip,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    IconButton,
-    List,
-    ListItem,
-    TextField,
-    Typography
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+  Language as LanguageIcon
+} from '@mui/icons-material';
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  List,
+  ListItem,
+  TextField,
+  Typography
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useSettingsStore } from 'src/store/settingsStore';
@@ -49,12 +53,12 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
   const getLanguageDisplayName = () => {
     const languageCode = settings?.learningLanguage || 'en';
     const languageNames: Record<string, string> = {
-      'en': 'Английский',
-      'pl': 'Польский',
-      'de': 'Немецкий',
-      'fr': 'Французский',
-      'es': 'Испанский',
-      'it': 'Итальянский'
+      en: 'Английский',
+      pl: 'Польский',
+      de: 'Немецкий',
+      fr: 'Французский',
+      es: 'Испанский',
+      it: 'Итальянский'
     };
     return languageNames[languageCode] || languageCode.toUpperCase();
   };
@@ -216,9 +220,9 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
             {step === 'parsing' && 'Обработка текста...'}
             {step === 'review' && 'Проверка и редактирование'}
           </Typography>
-          <Chip 
+          <Chip
             icon={<LanguageIcon />}
-            label={getLanguageDisplayName()} 
+            label={getLanguageDisplayName()}
             color="primary"
             size="small"
           />

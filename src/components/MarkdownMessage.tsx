@@ -107,7 +107,7 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, role }) => {
           code({ node, inline, className, children, ...props }: any) {
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : '';
-            
+
             if (!inline && match) {
               return React.createElement(SyntaxHighlighter as any, {
                 style: vscDarkPlus,
@@ -117,7 +117,7 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, role }) => {
                 ...props
               });
             }
-            
+
             return (
               <code className={className} {...props}>
                 {children}

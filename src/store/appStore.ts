@@ -188,6 +188,75 @@ export const useAppStore = create<AppStore>()(
       }
     },
 
+    loadTrainingExercises: async ({
+      languageId,
+      level = 'A1',
+      mode = 'student',
+      limit = 5
+    }: {
+      languageId?: string;
+      level?: string;
+      mode?: 'student' | 'teacher';
+      limit?: number;
+    } = {}) => {
+      // Получаем topic из URL
+      const urlPath = window.location.pathname;
+      const topicRaw = urlPath.split('/').pop() || '';
+      const topic = topicRaw.replace(/_/g, ' ');
+      set({ state: 'loading-exercises', error: '' });
+      try {
+        const response = await ApiService.getTrainingExercises({
+          topic,
+          languageId: languageId || '',
+          level,
+          limit
+        });
+
+        const data = response.data || [];
+        const sentenceIds = response.sentenceIds || [];
+
+        let sentencesList;
+
+        if (mode === 'student') {
+          sentencesList = data.map((sentence: string, index: number) => ({
+            sentence: sentence.trim(),
+            correctAnswers: [],
+            sentenceId: sentenceIds[index] || undefined
+          }));
+        } else {
+          sentencesList = data.map((sentence: string, index: number) => ({
+            sentence: sentence.trim(),
+            correctAnswers: [],
+            sentenceId: sentenceIds[index] || undefined
+          }));
+        }
+
+        const newBlock: ExerciseBlock = {
+          id: `block_${Date.now()}`,
+          exercises: sentencesList,
+          createdAt: new Date(),
+          isChecking: false
+        };
+
+        set(state => ({
+          exerciseBlocks: [...state.exerciseBlocks, newBlock],
+          state: 'exercises'
+        }));
+
+        // Load saved answers for these sentences
+        if (mode === 'student') {
+          get().loadSavedAnswers(sentenceIds);
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+        showAlert.error(`Ошибка при загрузке упражнений из истории: ${errorMessage}`);
+        set({
+          error: `Ошибка при загрузке упражнений из истории: ${errorMessage}`,
+          state: 'exercises'
+        });
+      }
+    },
+
     handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string }) => {
       const { exerciseBlocks, selectedTopic } = get();
 
