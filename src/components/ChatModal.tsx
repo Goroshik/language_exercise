@@ -15,14 +15,23 @@ import {
 } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 import { useChatStore } from 'src/store/chatStore';
+import { useSettingsStore } from 'src/store/settingsStore';
 import ConfirmDialog from './ConfirmDialog';
 import MarkdownMessage from './MarkdownMessage';
 
 const ChatModal: React.FC = () => {
-  const { messages, isOpen, isLoading, setIsOpen, sendMessage, loadHistory, clearHistory } = useChatStore();
+  const { messages, isOpen, isLoading, setIsOpen, sendMessage, loadHistory, clearHistory, setCurrentLanguage } = useChatStore();
+  const { settings } = useSettingsStore();
   const [inputMessage, setInputMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const messagesEndRef = useRef<globalThis.HTMLDivElement | null>(null);
+
+  // Update current language in chat store when it changes
+  useEffect(() => {
+    if (settings?.learningLanguage) {
+      setCurrentLanguage(settings.learningLanguage);
+    }
+  }, [settings?.learningLanguage, setCurrentLanguage]);
 
   // Load history when modal opens
   useEffect(() => {
