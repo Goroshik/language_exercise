@@ -203,7 +203,11 @@ export const useAppStore = create<AppStore>()(
       const urlPath = window.location.pathname;
       const topicRaw = urlPath.split('/').pop() || '';
       const topic = topicRaw.replace(/_/g, ' ');
-      set({ state: 'loading-exercises', error: '' });
+      set({
+        selectedTopic: topic,
+        state: 'loading-exercises',
+        error: ''
+      });
       try {
         const response = await ApiService.getTrainingExercises({
           topic,
@@ -253,7 +257,7 @@ export const useAppStore = create<AppStore>()(
         showAlert.error(fullErrorMessage);
         set({
           error: fullErrorMessage,
-          state: 'exercises'
+          state: 'topic-selection'
         });
       }
     },

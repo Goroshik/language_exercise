@@ -52,7 +52,7 @@ export async function getTrainingExercisesService(
     const data = sentences.map(s => s.sentence);
     const sentenceIds = sentences.map(s => s.id);
 
-    return { status: 200, body: { success: true, data, sentenceIds } };
+    return { status: 200, body: { success: true, data: { data, sentenceIds } } };
   } catch (err) {
     console.error('Error in getTrainingExercisesService:', err);
     return { status: 500, body: { error: 'Internal server error' } };
