@@ -1,13 +1,13 @@
 import { PrismaClient } from '../generated/prisma';
-import { TagRepository } from './TagRepository';
-import { WordRepository } from './WordRepository';
 import { EntityTagRepository } from './EntityTagRepository';
-import { UserRepository } from './UserRepository';
-import { UserTokenRepository } from './UserTokenRepository';
-import { UserSettingsRepository } from './UserSettingsRepository';
-import { SentenceHistoryRepository } from './SentenceHistoryRepository';
 import { LanguageRepository } from './LanguageRepository';
-import { ChatMessageRepository } from './ChatMessageRepository';
+import { SentenceHistoryRepository } from './SentenceHistoryRepository';
+import { TagRepository } from './TagRepository';
+import { UserAnswerRepository } from './UserAnswerRepository';
+import { UserRepository } from './UserRepository';
+import { UserSettingsRepository } from './UserSettingsRepository';
+import { UserTokenRepository } from './UserTokenRepository';
+import { WordRepository } from './WordRepository';
 
 // Singleton Prisma client instance
 const prisma = new PrismaClient();
@@ -21,6 +21,7 @@ export const userTokenRepository = new UserTokenRepository(prisma);
 export const userSettingsRepository = new UserSettingsRepository(prisma);
 export const sentenceHistoryRepository = new SentenceHistoryRepository(prisma);
 export const languageRepository = new LanguageRepository(prisma);
-export const chatMessageRepository = new ChatMessageRepository(prisma);
+export const userAnswerRepository = new UserAnswerRepository(prisma);
 // Export Prisma client instance for direct access if needed
 export { prisma };
+

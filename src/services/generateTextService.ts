@@ -91,6 +91,9 @@ export async function processGenerateTextRequest(
           : '';
     const result = formatAIResponse(text);
 
+    // Store sentence IDs to return with sentences
+    let sentenceIds: string[] = [];
+
     if (result.length > 0) {
       try {
         // Создаем массив словарей для быстрого поиска
@@ -128,13 +131,24 @@ export async function processGenerateTextRequest(
 
         if (sentencesToSave.length > 0) {
           await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
+          
+          // Fetch the recently created sentences to get their IDs
+          const recentSentences = await sentenceHistoryRepository.getHistory({
+            ownerId: userId,
+            languageId,
+            level,
+            ...(topic && { searchText: topic })
+          });
+          
+          // Get the most recent sentence IDs matching our batch size
+          sentenceIds = recentSentences.slice(0, sentencesToSave.length).map(s => s.id);
         }
       } catch (saveErr) {
         showAlert.warning('Failed to save generated sentence history');
       }
     }
 
-    return { status: 200, body: { success: true, data: result } };
+    return { status: 200, body: { success: true, data: result, sentenceIds } };
   } catch (err) {
     showAlert.error('Unexpected error in generateText service');
     return { status: 500, body: { error: 'Internal server error' } };
