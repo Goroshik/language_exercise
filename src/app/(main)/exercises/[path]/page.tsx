@@ -102,9 +102,8 @@ const Page: React.FC = () => {
           })
         });
         const json = await result.json();
-        const data = json.data || {};
-        setHistoryAvailable(data.available || false);
-        setHistoryCount(data.count || 0);
+        setHistoryAvailable(json.available || false);
+        setHistoryCount(json.count || 0);
       } catch (err) {
         console.error('Failed to check history availability:', err);
         setHistoryAvailable(false);

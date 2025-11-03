@@ -249,9 +249,10 @@ export const useAppStore = create<AppStore>()(
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
-        showAlert.error(`Ошибка при загрузке упражнений из истории: ${errorMessage}`);
+        const fullErrorMessage = `Ошибка при загрузке упражнений из истории: ${errorMessage}`;
+        showAlert.error(fullErrorMessage);
         set({
-          error: `Ошибка при загрузке упражнений из истории: ${errorMessage}`,
+          error: fullErrorMessage,
           state: 'exercises'
         });
       }
