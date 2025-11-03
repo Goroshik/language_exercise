@@ -1,21 +1,23 @@
 'use client';
 
-import { Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
+import { Close as CloseIcon, Delete as DeleteIcon, Language as LanguageIcon } from '@mui/icons-material';
 import {
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  List,
-  ListItem,
-  TextField,
-  Typography
+    Box,
+    Button,
+    Chip,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    List,
+    ListItem,
+    TextField,
+    Typography
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { useSettingsStore } from 'src/store/settingsStore';
 import { showAlert } from 'src/utils/alert';
 
 interface ImportWordsModalProps {
@@ -41,6 +43,21 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
   const [inputText, setInputText] = useState('');
   const [parsedWords, setParsedWords] = useState<ParsedWord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { settings } = useSettingsStore();
+
+  // Get display name for the learning language
+  const getLanguageDisplayName = () => {
+    const languageCode = settings?.learningLanguage || 'en';
+    const languageNames: Record<string, string> = {
+      'en': 'Английский',
+      'pl': 'Польский',
+      'de': 'Немецкий',
+      'fr': 'Французский',
+      'es': 'Испанский',
+      'it': 'Итальянский'
+    };
+    return languageNames[languageCode] || languageCode.toUpperCase();
+  };
 
   const addWords = async (words: ParsedWord[]) => {
     const response = await fetch('/api/dictionary/words', {
@@ -193,11 +210,19 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
       }}
     >
       <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6">
-          {step === 'input' && 'Импорт слов из текста'}
-          {step === 'parsing' && 'Обработка текста...'}
-          {step === 'review' && 'Проверка и редактирование'}
-        </Typography>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography variant="h6">
+            {step === 'input' && 'Импорт слов из текста'}
+            {step === 'parsing' && 'Обработка текста...'}
+            {step === 'review' && 'Проверка и редактирование'}
+          </Typography>
+          <Chip 
+            icon={<LanguageIcon />}
+            label={getLanguageDisplayName()} 
+            color="primary"
+            size="small"
+          />
+        </Box>
         <IconButton onClick={handleClose}>
           <CloseIcon />
         </IconButton>

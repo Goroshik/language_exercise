@@ -31,12 +31,13 @@ model Tag {
 }
 
 model Word {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  word      String
-  translate String
-  createdAt DateTime @default(now())
-  ownerId   String?  @db.ObjectId
-  shared    Boolean  @default(false)
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  word         String
+  translate    String
+  languageCode String   @default("en") // Language of the word being learned
+  createdAt    DateTime @default(now())
+  ownerId      String?  @db.ObjectId
+  shared       Boolean  @default(false)
 
   // NOTE: Many-to-many relation with tags
 
