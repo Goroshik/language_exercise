@@ -28,6 +28,8 @@ const MAX_WIDTH = 800;
 const MAX_HEIGHT = 900;
 const DEFAULT_WIDTH = 380;
 const DEFAULT_HEIGHT = 500;
+const MOBILE_BOTTOM_OFFSET = 160; // Bottom offset for mobile chat widget
+const DESKTOP_BOTTOM_OFFSET = 120; // Bottom offset for desktop chat widget
 
 const ChatWidget: React.FC = () => {
   const theme = useTheme();
@@ -195,9 +197,9 @@ const ChatWidget: React.FC = () => {
             right: { xs: 8, sm: 24 },
             left: { xs: 8, sm: 'auto' },
             width: isMobile ? 'calc(100vw - 16px)' : `${size.width}px`,
-            height: isMobile ? 'calc(100vh - 160px)' : `${size.height}px`,
+            height: isMobile ? `calc(100vh - ${MOBILE_BOTTOM_OFFSET}px)` : `${size.height}px`,
             maxWidth: isMobile ? '100%' : 'calc(100vw - 48px)',
-            maxHeight: isMobile ? 'calc(100vh - 160px)' : 'calc(100vh - 120px)',
+            maxHeight: isMobile ? `calc(100vh - ${MOBILE_BOTTOM_OFFSET}px)` : `calc(100vh - ${DESKTOP_BOTTOM_OFFSET}px)`,
             zIndex: 1000,
             display: 'flex',
             flexDirection: 'column',

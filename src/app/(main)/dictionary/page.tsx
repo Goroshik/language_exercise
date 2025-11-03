@@ -230,7 +230,7 @@ const DictionaryPage: React.FC = () => {
             gap={{ xs: 1, sm: 2 }}
             sx={{
               '& > *': {
-                minWidth: { xs: '100%', sm: 250, md: 250 },
+                minWidth: { xs: '100%', sm: 250 },
                 flex: {
                   xs: '1 1 100%',
                   sm: '1 1 calc(50% - 8px)',

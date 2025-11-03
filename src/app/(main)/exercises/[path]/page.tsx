@@ -308,7 +308,7 @@ const Page: React.FC = () => {
         {!isMobile && (
           <Box
             sx={{
-              width: { md: '300px', lg: '300px' },
+              width: { md: '300px' },
               flexShrink: 0
             }}
           >

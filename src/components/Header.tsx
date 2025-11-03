@@ -173,7 +173,6 @@ const Header: React.FC = () => {
                     color="inherit"
                     onClick={handleAiModelOpen}
                     disabled={isLoading}
-                    size={isMobile ? 'small' : 'medium'}
                     sx={{
                       backgroundColor: 'white',
                       color: 'primary.main',
@@ -182,7 +181,7 @@ const Header: React.FC = () => {
                     }}
                     aria-label="ai-model"
                   >
-                    <SmartToyIcon fontSize={isMobile ? 'small' : 'medium'} />
+                    <SmartToyIcon />
                   </IconButton>
                 </span>
               </Tooltip>
