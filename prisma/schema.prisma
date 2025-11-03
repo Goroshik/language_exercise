@@ -31,12 +31,13 @@ model Tag {
 }
 
 model Word {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  word      String
-  translate String
-  createdAt DateTime @default(now())
-  ownerId   String?  @db.ObjectId
-  shared    Boolean  @default(false)
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  word         String
+  translate    String
+  languageCode String   @default("en") // Language of the word being learned
+  createdAt    DateTime @default(now())
+  ownerId      String?  @db.ObjectId
+  shared       Boolean  @default(false)
 
   // NOTE: Many-to-many relation with tags
 
@@ -88,17 +89,18 @@ model UserToken {
 }
 
 model UserSettings {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String   @unique @db.ObjectId
-  theme           String?  @default("light") // 'light', 'dark'
-  aiModel         String?  @default("gemini-2.5-flash") // selected AI model
-  language        String?  @default("en") // interface language
-  translationLang String?  @default("RU") // target translation language
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @unique @db.ObjectId
+  theme             String?  @default("light") // 'light', 'dark'
+  aiModel           String?  @default("gemini-2.5-flash") // selected AI model
+  language          String?  @default("en") // interface language
+  translationLang   String?  @default("RU") // target translation language
+  learningLanguage  String?  @default("en") // language being studied (en, pl)
   lastSelectedTopic String? // last selected topic for exercises
-  lastChatId      String? // last active chat ID for syncing across devices
-  customSettings  Json? // for additional flexible settings storage
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  chatIdsByLanguage Json?   // { "en": "chatId1", "pl": "chatId2" } - chat IDs per language
+  customSettings    Json? // for additional flexible settings storage
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { userSettingsRepository } from 'src/repository/client';
 import { addManyWordService, searchWordsService } from 'src/services/wordsService';
 import { getUserIdFromRequest } from 'src/utils/auth';
 import { safeJson } from 'src/utils/jsonWrapper';
@@ -11,7 +12,12 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('query') || '';
-    const words = await searchWordsService(userId, query);
+    
+    // Get user's learning language from settings
+    const userSettings = await userSettingsRepository.findByUserId(userId);
+    const languageCode = userSettings?.learningLanguage || undefined;
+    
+    const words = await searchWordsService(userId, query, languageCode);
     return NextResponse.json({ success: true, words });
   } catch (error) {
     return NextResponse.json(
@@ -32,7 +38,18 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    const createdWord = await addManyWordService(userId, words);
+    
+    // Get user's learning language from settings
+    const userSettings = await userSettingsRepository.findByUserId(userId);
+    const languageCode = userSettings?.learningLanguage || 'en';
+    
+    // Add languageCode to each word if not already present
+    const wordsWithLanguage = words.map((word: any) => ({
+      ...word,
+      languageCode: word.languageCode || languageCode
+    }));
+    
+    const createdWord = await addManyWordService(userId, wordsWithLanguage);
     return NextResponse.json({ success: true, word: createdWord });
   } catch (error) {
     return NextResponse.json({ success: false, error: 'Failed to add word' }, { status: 500 });

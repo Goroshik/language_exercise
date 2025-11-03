@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 import {
   Box,
@@ -12,15 +12,14 @@ import {
   Stack,
   Typography
 } from '@mui/material';
-import { showAlert } from 'src/utils/alert';
 
 import { useAppStore } from 'src/store/appStore';
+import { useSettingsStore } from 'src/store/settingsStore';
 
 const Page: React.FC = () => {
   const navigate = useRouter();
   const { setIsNavigating, setState } = useAppStore();
-
-  const [topics, setTopics] = useState<Record<string, Record<string, string>>>({});
+  const { settings, topics, loadSettings, loadTopics } = useSettingsStore();
 
   const handleTopicSelect = (topic: string) => {
     const path = topic
@@ -40,29 +39,28 @@ const Page: React.FC = () => {
   useEffect(() => {
     // Reset navigation state when this page loads
     setIsNavigating(false);
-    loadTopics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const loadTopics = async () => {
-    try {
-      const response = await fetch('/api/topics');
-      const data = await response.json();
-      if (data.success) {
-        setTopics(data.topics);
-        setState('topics-loaded');
-      }
-    } catch {
-      showAlert.error('Failed to load tags');
+    if (!settings) {
+      loadSettings();
     }
-  };
+  }, [settings, loadSettings, setIsNavigating]);
+
+  useEffect(() => {
+    if (settings?.learningLanguage) {
+      loadTopics(settings.learningLanguage);
+      setState('topics-loaded');
+    }
+  }, [settings?.learningLanguage, loadTopics, setState]);
 
   return (
     <Box>
-      <Typography variant="h6">Выберите тему английской грамматики для изучения:</Typography>
+      <Typography variant="h6">
+        {settings?.learningLanguage === 'pl'
+          ? 'Wybierz temat gramatyki polskiej do nauki:'
+          : 'Выберите тему английской грамматики для изучения:'}
+      </Typography>
       <Stack direction="column" alignItems="center">
         <List sx={{ width: '1000px', alignItems: 'center' }}>
-          {Object.entries(topics).map(([topicTitle, topicItems]) => (
+          {topics && Object.entries(topics).map(([topicTitle, topicItems]) => (
             <ListItem key={topicTitle} disablePadding sx={{ alignItems: 'flex-start' }}>
               <ListItemText sx={{ flex: 1 }}>
                 <Typography variant="h5">{topicTitle}</Typography>

@@ -1,5 +1,6 @@
 export { AlertProvider } from './AlertProvider';
 export { default as Header } from './Header';
+export { default as LanguageSelector } from './LanguageSelector';
 
 export { default as ChatModal } from './ChatModal';
 export { default as ChatWidget } from './ChatWidget';

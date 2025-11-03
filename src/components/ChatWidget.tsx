@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from 'src/store/chatStore';
+import { useSettingsStore } from 'src/store/settingsStore';
 import ConfirmDialog from './ConfirmDialog';
 import MarkdownMessage from './MarkdownMessage';
 
@@ -27,13 +28,21 @@ const DEFAULT_WIDTH = 380;
 const DEFAULT_HEIGHT = 500;
 
 const ChatWidget: React.FC = () => {
-  const { messages, isOpen, isLoading, setIsOpen, sendMessage, loadHistory, clearHistory } = useChatStore();
+  const { messages, isOpen, isLoading, setIsOpen, sendMessage, loadHistory, clearHistory, setCurrentLanguage } = useChatStore();
+  const { settings } = useSettingsStore();
   const [inputMessage, setInputMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
   const [isResizing, setIsResizing] = useState(false);
   const messagesEndRef = useRef<globalThis.HTMLDivElement | null>(null);
   const resizeRef = useRef<{ startX: number; startY: number; startWidth: number; startHeight: number } | null>(null);
+
+  // Update current language in chat store when it changes
+  useEffect(() => {
+    if (settings?.learningLanguage) {
+      setCurrentLanguage(settings.learningLanguage);
+    }
+  }, [settings?.learningLanguage, setCurrentLanguage]);
 
   // Load history when widget opens
   useEffect(() => {
