@@ -2,6 +2,7 @@ import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { useTextSelection } from 'src/hooks/useTextSelection';
+import type { TranslationPanelState } from 'src/types/translation';
 import TextSelectionPopover from './TextSelectionPopover';
 import WordTranslationPanel from './WordTranslationPanel';
 
@@ -143,10 +144,8 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   validationResults = {}
 }) => {
   const [textareaValue, setTextareaValue] = useState('');
-  const [doubleClickTranslationPanel, setDoubleClickTranslationPanel] = useState<{
-    word: string;
-    position: { x: number; y: number };
-  } | null>(null);
+  const [doubleClickTranslationPanel, setDoubleClickTranslationPanel] =
+    useState<TranslationPanelState | null>(null);
 
   // Use the text selection hook for multiword translation
   const {

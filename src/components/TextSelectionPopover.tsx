@@ -9,6 +9,9 @@ interface TextSelectionPopoverProps {
   onClose: () => void;
 }
 
+// Delay before enabling click-outside handler to prevent immediate closure
+const CLICK_OUTSIDE_DELAY = 100;
+
 const TextSelectionPopover: React.FC<TextSelectionPopoverProps> = ({
   position,
   onTranslate,
@@ -27,7 +30,7 @@ const TextSelectionPopover: React.FC<TextSelectionPopoverProps> = ({
     // Add event listener with a small delay to prevent immediate closure
     const timeoutId = window.setTimeout(() => {
       document.addEventListener('mousedown', handleClickOutside);
-    }, 100);
+    }, CLICK_OUTSIDE_DELAY);
 
     return () => {
       window.clearTimeout(timeoutId);

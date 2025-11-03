@@ -6,6 +6,7 @@ import {
 } from './LearnModeText.styled';
 
 import { useTextSelection } from 'src/hooks/useTextSelection';
+import type { TranslationPanelState } from 'src/types/translation';
 import TextSelectionPopover from 'src/components/TextSelectionPopover';
 import WordTranslationPanel from 'src/components/WordTranslationPanel';
 
@@ -14,10 +15,8 @@ interface LearnModeTextProps {
 }
 
 const LearnModeText: React.FC<LearnModeTextProps> = ({ text }) => {
-  const [doubleClickTranslationPanel, setDoubleClickTranslationPanel] = useState<{
-    word: string;
-    position: { x: number; y: number };
-  } | null>(null);
+  const [doubleClickTranslationPanel, setDoubleClickTranslationPanel] =
+    useState<TranslationPanelState | null>(null);
 
   // Use the text selection hook for multiword translation
   const {

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { TranslationPanelState } from 'src/types/translation';
 
 interface SelectionState {
   text: string;
@@ -7,11 +8,14 @@ interface SelectionState {
 
 interface UseTextSelectionResult {
   selectionPopover: SelectionState | null;
-  translationPanel: { word: string; position: { x: number; y: number } } | null;
+  translationPanel: TranslationPanelState | null;
   handleSelectionPopoverTranslate: () => void;
   closeSelectionPopover: () => void;
   closeTranslationPanel: () => void;
 }
+
+// Selector for input elements where text selection should be ignored
+const INPUT_ELEMENTS_SELECTOR = 'input, textarea, [contenteditable="true"]';
 
 /**
  * Custom hook to handle text selection and translation
@@ -20,10 +24,7 @@ interface UseTextSelectionResult {
  */
 export const useTextSelection = (): UseTextSelectionResult => {
   const [selectionPopover, setSelectionPopover] = useState<SelectionState | null>(null);
-  const [translationPanel, setTranslationPanel] = useState<{
-    word: string;
-    position: { x: number; y: number };
-  } | null>(null);
+  const [translationPanel, setTranslationPanel] = useState<TranslationPanelState | null>(null);
 
   const handleTextSelection = useCallback(() => {
     if (typeof window === 'undefined') return;
@@ -43,7 +44,7 @@ export const useTextSelection = (): UseTextSelectionResult => {
         : (container as globalThis.Element);
 
     if (parentElement) {
-      const closestInput = parentElement.closest('input, textarea, [contenteditable="true"]');
+      const closestInput = parentElement.closest(INPUT_ELEMENTS_SELECTOR);
       if (closestInput) return; // Don't show popover for input fields
     }
 
