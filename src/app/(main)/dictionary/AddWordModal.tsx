@@ -1,17 +1,21 @@
 'use client';
 
+import { Language as LanguageIcon } from '@mui/icons-material';
 import {
   Alert,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  TextField
+  TextField,
+  Typography
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
+import { useSettingsStore } from 'src/store/settingsStore';
 import { showAlert } from 'src/utils/alert';
 
 interface AddWordModalProps {
@@ -35,6 +39,7 @@ const AddWordModal: React.FC<AddWordModalProps> = ({
   defaultTranslate
 }) => {
   const [error, setError] = useState('');
+  const { settings } = useSettingsStore();
 
   const {
     control,
@@ -47,6 +52,20 @@ const AddWordModal: React.FC<AddWordModalProps> = ({
       translate: ''
     }
   });
+
+  // Get display name for the learning language
+  const getLanguageDisplayName = () => {
+    const languageCode = settings?.learningLanguage || 'en';
+    const languageNames: Record<string, string> = {
+      'en': 'Английский',
+      'pl': 'Польский',
+      'de': 'Немецкий',
+      'fr': 'Французский',
+      'es': 'Испанский',
+      'it': 'Итальянский'
+    };
+    return languageNames[languageCode] || languageCode.toUpperCase();
+  };
 
   useEffect(() => {
     if (open) {
@@ -102,7 +121,17 @@ const AddWordModal: React.FC<AddWordModalProps> = ({
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Добавить новое слово</DialogTitle>
+      <DialogTitle>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Typography variant="h6">Добавить новое слово</Typography>
+          <Chip 
+            icon={<LanguageIcon />}
+            label={getLanguageDisplayName()} 
+            color="primary"
+            size="small"
+          />
+        </Box>
+      </DialogTitle>
       <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 1 }}>

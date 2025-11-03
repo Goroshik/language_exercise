@@ -3,9 +3,10 @@
 import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
-import { Box, Button, ButtonGroup, MenuItem, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, ButtonGroup, Stack, Typography } from '@mui/material';
 
 import { useAppStore } from 'src/store/appStore';
+import { useSettingsStore } from 'src/store/settingsStore';
 import { showAlert } from 'src/utils/alert';
 
 import { DictionaryWord } from 'src/types';
@@ -20,7 +21,7 @@ interface Language {
 }
 
 const Page: React.FC = () => {
-  const { topicName } = useParams<{ topicName: string }>();
+  const { path } = useParams<{ path: string }>();
   const navigate = useRouter();
 
   // State for button selections
@@ -30,10 +31,24 @@ const Page: React.FC = () => {
   const [languages, setLanguages] = useState<Language[]>([]);
   const [selectedLanguageId, setSelectedLanguageId] = useState<string>('');
 
-  // Decode the topic name from URL
-  const selectedTopic = topicName ? decodeURIComponent(topicName) : '';
+  // Get learning language from settings
+  const { settings, loadSettings } = useSettingsStore();
 
-  // Fetch languages on mount
+  // Decode the topic name from URL - convert underscores to spaces and capitalize first letter
+  const selectedTopic = path 
+    ? decodeURIComponent(path)
+        .replace(/_/g, ' ')
+        .replace(/\b\w/g, char => char.toUpperCase())
+    : '';
+
+  // Load settings on mount
+  useEffect(() => {
+    if (!settings) {
+      loadSettings();
+    }
+  }, [settings, loadSettings]);
+
+  // Fetch languages on mount and sync with user's learning language
   useEffect(() => {
     const fetchLanguages = async () => {
       try {
@@ -41,19 +56,28 @@ const Page: React.FC = () => {
         const data = await res.json();
         const langs = data.data || [];
         setLanguages(langs);
-        // Set default to English if available
-        const englishLang = langs.find((l: Language) => l.code === 'en');
-        if (englishLang) {
-          setSelectedLanguageId(englishLang.id);
-        } else if (langs.length > 0) {
-          setSelectedLanguageId(langs[0].id);
+        
+        // Use learning language from settings
+        if (settings?.learningLanguage) {
+          const userLang = langs.find((l: Language) => l.code === settings.learningLanguage);
+          if (userLang) {
+            setSelectedLanguageId(userLang.id);
+          }
+        } else {
+          // Fallback to English if no settings
+          const englishLang = langs.find((l: Language) => l.code === 'en');
+          if (englishLang) {
+            setSelectedLanguageId(englishLang.id);
+          } else if (langs.length > 0) {
+            setSelectedLanguageId(langs[0].id);
+          }
         }
       } catch {
         showAlert.error('Failed to fetch languages');
       }
     };
     fetchLanguages();
-  }, []);
+  }, [settings?.learningLanguage]);
 
   // Use app state store
   const {
@@ -72,7 +96,7 @@ const Page: React.FC = () => {
     // Reset navigation state when this page loads
     setIsNavigating(false);
 
-    const topicPath = topicName ? decodeURIComponent(topicName) : '';
+    const topicPath = path ? decodeURIComponent(path) : '';
     useAppStore.setState({ selectedTopic, lastSelectedTopicPath: topicPath });
 
     // Save to localStorage (client-side only)
@@ -81,7 +105,7 @@ const Page: React.FC = () => {
     }
 
     setState('topics-loaded');
-  }, [selectedTopic, topicName, setIsNavigating, setState]);
+  }, [selectedTopic, path, setIsNavigating, setState]);
 
   // Check if AI request is in progress
   const isLoading = state === 'loading-exercises';
@@ -116,76 +140,64 @@ const Page: React.FC = () => {
         sx={{
           marginBottom: 2,
           alignItems: 'center',
-          gap: 1,
+          gap: 2,
           padding: 2,
           backgroundColor: '#f5f5f5',
-          borderRadius: 16
+          borderRadius: 2,
+          flexWrap: 'wrap'
         }}
       >
-        <Typography variant="h6">Тема: {selectedTopic}</Typography>
-        <Button
-          size="small"
-          onClick={handleBackToTopics}
-          variant="outlined"
-          sx={{ textTransform: 'none' }}
-        >
-          Сменить тему
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography variant="h6">Тема:</Typography>
+          <Typography variant="h6" sx={{ fontWeight: 'normal' }}>
+            {selectedTopic}
+          </Typography> 
+          <Button
+            size="small"
+            onClick={handleBackToTopics}
+            variant="outlined"
+            sx={{ textTransform: 'none' }}
+          >
+            Сменить тему
+          </Button>
+        </Box>
+
+        {/* Generation Mode Selection */}
+        <ButtonGroup variant="outlined" size="small">
+          <Button
+            variant={selectedMode === 'student' ? 'contained' : 'outlined'}
+            onClick={() => setSelectedMode('student')}
+            sx={{ textTransform: 'none' }}
+          >
+            Студент
+          </Button>
+          <Button
+            variant={selectedMode === 'teacher' ? 'contained' : 'outlined'}
+            onClick={() => setSelectedMode('teacher')}
+            sx={{ textTransform: 'none' }}
+          >
+            Преподаватель
+          </Button>
+        </ButtonGroup>
+
+        {/* Level Selection */}
+        <ButtonGroup variant="outlined" size="small">
+          {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map(level => (
+            <Button
+              key={level}
+              variant={selectedLevel === level ? 'contained' : 'outlined'}
+              onClick={() => setSelectedLevel(level)}
+              sx={{ textTransform: 'none', minWidth: '45px' }}
+            >
+              {level}
+            </Button>
+          ))}
+        </ButtonGroup>
       </Stack>
 
       <Box sx={{ display: 'flex', gap: 3 }}>
         {/* Main content - left side */}
         <Box sx={{ flex: 1 }}>
-          {/* Generation Mode Selection */}
-          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-            <ButtonGroup variant="outlined" size="medium">
-              <Button
-                variant={selectedMode === 'student' ? 'contained' : 'outlined'}
-                onClick={() => setSelectedMode('student')}
-                sx={{ textTransform: 'none' }}
-              >
-                Студент
-              </Button>
-              <Button
-                variant={selectedMode === 'teacher' ? 'contained' : 'outlined'}
-                onClick={() => setSelectedMode('teacher')}
-                sx={{ textTransform: 'none' }}
-              >
-                Преподаватель
-              </Button>
-            </ButtonGroup>
-
-            {/* Level Selection */}
-            <ButtonGroup variant="outlined" size="medium">
-              {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map(level => (
-                <Button
-                  key={level}
-                  variant={selectedLevel === level ? 'contained' : 'outlined'}
-                  onClick={() => setSelectedLevel(level)}
-                  sx={{ textTransform: 'none', minWidth: '50px' }}
-                >
-                  {level}
-                </Button>
-              ))}
-            </ButtonGroup>
-
-            {/* Language Selection */}
-            <TextField
-              select
-              label="Язык"
-              value={selectedLanguageId}
-              onChange={e => setSelectedLanguageId(e.target.value)}
-              size="small"
-              sx={{ minWidth: 150 }}
-            >
-              {languages.map(lang => (
-                <MenuItem key={lang.id} value={lang.id}>
-                  {lang.nativeName}
-                </MenuItem>
-              ))}
-            </TextField>
-          </Box>
-
           {exerciseBlocks.length === 0 ? (
             <Box sx={{ textAlign: 'center', mt: 4 }}>
               <Typography variant="body1" sx={{ mb: 2 }}>

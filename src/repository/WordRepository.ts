@@ -19,10 +19,15 @@ export class WordRepository {
     return this.client.delete({ where: { id } });
   }
 
-  async searchWords(userId: string, query: string) {
+  async searchWords(userId: string, query: string, languageCode?: string) {
     const where: any = {
       ownerId: userId
     };
+
+    // Filter by language if provided
+    if (languageCode) {
+      where.languageCode = languageCode;
+    }
 
     if (query) {
       where.OR = [
@@ -36,7 +41,7 @@ export class WordRepository {
 
   async addWord(
     userId: string,
-    data: { word: string; translate: string; createdAt?: Date; shared?: boolean }
+    data: { word: string; translate: string; languageCode?: string; createdAt?: Date; shared?: boolean }
   ) {
     return this.client.create({
       data: {
@@ -48,16 +53,20 @@ export class WordRepository {
 
   async addManyWord(
     userId: string,
-    data: { word: string; translate: string; createdAt?: Date; shared?: boolean }[]
+    data: { word: string; translate: string; languageCode?: string; createdAt?: Date; shared?: boolean }[]
   ) {
     return this.client.createMany({
       data: data.map(word => ({ ...word, ownerId: userId }))
     });
   }
 
-  async getAllWords(userId: string) {
+  async getAllWords(userId: string, languageCode?: string) {
+    const where: any = { ownerId: userId };
+    if (languageCode) {
+      where.languageCode = languageCode;
+    }
     return this.client.findMany({
-      where: { ownerId: userId },
+      where,
       orderBy: { createdAt: 'desc' }
     });
   }

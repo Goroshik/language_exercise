@@ -13,7 +13,7 @@ export class UserSettingsRepository {
     aiModel?: string;
     language?: string;
     translationLang?: string;
-    lastChatId?: string;
+    learningLanguage?: string;
     customSettings?: any;
   }) {
     return this.client.create({ data });
@@ -32,7 +32,7 @@ export class UserSettingsRepository {
       aiModel?: string;
       language?: string;
       translationLang?: string;
-      lastChatId?: string;
+      learningLanguage?: string;
       customSettings?: any;
     }
   ) {
@@ -49,7 +49,7 @@ export class UserSettingsRepository {
       aiModel?: string;
       language?: string;
       translationLang?: string;
-      lastChatId?: string;
+      learningLanguage?: string;
       customSettings?: any;
     }
   ) {
@@ -58,7 +58,7 @@ export class UserSettingsRepository {
       aiModel: data.aiModel,
       language: data.language,
       translationLang: data.translationLang,
-      lastChatId: data.lastChatId
+      learningLanguage: data.learningLanguage
     };
 
     return this.client.upsert({
@@ -68,10 +68,29 @@ export class UserSettingsRepository {
     });
   }
 
-  async updateLastChatId(userId: string, chatId: string) {
+  /**
+   * Get chat ID for specific language
+   */
+  async getChatIdForLanguage(userId: string, languageCode: string): Promise<string | null> {
+    const settings = await this.findByUserId(userId);
+    if (!settings?.chatIdsByLanguage) return null;
+    
+    const chatIds = settings.chatIdsByLanguage as Record<string, string>;
+    return chatIds[languageCode] || null;
+  }
+
+  /**
+   * Set chat ID for specific language
+   */
+  async setChatIdForLanguage(userId: string, languageCode: string, chatId: string) {
+    const settings = await this.findByUserId(userId);
+    const chatIds = (settings?.chatIdsByLanguage as Record<string, string>) || {};
+    
+    chatIds[languageCode] = chatId;
+    
     return this.client.update({
       where: { userId },
-      data: { lastChatId: chatId }
+      data: { chatIdsByLanguage: chatIds }
     });
   }
 

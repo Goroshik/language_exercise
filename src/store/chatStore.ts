@@ -15,12 +15,14 @@ interface ChatStore {
   chatId: string | null;
   isOpen: boolean;
   isLoading: boolean;
+  currentLanguage: string | null; // Track current language to detect changes
   addMessage: (message: ChatMessage) => void;
   setMessages: (messages: ChatMessage[]) => void;
   clearMessages: () => void;
   setIsOpen: (isOpen: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
   setChatId: (chatId: string | null) => void;
+  setCurrentLanguage: (language: string) => void;
   sendMessage: (message: string) => Promise<void>;
   loadHistory: () => Promise<void>;
   clearHistory: () => Promise<void>;
@@ -35,6 +37,7 @@ export const useChatStore = create<ChatStore>()(
         chatId: null,
         isOpen: false,
         isLoading: false,
+        currentLanguage: null,
 
         addMessage: (message: ChatMessage) => {
           set(state => ({
@@ -60,6 +63,30 @@ export const useChatStore = create<ChatStore>()(
 
         setChatId: (chatId: string | null) => {
           set({ chatId });
+        },
+
+        setCurrentLanguage: (language: string) => {
+          const previousLanguage = get().currentLanguage;
+          console.log('[ChatStore] setCurrentLanguage:', { previousLanguage, newLanguage: language });
+          
+          // Update language
+          set({ currentLanguage: language });
+          
+          // If language changed (and it's not the first initialization), reload chat history
+          if (previousLanguage && previousLanguage !== language) {
+            console.log('[ChatStore] Language changed, clearing and reloading history');
+            set({ messages: [], chatId: null });
+            // Use setTimeout to ensure state is updated before loading
+            setTimeout(() => {
+              get().loadHistory();
+            }, 0);
+          } else if (!previousLanguage) {
+            // First time initialization - load history for current language
+            console.log('[ChatStore] First initialization, loading history');
+            setTimeout(() => {
+              get().loadHistory();
+            }, 0);
+          }
         },
 
         createNewChat: () => {
@@ -116,9 +143,12 @@ export const useChatStore = create<ChatStore>()(
         },
 
         loadHistory: async () => {
+          console.log('[ChatStore] loadHistory called');
           try {
             const response = await fetch('/api/chat/message');
             const data = await response.json();
+
+            console.log('[ChatStore] loadHistory response:', { chatId: data.chatId, messagesCount: data.messages?.length });
 
             if (!response.ok) {
               throw new Error(data.error || 'Failed to load chat history');

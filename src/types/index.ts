@@ -45,6 +45,7 @@ export interface DictionaryWord {
   id: string;
   word: string;
   translate: string;
+  languageCode?: string;
   createdAt: Date;
 }
 
