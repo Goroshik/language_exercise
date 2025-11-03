@@ -13,7 +13,8 @@ export class SentenceHistoryRepository {
     languageId,
     usedWordIds,
     level,
-    mode = 'exercise'
+    mode = 'exercise',
+    topic
   }: {
     ownerId: string;
     sentence: string;
@@ -21,6 +22,7 @@ export class SentenceHistoryRepository {
     usedWordIds: string[];
     level: string;
     mode?: string;
+    topic?: string;
   }) {
     return this.client.create({
       data: {
@@ -29,7 +31,8 @@ export class SentenceHistoryRepository {
         languageId,
         usedWordIds,
         level,
-        mode
+        mode,
+        topic
       }
     });
   }
@@ -42,6 +45,7 @@ export class SentenceHistoryRepository {
       usedWordIds: string[];
       level: string;
       mode?: string;
+      topic?: string;
     }[]
   ) {
     if (sentences.length === 0) return { count: 0 };

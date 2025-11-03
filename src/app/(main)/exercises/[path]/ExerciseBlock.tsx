@@ -18,6 +18,7 @@ import LearnModeText from './LearnModeText';
 interface Exercise {
   sentence: string;
   correctAnswers: string[];
+  sentenceId?: string;
 }
 
 interface ExerciseBlockProps {
@@ -74,6 +75,7 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
                 <TextWithInputs
                   text={exercise.sentence}
                   exerciseIndex={`${block.id}_${exerciseIndex}`}
+                  sentenceId={exercise.sentenceId}
                   validationResults={validationResults}
                 />
               )}

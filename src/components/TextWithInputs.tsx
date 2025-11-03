@@ -6,6 +6,7 @@ import WordTranslationPanel from './WordTranslationPanel';
 interface TextWithInputsProps {
   text: string;
   exerciseIndex?: string | number;
+  sentenceId?: string;
   validationResults?: {
     [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] };
   };
@@ -20,7 +21,8 @@ interface ParsedExerciseContent {
 }
 
 const PLACEHOLDER_REGEX = /\{\{input\}\}/gi;
-const BOLD_WORD_REGEX = /\*\*(.*?)\*\*/g;
+// Pattern for bold markdown format (e.g., **word**)
+const BOLD_PATTERN = '\\*\\*(.*?)\\*\\*';
 
 const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
   displaySentence: '',
@@ -62,13 +64,14 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     mainLine = dashMatch[1].trim();
     translation = stripTranslationLabel(dashMatch[2]);
   }
-  const hasBoldFormat = BOLD_WORD_REGEX.test(mainLine);
+  // Create a new regex instance to avoid state persistence issues with global regex
+  const hasBoldFormat = new RegExp(BOLD_PATTERN).test(mainLine);
   let hints: string[] = [];
 
   if (hasBoldFormat) {
     const boldWords: string[] = [];
     let match;
-    const boldRegex = /\*\*(.*?)\*\*/g;
+    const boldRegex = new RegExp(BOLD_PATTERN, 'g');
     while ((match = boldRegex.exec(mainLine)) !== null) {
       boldWords.push(match[1]);
     }
@@ -83,7 +86,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
       mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
     }
 
-    const displaySentence = mainLine.replace(/\*\*(.*?)\*\*/g, '_____');
+    const displaySentence = mainLine.replace(new RegExp(BOLD_PATTERN, 'g'), '_____');
     const prefillSentence = displaySentence;
 
     return {
@@ -134,6 +137,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
 const TextWithInputs: React.FC<TextWithInputsProps> = ({
   text,
   exerciseIndex = 0,
+  sentenceId,
   validationResults = {}
 }) => {
   const [textareaValue, setTextareaValue] = useState('');
@@ -147,9 +151,24 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const parsedContent = useMemo(() => parseExerciseContent(text), [text]);
   const { displaySentence, prefillSentence, hints, translation, additionalNotes } = parsedContent;
 
+  // Load saved answer when component mounts or sentenceId changes
   useEffect(() => {
-    setTextareaValue('');
-  }, [text]);
+    if (typeof window !== 'undefined' && sentenceId) {
+      // Try to get from store first
+      const { savedAnswers } = (window as any).__appStore?.getState?.() || {};
+      const savedAnswer = savedAnswers?.[sentenceId];
+      if (savedAnswer) {
+        setTextareaValue(savedAnswer);
+      }
+    }
+  }, [sentenceId]);
+
+  useEffect(() => {
+    // Reset when text changes (new exercise)
+    if (!sentenceId) {
+      setTextareaValue('');
+    }
+  }, [text, sentenceId]);
 
   const handlePrefillClick = () => {
     if (textareaValue.trim().length > 0 || !prefillSentence) {
@@ -159,7 +178,23 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   };
 
   const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setTextareaValue(event.target.value);
+    const newValue = event.target.value;
+    setTextareaValue(newValue);
+
+    // Save answer to store if sentenceId is provided
+    if (sentenceId && typeof window !== 'undefined') {
+      const store = (window as any).__appStore;
+      if (store?.getState) {
+        const { saveAnswer } = store.getState();
+        if (saveAnswer) {
+          // Debounce the save operation
+          clearTimeout((handleTextareaChange as any).timeout);
+          (handleTextareaChange as any).timeout = setTimeout(() => {
+            saveAnswer(sentenceId, newValue);
+          }, 1000); // Save after 1 second of no typing
+        }
+      }
+    }
   };
 
   const handleTextDoubleClick = (event: React.MouseEvent) => {
