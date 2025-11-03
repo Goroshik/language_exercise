@@ -1,18 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { AppBar, Box, Toolbar, Typography, IconButton, Tooltip } from '@mui/material';
-import { useRouter } from 'next/navigation';
-import SettingsIcon from '@mui/icons-material/Settings';
-import TopicIcon from '@mui/icons-material/Topic';
 import BookIcon from '@mui/icons-material/Book';
 import HistoryIcon from '@mui/icons-material/History';
+import SettingsIcon from '@mui/icons-material/Settings';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import SettingsModal from './SettingsModal';
-import AIModelSelector from './AIModelSelector';
-import LanguageSelector from './LanguageSelector';
+import TopicIcon from '@mui/icons-material/Topic';
+import { AppBar, Box, IconButton, Toolbar, Tooltip, Typography } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import React, { useEffect, useState } from 'react';
 import { useAppStore } from 'src/store/appStore';
 import { useSettingsStore } from 'src/store/settingsStore';
+import AIModelSelector from './AIModelSelector';
+import LanguageSelector from './LanguageSelector';
+import SettingsModal from './SettingsModal';
 
 const Header: React.FC = () => {
   const route = useRouter();
@@ -20,9 +20,23 @@ const Header: React.FC = () => {
   const [aiModelOpen, setAiModelOpen] = useState(false);
   const { selectedTopic, loadLastSelectedTopic, state, isNavigating, setIsNavigating } =
     useAppStore();
-  const { loadSettings } = useSettingsStore();
+  const { loadSettings, settings } = useSettingsStore();
 
   const isLoading = state === 'loading-exercises' || state === 'loading-topics' || isNavigating;
+
+  // Get display name for the learning language
+  const getLanguageDisplayName = () => {
+    const languageCode = settings?.learningLanguage || 'en';
+    const languageNames: Record<string, string> = {
+      'en': 'английского',
+      'pl': 'польского',
+      'de': 'немецкого',
+      'fr': 'французского',
+      'es': 'испанского',
+      'it': 'итальянского'
+    };
+    return languageNames[languageCode] || languageCode;
+  };
 
   useEffect(() => {
     loadLastSelectedTopic();
@@ -56,7 +70,7 @@ const Header: React.FC = () => {
       <AppBar position="static" color="primary">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Изучение английского языка
+            Изучение {getLanguageDisplayName()} языка
             {selectedTopic && (
               <Typography component="span" variant="subtitle1" sx={{ ml: 2, opacity: 0.9 }}>
                 - {selectedTopic}

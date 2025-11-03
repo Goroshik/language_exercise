@@ -46,6 +46,21 @@ export class ChatService {
       content: message
     });
 
+    // Get user settings to get the learning language
+    const userSettings = await userSettingsRepository.findByUserId(userId);
+    const learningLanguage = userSettings?.learningLanguage || 'en';
+    
+    // Map language codes to readable names for the prompt
+    const languageNames: Record<string, string> = {
+      'en': 'английский',
+      'pl': 'польский',
+      'de': 'немецкий',
+      'fr': 'французский',
+      'es': 'испанский',
+      'it': 'итальянский'
+    };
+    const languageName = languageNames[learningLanguage] || learningLanguage;
+
     // Get AI service based on user settings
     const aiService = await AIFactory.getAIService(userId);
 
@@ -54,8 +69,8 @@ export class ChatService {
       throw new Error('Selected AI service does not support chat functionality');
     }
 
-    // Build the prompt using the chat prompt template
-    const prompt = CHAT_PROMPTS.systemPrompt(message);
+    // Build the prompt using the chat prompt template with learning language
+    const prompt = CHAT_PROMPTS.systemPrompt(message, languageName);
 
     // Generate AI response
     const aiResponse = await aiService.generateText(prompt, userId);
