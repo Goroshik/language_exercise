@@ -42,12 +42,12 @@ const DictionaryPage: React.FC = () => {
   const getLanguageDisplayName = () => {
     const languageCode = settings?.learningLanguage || 'en';
     const languageNames: Record<string, string> = {
-      'en': 'Английский',
-      'pl': 'Польский',
-      'de': 'Немецкий',
-      'fr': 'Французский',
-      'es': 'Испанский',
-      'it': 'Итальянский'
+      en: 'Английский',
+      pl: 'Польский',
+      de: 'Немецкий',
+      fr: 'Французский',
+      es: 'Испанский',
+      it: 'Итальянский'
     };
     return languageNames[languageCode] || languageCode.toUpperCase();
   };
@@ -161,13 +161,13 @@ const DictionaryPage: React.FC = () => {
         <Paper sx={{ p: 4, textAlign: 'center' }}>
           <LanguageIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
           <Typography variant="h6" color="text.secondary" gutterBottom>
-            {searchQuery 
-              ? 'Слова не найдены' 
+            {searchQuery
+              ? 'Слова не найдены'
               : `Словарь для ${getLanguageDisplayName().toLowerCase()} языка пуст`}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            {searchQuery 
-              ? 'Попробуйте изменить поисковый запрос' 
+            {searchQuery
+              ? 'Попробуйте изменить поисковый запрос'
               : 'Добавьте слова через кнопку "Добавить слово" или "Импорт слов"'}
           </Typography>
         </Paper>

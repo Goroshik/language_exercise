@@ -131,7 +131,7 @@ export async function processGenerateTextRequest(
 
         if (sentencesToSave.length > 0) {
           await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
-          
+
           // Fetch the recently created sentences to get their IDs
           const recentSentences = await sentenceHistoryRepository.getHistory({
             ownerId: userId,
@@ -139,7 +139,7 @@ export async function processGenerateTextRequest(
             level,
             ...(topic && { searchText: topic })
           });
-          
+
           // Get the most recent sentence IDs matching our batch size
           sentenceIds = recentSentences.slice(0, sentencesToSave.length).map(s => s.id);
         }

@@ -35,7 +35,7 @@ const Page: React.FC = () => {
   const { settings, loadSettings } = useSettingsStore();
 
   // Decode the topic name from URL - convert underscores to spaces and capitalize first letter
-  const selectedTopic = path 
+  const selectedTopic = path
     ? decodeURIComponent(path)
         .replace(/_/g, ' ')
         .replace(/\b\w/g, char => char.toUpperCase())
@@ -56,7 +56,7 @@ const Page: React.FC = () => {
         const data = await res.json();
         const langs = data.data || [];
         setLanguages(langs);
-        
+
         // Use learning language from settings
         if (settings?.learningLanguage) {
           const userLang = langs.find((l: Language) => l.code === settings.learningLanguage);
@@ -151,7 +151,7 @@ const Page: React.FC = () => {
           <Typography variant="h6">Тема:</Typography>
           <Typography variant="h6" sx={{ fontWeight: 'normal' }}>
             {selectedTopic}
-          </Typography> 
+          </Typography>
           <Button
             size="small"
             onClick={handleBackToTopics}

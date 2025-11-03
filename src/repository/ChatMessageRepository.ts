@@ -7,7 +7,17 @@ export class ChatMessageRepository {
     this.client = client.chatMessage;
   }
 
-  async addMessage({ userId, chatId, role, content }: { userId: string; chatId: string; role: string; content: string }) {
+  async addMessage({
+    userId,
+    chatId,
+    role,
+    content
+  }: {
+    userId: string;
+    chatId: string;
+    role: string;
+    content: string;
+  }) {
     return this.client.create({
       data: {
         userId,
@@ -18,7 +28,15 @@ export class ChatMessageRepository {
     });
   }
 
-  async getMessages({ userId, chatId, limit = 50 }: { userId: string; chatId: string; limit?: number }) {
+  async getMessages({
+    userId,
+    chatId,
+    limit = 50
+  }: {
+    userId: string;
+    chatId: string;
+    limit?: number;
+  }) {
     return this.client.findMany({
       where: { userId, chatId },
       orderBy: { createdAt: 'asc' },

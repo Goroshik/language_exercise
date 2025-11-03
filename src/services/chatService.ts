@@ -36,9 +36,12 @@ export class ChatService {
     let chatId = providedChatId;
     if (!chatId) {
       // Try to get existing chatId for this language
-      const existingChatId = await userSettingsRepository.getChatIdForLanguage(userId, learningLanguage);
+      const existingChatId = await userSettingsRepository.getChatIdForLanguage(
+        userId,
+        learningLanguage
+      );
       chatId = existingChatId || undefined;
-      
+
       // If no chatId exists for this language, generate a new one
       if (!chatId) {
         chatId = randomUUID();
@@ -53,15 +56,15 @@ export class ChatService {
       role: 'user',
       content: message
     });
-    
+
     // Map language codes to readable names for the prompt
     const languageNames: Record<string, string> = {
-      'en': 'английский',
-      'pl': 'польский',
-      'de': 'немецкий',
-      'fr': 'французский',
-      'es': 'испанский',
-      'it': 'итальянский'
+      en: 'английский',
+      pl: 'польский',
+      de: 'немецкий',
+      fr: 'французский',
+      es: 'испанский',
+      it: 'итальянский'
     };
     const languageName = languageNames[learningLanguage] || learningLanguage;
 
@@ -107,15 +110,22 @@ export class ChatService {
    * @param limit - Maximum number of messages to retrieve
    * @returns Array of chat messages and chatId
    */
-  static async getChatHistory(userId: string, chatId?: string, limit = 50): Promise<{ messages: ChatMessage[]; chatId: string | null }> {
+  static async getChatHistory(
+    userId: string,
+    chatId?: string,
+    limit = 50
+  ): Promise<{ messages: ChatMessage[]; chatId: string | null }> {
     // If no chatId provided, get from user settings for current language
     let activeChatId = chatId;
     if (!activeChatId) {
       const settings = await userSettingsRepository.findByUserId(userId);
       const learningLanguage = settings?.learningLanguage || 'en';
-      
+
       // Get chatId for current language
-      const languageChatId = await userSettingsRepository.getChatIdForLanguage(userId, learningLanguage);
+      const languageChatId = await userSettingsRepository.getChatIdForLanguage(
+        userId,
+        learningLanguage
+      );
       activeChatId = languageChatId || undefined;
     }
 
@@ -123,7 +133,11 @@ export class ChatService {
       return { messages: [], chatId: null };
     }
 
-    const messages = await chatMessageRepository.getMessages({ userId, chatId: activeChatId, limit });
+    const messages = await chatMessageRepository.getMessages({
+      userId,
+      chatId: activeChatId,
+      limit
+    });
     return {
       messages: messages.map((msg: { role: string; content: string }) => ({
         role: msg.role as 'user' | 'assistant',
@@ -150,7 +164,7 @@ export class ChatService {
   static async createNewChat(userId: string): Promise<string> {
     const settings = await userSettingsRepository.findByUserId(userId);
     const learningLanguage = settings?.learningLanguage || 'en';
-    
+
     const chatId = randomUUID();
     await userSettingsRepository.setChatIdForLanguage(userId, learningLanguage, chatId);
     return chatId;

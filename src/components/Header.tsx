@@ -28,12 +28,12 @@ const Header: React.FC = () => {
   const getLanguageDisplayName = () => {
     const languageCode = settings?.learningLanguage || 'en';
     const languageNames: Record<string, string> = {
-      'en': 'английского',
-      'pl': 'польского',
-      'de': 'немецкого',
-      'fr': 'французского',
-      'es': 'испанского',
-      'it': 'итальянского'
+      en: 'английского',
+      pl: 'польского',
+      de: 'немецкого',
+      fr: 'французского',
+      es: 'испанского',
+      it: 'итальянского'
     };
     return languageNames[languageCode] || languageCode;
   };

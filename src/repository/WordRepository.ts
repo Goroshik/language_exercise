@@ -41,7 +41,13 @@ export class WordRepository {
 
   async addWord(
     userId: string,
-    data: { word: string; translate: string; languageCode?: string; createdAt?: Date; shared?: boolean }
+    data: {
+      word: string;
+      translate: string;
+      languageCode?: string;
+      createdAt?: Date;
+      shared?: boolean;
+    }
   ) {
     return this.client.create({
       data: {
@@ -53,7 +59,13 @@ export class WordRepository {
 
   async addManyWord(
     userId: string,
-    data: { word: string; translate: string; languageCode?: string; createdAt?: Date; shared?: boolean }[]
+    data: {
+      word: string;
+      translate: string;
+      languageCode?: string;
+      createdAt?: Date;
+      shared?: boolean;
+    }[]
   ) {
     return this.client.createMany({
       data: data.map(word => ({ ...word, ownerId: userId }))
