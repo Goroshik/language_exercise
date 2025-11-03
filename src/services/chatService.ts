@@ -1,6 +1,6 @@
-import { AIFactory } from './aiFactory';
-import { chatMessageRepository } from 'src/repository/client';
 import { CHAT_PROMPTS } from 'src/prompts';
+import { chatMessageRepository } from 'src/repository/client';
+import { AIFactory } from './aiFactory';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -73,7 +73,7 @@ export class ChatService {
    */
   static async getChatHistory(userId: string, limit = 50): Promise<ChatMessage[]> {
     const messages = await chatMessageRepository.getMessages({ userId, limit });
-    return messages.map(msg => ({
+    return messages.map((msg: { role: string; content: string }) => ({
       role: msg.role as 'user' | 'assistant',
       content: msg.content
     }));

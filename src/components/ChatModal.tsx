@@ -20,10 +20,17 @@ import { showAlert } from 'src/utils/alert';
 import ConfirmDialog from './ConfirmDialog';
 
 const ChatModal: React.FC = () => {
-  const { messages, isOpen, isLoading, clearMessages, setIsOpen, sendMessage } = useChatStore();
+  const { messages, isOpen, isLoading, setIsOpen, sendMessage, loadHistory, clearHistory } = useChatStore();
   const [inputMessage, setInputMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const messagesEndRef = useRef<globalThis.HTMLDivElement | null>(null);
+
+  // Load history when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      loadHistory();
+    }
+  }, [isOpen, loadHistory]);
 
   // Auto-scroll to latest message
   useEffect(() => {
@@ -50,10 +57,9 @@ const ChatModal: React.FC = () => {
     setConfirmOpen(true);
   };
 
-  const handleConfirmClear = () => {
-    clearMessages();
+  const handleConfirmClear = async () => {
+    await clearHistory();
     setConfirmOpen(false);
-    showAlert.success('История чата очищена');
   };
 
   const handleCancelClear = () => {

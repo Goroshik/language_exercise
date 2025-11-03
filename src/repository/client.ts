@@ -1,4 +1,5 @@
 import { PrismaClient } from '../generated/prisma';
+import { ChatMessageRepository } from './ChatMessageRepository';
 import { EntityTagRepository } from './EntityTagRepository';
 import { LanguageRepository } from './LanguageRepository';
 import { SentenceHistoryRepository } from './SentenceHistoryRepository';
@@ -22,6 +23,7 @@ export const userSettingsRepository = new UserSettingsRepository(prisma);
 export const sentenceHistoryRepository = new SentenceHistoryRepository(prisma);
 export const languageRepository = new LanguageRepository(prisma);
 export const userAnswerRepository = new UserAnswerRepository(prisma);
+export const chatMessageRepository = new ChatMessageRepository(prisma);
 // Export Prisma client instance for direct access if needed
 export { prisma };
 

@@ -20,6 +20,8 @@ interface ChatStore {
   setIsOpen: (isOpen: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
   sendMessage: (message: string) => Promise<void>;
+  loadHistory: () => Promise<void>;
+  clearHistory: () => Promise<void>;
 }
 
 export const useChatStore = create<ChatStore>()(
@@ -90,6 +92,50 @@ export const useChatStore = create<ChatStore>()(
             );
           } finally {
             set({ isLoading: false });
+          }
+        },
+
+        loadHistory: async () => {
+          try {
+            const response = await fetch('/api/chat/message');
+            const data = await response.json();
+
+            if (!response.ok) {
+              throw new Error(data.error || 'Failed to load chat history');
+            }
+
+            // Convert DB messages to store format
+            const historyMessages: ChatMessage[] = data.messages.map((msg: { role: string; content: string }) => ({
+              role: msg.role as 'user' | 'assistant',
+              content: msg.content,
+              timestamp: Date.now() // DB doesn't have timestamp in current schema
+            }));
+
+            set({ messages: historyMessages });
+          } catch (error) {
+            console.error('Failed to load chat history:', error);
+            // Don't show error alert, just keep local messages
+          }
+        },
+
+        clearHistory: async () => {
+          try {
+            const response = await fetch('/api/chat/message', {
+              method: 'DELETE'
+            });
+
+            if (!response.ok) {
+              const data = await response.json();
+              throw new Error(data.error || 'Failed to clear chat history');
+            }
+
+            // Clear local messages after successful DB clear
+            set({ messages: [] });
+            showAlert.success('История чата очищена');
+          } catch (error) {
+            showAlert.error(
+              error instanceof Error ? error.message : 'Ошибка при очистке истории'
+            );
           }
         }
       }),

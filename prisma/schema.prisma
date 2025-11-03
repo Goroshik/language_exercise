@@ -68,6 +68,7 @@ model User {
   settings        UserSettings?
   sentenceHistory SentenceHistory[]
   userAnswers     UserAnswer[]
+  chatMessages    ChatMessage[]
 
   @@map("users")
 }
@@ -149,4 +150,16 @@ model UserAnswer {
 
   @@unique([userId, sentenceId])
   @@map("user_answers")
+}
+
+model ChatMessage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  role      String   // 'user' or 'assistant'
+  content   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
 }

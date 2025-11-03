@@ -1,4 +1,4 @@
-import { PrismaClient } from 'src/generated/prisma/client';
+import { PrismaClient } from 'src/generated/prisma';
 
 export class ChatMessageRepository {
   private client: PrismaClient['chatMessage'];
