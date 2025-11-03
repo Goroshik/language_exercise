@@ -18,7 +18,9 @@ import {
   List,
   ListItem,
   TextField,
-  Typography
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useSettingsStore } from 'src/store/settingsStore';
@@ -43,6 +45,8 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
   preFilledWord,
   preFilledTranslate
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [step, setStep] = useState<'input' | 'parsing' | 'review'>('input');
   const [inputText, setInputText] = useState('');
   const [parsedWords, setParsedWords] = useState<ParsedWord[]>([]);
@@ -206,10 +210,11 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
       onClose={handleClose}
       maxWidth="md"
       fullWidth
+      fullScreen={isMobile}
       PaperProps={{
         sx: {
-          height: '80vh',
-          maxHeight: '80vh'
+          height: isMobile ? '100%' : '80vh',
+          maxHeight: isMobile ? '100%' : '80vh'
         }
       }}
     >

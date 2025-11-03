@@ -15,7 +15,9 @@ import {
   Alert,
   CircularProgress,
   Box,
-  Typography
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import {
   AIModel,
@@ -42,6 +44,8 @@ interface FormData {
 }
 
 const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
@@ -177,7 +181,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
   const isModelDisabled = !selectedProvider || getFilteredModels().length === 0;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth fullScreen={isMobile}>
       <DialogTitle>Выбор AI модели</DialogTitle>
 
       <DialogContent>
