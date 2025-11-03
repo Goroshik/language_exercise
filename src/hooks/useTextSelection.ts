@@ -17,6 +17,10 @@ interface UseTextSelectionResult {
 // Selector for input elements where text selection should be ignored
 const INPUT_ELEMENTS_SELECTOR = 'input, textarea, [contenteditable="true"]';
 
+// Word count limits for text selection
+const MIN_WORD_COUNT = 1;
+const MAX_WORD_COUNT = 5;
+
 /**
  * Custom hook to handle text selection and translation
  * Shows a "Translate" button popover when text (up to 5 words) is selected
@@ -50,7 +54,7 @@ export const useTextSelection = (): UseTextSelectionResult => {
 
     // Count words in selection
     const wordCount = selectedText.split(/\s+/).filter(Boolean).length;
-    if (wordCount === 0 || wordCount > 5) return;
+    if (wordCount < MIN_WORD_COUNT || wordCount > MAX_WORD_COUNT) return;
 
     // Get selection position
     const rect = range.getBoundingClientRect();

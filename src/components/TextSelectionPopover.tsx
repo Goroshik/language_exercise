@@ -12,6 +12,12 @@ interface TextSelectionPopoverProps {
 // Delay before enabling click-outside handler to prevent immediate closure
 const CLICK_OUTSIDE_DELAY = 100;
 
+// Button text for translation action
+const TRANSLATE_BUTTON_TEXT = 'Перевести';
+
+// Z-index for the popover (below translation panel which uses 10000)
+const POPOVER_Z_INDEX = 9999;
+
 const TextSelectionPopover: React.FC<TextSelectionPopoverProps> = ({
   position,
   onTranslate,
@@ -22,7 +28,11 @@ const TextSelectionPopover: React.FC<TextSelectionPopoverProps> = ({
   // Handle clicks outside the popover to close it
   useEffect(() => {
     const handleClickOutside = (event: globalThis.MouseEvent) => {
-      if (popoverRef.current && !popoverRef.current.contains(event.target as globalThis.Node)) {
+      if (
+        popoverRef.current &&
+        event.target &&
+        !popoverRef.current.contains(event.target as globalThis.Node)
+      ) {
         onClose();
       }
     };
@@ -46,14 +56,14 @@ const TextSelectionPopover: React.FC<TextSelectionPopoverProps> = ({
         position: 'fixed',
         left: position.x,
         top: position.y,
-        zIndex: 9999,
+        zIndex: POPOVER_Z_INDEX,
         p: 1,
         backgroundColor: '#fff',
         border: '1px solid #e0e0e0'
       }}
     >
       <Button variant="contained" size="small" onClick={onTranslate} sx={{ textTransform: 'none' }}>
-        Перевести
+        {TRANSLATE_BUTTON_TEXT}
       </Button>
     </Paper>
   );
