@@ -126,12 +126,12 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
   const getLanguageDisplayName = (code?: string) => {
     if (!code) return '';
     const languageNames: Record<string, string> = {
-      'en': 'EN',
-      'pl': 'PL',
-      'de': 'DE',
-      'fr': 'FR',
-      'es': 'ES',
-      'it': 'IT'
+      en: 'EN',
+      pl: 'PL',
+      de: 'DE',
+      fr: 'FR',
+      es: 'ES',
+      it: 'IT'
     };
     return languageNames[code] || code.toUpperCase();
   };
@@ -147,9 +147,9 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
                   {word.word}
                 </Typography>
                 {word.languageCode && (
-                  <Chip 
-                    label={getLanguageDisplayName(word.languageCode)} 
-                    size="small" 
+                  <Chip
+                    label={getLanguageDisplayName(word.languageCode)}
+                    size="small"
                     color="primary"
                     variant="outlined"
                   />

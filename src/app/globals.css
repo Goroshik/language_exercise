@@ -5,6 +5,19 @@
   box-sizing: border-box;
 }
 
+/* Mobile responsive adjustments */
+@media (max-width: 600px) {
+  .global-container {
+    padding: 12px 8px;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .global-container {
+    padding: 16px 12px;
+  }
+}
+
 .exercise-block-compact {
   padding: 12px 10px;
   margin-bottom: 16px;

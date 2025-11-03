@@ -12,7 +12,9 @@ import {
   IconButton,
   Paper,
   TextField,
-  Typography
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useChatStore } from 'src/store/chatStore';
@@ -28,14 +30,30 @@ const DEFAULT_WIDTH = 380;
 const DEFAULT_HEIGHT = 500;
 
 const ChatWidget: React.FC = () => {
-  const { messages, isOpen, isLoading, setIsOpen, sendMessage, loadHistory, clearHistory, setCurrentLanguage } = useChatStore();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const {
+    messages,
+    isOpen,
+    isLoading,
+    setIsOpen,
+    sendMessage,
+    loadHistory,
+    clearHistory,
+    setCurrentLanguage
+  } = useChatStore();
   const { settings } = useSettingsStore();
   const [inputMessage, setInputMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
   const [isResizing, setIsResizing] = useState(false);
   const messagesEndRef = useRef<globalThis.HTMLDivElement | null>(null);
-  const resizeRef = useRef<{ startX: number; startY: number; startWidth: number; startHeight: number } | null>(null);
+  const resizeRef = useRef<{
+    startX: number;
+    startY: number;
+    startWidth: number;
+    startHeight: number;
+  } | null>(null);
 
   // Update current language in chat store when it changes
   useEffect(() => {
@@ -59,36 +77,43 @@ const ChatWidget: React.FC = () => {
   }, [messages, isOpen]);
 
   // Handle resize start
-  const handleResizeStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsResizing(true);
-    resizeRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      startWidth: size.width,
-      startHeight: size.height
-    };
-  }, [size]);
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent) => {
+      if (isMobile) return; // Disable resize on mobile
+      e.preventDefault();
+      e.stopPropagation();
+      setIsResizing(true);
+      resizeRef.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        startWidth: size.width,
+        startHeight: size.height
+      };
+    },
+    [size, isMobile]
+  );
 
   // Handle resize move
-  const handleResizeMove = useCallback((e: MouseEvent) => {
-    if (!isResizing || !resizeRef.current) return;
+  const handleResizeMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing || !resizeRef.current || isMobile) return;
 
-    const deltaX = resizeRef.current.startX - e.clientX;
-    const deltaY = resizeRef.current.startY - e.clientY;
+      const deltaX = resizeRef.current.startX - e.clientX;
+      const deltaY = resizeRef.current.startY - e.clientY;
 
-    const newWidth = Math.min(
-      MAX_WIDTH,
-      Math.max(MIN_WIDTH, resizeRef.current.startWidth + deltaX)
-    );
-    const newHeight = Math.min(
-      MAX_HEIGHT,
-      Math.max(MIN_HEIGHT, resizeRef.current.startHeight + deltaY)
-    );
+      const newWidth = Math.min(
+        MAX_WIDTH,
+        Math.max(MIN_WIDTH, resizeRef.current.startWidth + deltaX)
+      );
+      const newHeight = Math.min(
+        MAX_HEIGHT,
+        Math.max(MIN_HEIGHT, resizeRef.current.startHeight + deltaY)
+      );
 
-    setSize({ width: newWidth, height: newHeight });
-  }, [isResizing]);
+      setSize({ width: newWidth, height: newHeight });
+    },
+    [isResizing, isMobile]
+  );
 
   // Handle resize end
   const handleResizeEnd = useCallback(() => {
@@ -149,10 +174,11 @@ const ChatWidget: React.FC = () => {
         color="primary"
         aria-label="chat"
         onClick={() => setIsOpen(!isOpen)}
+        size={isMobile ? 'medium' : 'large'}
         sx={{
           position: 'fixed',
-          bottom: 24,
-          right: 24,
+          bottom: { xs: 16, sm: 24 },
+          right: { xs: 16, sm: 24 },
           zIndex: 1000
         }}
       >
@@ -165,12 +191,13 @@ const ChatWidget: React.FC = () => {
           elevation={8}
           sx={{
             position: 'fixed',
-            bottom: 96,
-            right: 24,
-            width: `${size.width}px`,
-            height: `${size.height}px`,
-            maxWidth: 'calc(100vw - 48px)',
-            maxHeight: 'calc(100vh - 120px)',
+            bottom: { xs: 72, sm: 96 },
+            right: { xs: 8, sm: 24 },
+            left: { xs: 8, sm: 'auto' },
+            width: isMobile ? 'calc(100vw - 16px)' : `${size.width}px`,
+            height: isMobile ? 'calc(100vh - 160px)' : `${size.height}px`,
+            maxWidth: isMobile ? '100%' : 'calc(100vw - 48px)',
+            maxHeight: isMobile ? 'calc(100vh - 160px)' : 'calc(100vh - 120px)',
             zIndex: 1000,
             display: 'flex',
             flexDirection: 'column',
@@ -179,44 +206,46 @@ const ChatWidget: React.FC = () => {
             transition: isResizing ? 'none' : 'opacity 0.3s'
           }}
         >
-          {/* Resize Handle */}
-          <Box
-            onMouseDown={handleResizeStart}
-            sx={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              width: 40,
-              height: 40,
-              cursor: 'nwse-resize',
-              zIndex: 10,
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'flex-start',
-              '&:hover .resize-indicator': {
-                opacity: 1
-              }
-            }}
-          >
+          {/* Resize Handle - only on desktop */}
+          {!isMobile && (
             <Box
-              className="resize-indicator"
+              onMouseDown={handleResizeStart}
               sx={{
-                width: 0,
-                height: 0,
-                borderLeft: '20px solid transparent',
-                borderTop: '20px solid',
-                borderTopColor: 'rgba(255, 255, 255, 0.3)',
-                opacity: 0.5,
-                transition: 'opacity 0.2s',
-                pointerEvents: 'none'
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: 40,
+                height: 40,
+                cursor: 'nwse-resize',
+                zIndex: 10,
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'flex-start',
+                '&:hover .resize-indicator': {
+                  opacity: 1
+                }
               }}
-            />
-          </Box>
+            >
+              <Box
+                className="resize-indicator"
+                sx={{
+                  width: 0,
+                  height: 0,
+                  borderLeft: '20px solid transparent',
+                  borderTop: '20px solid',
+                  borderTopColor: 'rgba(255, 255, 255, 0.3)',
+                  opacity: 0.5,
+                  transition: 'opacity 0.2s',
+                  pointerEvents: 'none'
+                }}
+              />
+            </Box>
+          )}
 
           {/* Header */}
           <Box
             sx={{
-              p: 2,
+              p: { xs: 1.5, sm: 2 },
               backgroundColor: 'primary.main',
               color: 'white',
               display: 'flex',
@@ -265,11 +294,7 @@ const ChatWidget: React.FC = () => {
             )}
 
             {messages.map((message, index) => (
-              <MarkdownMessage
-                key={index}
-                content={message.content}
-                role={message.role}
-              />
+              <MarkdownMessage key={index} content={message.content} role={message.role} />
             ))}
 
             {isLoading && (

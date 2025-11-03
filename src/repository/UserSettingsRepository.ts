@@ -74,7 +74,7 @@ export class UserSettingsRepository {
   async getChatIdForLanguage(userId: string, languageCode: string): Promise<string | null> {
     const settings = await this.findByUserId(userId);
     if (!settings?.chatIdsByLanguage) return null;
-    
+
     const chatIds = settings.chatIdsByLanguage as Record<string, string>;
     return chatIds[languageCode] || null;
   }
@@ -85,9 +85,9 @@ export class UserSettingsRepository {
   async setChatIdForLanguage(userId: string, languageCode: string, chatId: string) {
     const settings = await this.findByUserId(userId);
     const chatIds = (settings?.chatIdsByLanguage as Record<string, string>) || {};
-    
+
     chatIds[languageCode] = chatId;
-    
+
     return this.client.update({
       where: { userId },
       data: { chatIdsByLanguage: chatIds }

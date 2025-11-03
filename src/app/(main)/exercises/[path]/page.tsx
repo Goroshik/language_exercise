@@ -3,7 +3,15 @@
 import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
-import { Box, Button, ButtonGroup, Stack, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  ButtonGroup,
+  Stack,
+  Typography,
+  useMediaQuery,
+  useTheme
+} from '@mui/material';
 
 import { useAppStore } from 'src/store/appStore';
 import { useSettingsStore } from 'src/store/settingsStore';
@@ -23,19 +31,20 @@ interface Language {
 const Page: React.FC = () => {
   const { path } = useParams<{ path: string }>();
   const navigate = useRouter();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // State for button selections
   const [selectedMode, setSelectedMode] = useState<'student' | 'teacher'>('student');
   const [selectedLevel, setSelectedLevel] = useState<string>('A1');
   const [selectedWords, setSelectedWords] = useState<DictionaryWord[]>([]);
-  const [languages, setLanguages] = useState<Language[]>([]);
   const [selectedLanguageId, setSelectedLanguageId] = useState<string>('');
 
   // Get learning language from settings
   const { settings, loadSettings } = useSettingsStore();
 
   // Decode the topic name from URL - convert underscores to spaces and capitalize first letter
-  const selectedTopic = path 
+  const selectedTopic = path
     ? decodeURIComponent(path)
         .replace(/_/g, ' ')
         .replace(/\b\w/g, char => char.toUpperCase())
@@ -55,8 +64,7 @@ const Page: React.FC = () => {
         const res = await fetch('/api/languages');
         const data = await res.json();
         const langs = data.data || [];
-        setLanguages(langs);
-        
+
         // Use learning language from settings
         if (settings?.learningLanguage) {
           const userLang = langs.find((l: Language) => l.code === settings.learningLanguage);
@@ -136,58 +144,93 @@ const Page: React.FC = () => {
   return (
     <Box>
       <Stack
-        direction="row"
+        direction={isMobile ? 'column' : 'row'}
         sx={{
           marginBottom: 2,
-          alignItems: 'center',
-          gap: 2,
-          padding: 2,
+          alignItems: isMobile ? 'stretch' : 'center',
+          gap: { xs: 1, sm: 1.5, md: 2 },
+          padding: { xs: 1.5, sm: 2 },
           backgroundColor: '#f5f5f5',
           borderRadius: 2,
           flexWrap: 'wrap'
         }}
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Typography variant="h6">Тема:</Typography>
-          <Typography variant="h6" sx={{ fontWeight: 'normal' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            flexWrap: isMobile ? 'wrap' : 'nowrap',
+            width: isMobile ? '100%' : 'auto'
+          }}
+        >
+          <Typography variant="h6" sx={{ fontSize: { xs: '1rem', sm: '1.25rem' } }}>
+            Тема:
+          </Typography>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 'normal',
+              fontSize: { xs: '1rem', sm: '1.25rem' },
+              flexGrow: isMobile ? 1 : 0
+            }}
+          >
             {selectedTopic}
-          </Typography> 
+          </Typography>
           <Button
             size="small"
             onClick={handleBackToTopics}
             variant="outlined"
-            sx={{ textTransform: 'none' }}
+            sx={{
+              textTransform: 'none',
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              whiteSpace: 'nowrap'
+            }}
           >
             Сменить тему
           </Button>
         </Box>
 
         {/* Generation Mode Selection */}
-        <ButtonGroup variant="outlined" size="small">
+        <ButtonGroup variant="outlined" size="small" sx={{ width: isMobile ? '100%' : 'auto' }}>
           <Button
             variant={selectedMode === 'student' ? 'contained' : 'outlined'}
             onClick={() => setSelectedMode('student')}
-            sx={{ textTransform: 'none' }}
+            sx={{
+              textTransform: 'none',
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              flex: isMobile ? 1 : 'initial'
+            }}
           >
             Студент
           </Button>
           <Button
             variant={selectedMode === 'teacher' ? 'contained' : 'outlined'}
             onClick={() => setSelectedMode('teacher')}
-            sx={{ textTransform: 'none' }}
+            sx={{
+              textTransform: 'none',
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              flex: isMobile ? 1 : 'initial'
+            }}
           >
             Преподаватель
           </Button>
         </ButtonGroup>
 
         {/* Level Selection */}
-        <ButtonGroup variant="outlined" size="small">
+        <ButtonGroup variant="outlined" size="small" sx={{ width: isMobile ? '100%' : 'auto' }}>
           {['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].map(level => (
             <Button
               key={level}
               variant={selectedLevel === level ? 'contained' : 'outlined'}
               onClick={() => setSelectedLevel(level)}
-              sx={{ textTransform: 'none', minWidth: '45px' }}
+              sx={{
+                textTransform: 'none',
+                minWidth: { xs: 'auto', sm: '45px' },
+                fontSize: { xs: '0.75rem', sm: '0.875rem' },
+                flex: isMobile ? 1 : 'initial',
+                padding: { xs: '4px 8px', sm: '4px 11px' }
+              }}
             >
               {level}
             </Button>
@@ -195,20 +238,36 @@ const Page: React.FC = () => {
         </ButtonGroup>
       </Stack>
 
-      <Box sx={{ display: 'flex', gap: 3 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: { xs: 2, md: 3 }
+        }}
+      >
         {/* Main content - left side */}
-        <Box sx={{ flex: 1 }}>
+        <Box sx={{ flex: 1, minWidth: 0 }}>
           {exerciseBlocks.length === 0 ? (
             <Box sx={{ textAlign: 'center', mt: 4 }}>
-              <Typography variant="body1" sx={{ mb: 2 }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  mb: 2,
+                  fontSize: { xs: '0.875rem', sm: '1rem' }
+                }}
+              >
                 Упражнения для темы &#34;{selectedTopic}&#34; будут загружены здесь.
               </Typography>
               <Button
                 variant="contained"
-                size="large"
+                size={isMobile ? 'medium' : 'large'}
                 onClick={handleGenerateInitial}
                 disabled={isLoading}
                 className="add-more-button"
+                sx={{
+                  fontSize: { xs: '0.95rem', sm: '1.1rem' },
+                  padding: { xs: '10px 24px', sm: '12px 32px' }
+                }}
               >
                 {isLoading ? 'Генерируем...' : 'Создать упражнения'}
               </Button>
@@ -229,10 +288,14 @@ const Page: React.FC = () => {
               <Box sx={{ textAlign: 'center', mt: 4 }}>
                 <Button
                   variant="outlined"
-                  size="large"
+                  size={isMobile ? 'medium' : 'large'}
                   onClick={handleGenerateMore}
                   disabled={isLoading}
                   className="add-more-button"
+                  sx={{
+                    fontSize: { xs: '0.95rem', sm: '1.1rem' },
+                    padding: { xs: '10px 24px', sm: '12px 32px' }
+                  }}
                 >
                   {isLoading ? 'Генерируем...' : 'Добавить ещё упражнения'}
                 </Button>
@@ -241,10 +304,24 @@ const Page: React.FC = () => {
           )}
         </Box>
 
-        {/* Word selector - right side */}
-        <Box sx={{ width: '300px', flexShrink: 0 }}>
-          <WordSelector selectedWords={selectedWords} onWordsChange={setSelectedWords} />
-        </Box>
+        {/* Word selector - right side / bottom on mobile */}
+        {!isMobile && (
+          <Box
+            sx={{
+              width: { md: '300px', lg: '300px' },
+              flexShrink: 0
+            }}
+          >
+            <WordSelector selectedWords={selectedWords} onWordsChange={setSelectedWords} />
+          </Box>
+        )}
+
+        {/* Word selector for mobile - collapsible or at bottom */}
+        {isMobile && exerciseBlocks.length > 0 && (
+          <Box sx={{ width: '100%', mt: 2 }}>
+            <WordSelector selectedWords={selectedWords} onWordsChange={setSelectedWords} />
+          </Box>
+        )}
       </Box>
     </Box>
   );
