@@ -13,6 +13,7 @@ export class UserSettingsRepository {
     aiModel?: string;
     language?: string;
     translationLang?: string;
+    lastChatId?: string;
     customSettings?: any;
   }) {
     return this.client.create({ data });
@@ -31,6 +32,7 @@ export class UserSettingsRepository {
       aiModel?: string;
       language?: string;
       translationLang?: string;
+      lastChatId?: string;
       customSettings?: any;
     }
   ) {
@@ -47,6 +49,7 @@ export class UserSettingsRepository {
       aiModel?: string;
       language?: string;
       translationLang?: string;
+      lastChatId?: string;
       customSettings?: any;
     }
   ) {
@@ -54,13 +57,21 @@ export class UserSettingsRepository {
       theme: data.theme,
       aiModel: data.aiModel,
       language: data.language,
-      translationLang: data.translationLang
+      translationLang: data.translationLang,
+      lastChatId: data.lastChatId
     };
 
     return this.client.upsert({
       where: { userId },
       create: { userId, ...settings },
       update: settings
+    });
+  }
+
+  async updateLastChatId(userId: string, chatId: string) {
+    return this.client.update({
+      where: { userId },
+      data: { lastChatId: chatId }
     });
   }
 

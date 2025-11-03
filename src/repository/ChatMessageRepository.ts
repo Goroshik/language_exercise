@@ -7,27 +7,45 @@ export class ChatMessageRepository {
     this.client = client.chatMessage;
   }
 
-  async addMessage({ userId, role, content }: { userId: string; role: string; content: string }) {
+  async addMessage({ userId, chatId, role, content }: { userId: string; chatId: string; role: string; content: string }) {
     return this.client.create({
       data: {
         userId,
+        chatId,
         role,
         content
       }
     });
   }
 
-  async getMessages({ userId, limit = 50 }: { userId: string; limit?: number }) {
+  async getMessages({ userId, chatId, limit = 50 }: { userId: string; chatId: string; limit?: number }) {
     return this.client.findMany({
-      where: { userId },
+      where: { userId, chatId },
       orderBy: { createdAt: 'asc' },
       take: limit
     });
   }
 
-  async deleteAllMessages(userId: string) {
+  async deleteAllMessages(userId: string, chatId: string) {
     return this.client.deleteMany({
-      where: { userId }
+      where: { userId, chatId }
     });
+  }
+
+  async deleteChatById(userId: string, chatId: string) {
+    return this.client.deleteMany({
+      where: { userId, chatId }
+    });
+  }
+
+  async getAllChats(userId: string) {
+    // Получаем список всех уникальных chatId для пользователя
+    const messages = await this.client.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      distinct: ['chatId']
+    });
+
+    return Array.from(new Set(messages.map(m => m.chatId)));
   }
 }

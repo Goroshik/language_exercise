@@ -1,5 +1,6 @@
+import { randomUUID } from 'crypto';
 import { CHAT_PROMPTS } from 'src/prompts';
-import { chatMessageRepository } from 'src/repository/client';
+import { chatMessageRepository, userSettingsRepository } from 'src/repository/client';
 import { AIFactory } from './aiFactory';
 
 export interface ChatMessage {
@@ -10,24 +11,37 @@ export interface ChatMessage {
 export interface SendMessageRequest {
   message: string;
   userId: string;
+  chatId?: string;
 }
 
 export interface SendMessageResponse {
   message: ChatMessage;
+  chatId: string;
 }
 
 export class ChatService {
   /**
    * Send a message to the AI chat assistant
-   * @param request - Contains user message and userId
-   * @returns Response with assistant's reply
+   * @param request - Contains user message, userId, and optional chatId
+   * @returns Response with assistant's reply and chatId
    */
   static async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
-    const { message, userId } = request;
+    const { message, userId, chatId: providedChatId } = request;
 
-    // Save user message to database first
+    // Get or create chatId
+    let chatId = providedChatId;
+    if (!chatId) {
+      // Generate new chatId
+      chatId = randomUUID();
+      
+      // Update user settings with new lastChatId
+      await userSettingsRepository.upsert(userId, { lastChatId: chatId });
+    }
+
+    // Save user message to database with chatId
     await chatMessageRepository.addMessage({
       userId,
+      chatId,
       role: 'user',
       content: message
     });
@@ -50,9 +64,10 @@ export class ChatService {
       throw new Error(aiResponse.error);
     }
 
-    // Save assistant response to database
+    // Save assistant response to database with chatId
     await chatMessageRepository.addMessage({
       userId,
+      chatId,
       role: 'assistant',
       content: aiResponse.text
     });
@@ -61,29 +76,66 @@ export class ChatService {
       message: {
         role: 'assistant',
         content: aiResponse.text
-      }
+      },
+      chatId
     };
   }
 
   /**
-   * Get chat history for a user (from database)
+   * Get chat history for a user and specific chat
    * @param userId - User ID
+   * @param chatId - Chat ID (if not provided, gets from user settings)
    * @param limit - Maximum number of messages to retrieve
-   * @returns Array of chat messages
+   * @returns Array of chat messages and chatId
    */
-  static async getChatHistory(userId: string, limit = 50): Promise<ChatMessage[]> {
-    const messages = await chatMessageRepository.getMessages({ userId, limit });
-    return messages.map((msg: { role: string; content: string }) => ({
-      role: msg.role as 'user' | 'assistant',
-      content: msg.content
-    }));
+  static async getChatHistory(userId: string, chatId?: string, limit = 50): Promise<{ messages: ChatMessage[]; chatId: string | null }> {
+    // If no chatId provided, get from user settings
+    let activeChatId = chatId;
+    if (!activeChatId) {
+      const settings = await userSettingsRepository.findByUserId(userId);
+      activeChatId = settings?.lastChatId || undefined;
+    }
+
+    if (!activeChatId) {
+      return { messages: [], chatId: null };
+    }
+
+    const messages = await chatMessageRepository.getMessages({ userId, chatId: activeChatId, limit });
+    return {
+      messages: messages.map((msg: { role: string; content: string }) => ({
+        role: msg.role as 'user' | 'assistant',
+        content: msg.content
+      })),
+      chatId: activeChatId
+    };
   }
 
   /**
-   * Clear chat history for a user
+   * Clear chat history for a specific chat
    * @param userId - User ID
+   * @param chatId - Chat ID
    */
-  static async clearChatHistory(userId: string): Promise<void> {
-    await chatMessageRepository.deleteAllMessages(userId);
+  static async clearChatHistory(userId: string, chatId: string): Promise<void> {
+    await chatMessageRepository.deleteAllMessages(userId, chatId);
+  }
+
+  /**
+   * Create a new chat session
+   * @param userId - User ID
+   * @returns New chatId
+   */
+  static async createNewChat(userId: string): Promise<string> {
+    const chatId = randomUUID();
+    await userSettingsRepository.upsert(userId, { lastChatId: chatId });
+    return chatId;
+  }
+
+  /**
+   * Get list of all chats for a user
+   * @param userId - User ID
+   * @returns Array of chat IDs
+   */
+  static async getAllChats(userId: string): Promise<string[]> {
+    return chatMessageRepository.getAllChats(userId);
   }
 }

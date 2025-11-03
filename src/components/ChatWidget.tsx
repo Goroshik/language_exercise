@@ -310,11 +310,11 @@ const ChatWidget: React.FC = () => {
 
       <ConfirmDialog
         open={confirmOpen}
-        title="Очистить историю чата"
-        message="Вы уверены, что хотите очистить историю чата? Это действие нельзя отменить."
+        title="Начать новый чат"
+        message="Вы хотите начать новый чат? Текущая переписка сохранится в истории."
         onConfirm={handleConfirmClear}
         onCancel={handleCancelClear}
-        confirmText="Очистить"
+        confirmText="Начать новый"
         cancelText="Отмена"
       />
     </>

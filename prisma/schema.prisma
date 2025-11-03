@@ -95,6 +95,7 @@ model UserSettings {
   language        String?  @default("en") // interface language
   translationLang String?  @default("RU") // target translation language
   lastSelectedTopic String? // last selected topic for exercises
+  lastChatId      String? // last active chat ID for syncing across devices
   customSettings  Json? // for additional flexible settings storage
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -155,11 +156,13 @@ model UserAnswer {
 model ChatMessage {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   userId    String   @db.ObjectId
+  chatId    String   // ID of the chat session
   role      String   // 'user' or 'assistant'
   content   String
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId, chatId])
   @@map("chat_messages")
 }

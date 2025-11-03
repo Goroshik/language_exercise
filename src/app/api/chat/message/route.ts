@@ -10,13 +10,13 @@ export async function POST(request: NextRequest) {
     const userId = getUserIdFromRequest(request);
     const body = await safeJson(request);
 
-    const { message } = body;
+    const { message, chatId } = body;
 
     if (!message || typeof message !== 'string') {
       throw new NextResponseError('Message is required', 400);
     }
 
-    const result = await ChatService.sendMessage({ message, userId });
+    const result = await ChatService.sendMessage({ message, userId, chatId });
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {
@@ -35,10 +35,11 @@ export async function GET(request: NextRequest) {
     const userId = getUserIdFromRequest(request);
     const { searchParams } = new URL(request.url);
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50;
+    const chatId = searchParams.get('chatId') || undefined;
 
-    const messages = await ChatService.getChatHistory(userId, limit);
+    const result = await ChatService.getChatHistory(userId, chatId, limit);
 
-    return NextResponse.json({ messages }, { status: 200 });
+    return NextResponse.json(result, { status: 200 });
   } catch (error) {
     if (error instanceof NextResponseError) {
       return error.response;
@@ -53,8 +54,14 @@ export async function GET(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     const userId = getUserIdFromRequest(request);
+    const { searchParams } = new URL(request.url);
+    const chatId = searchParams.get('chatId');
 
-    await ChatService.clearChatHistory(userId);
+    if (!chatId) {
+      throw new NextResponseError('chatId is required', 400);
+    }
+
+    await ChatService.clearChatHistory(userId, chatId);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {

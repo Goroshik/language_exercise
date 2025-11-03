@@ -12,6 +12,7 @@ export interface ChatMessage {
 
 interface ChatStore {
   messages: ChatMessage[];
+  chatId: string | null;
   isOpen: boolean;
   isLoading: boolean;
   addMessage: (message: ChatMessage) => void;
@@ -19,9 +20,11 @@ interface ChatStore {
   clearMessages: () => void;
   setIsOpen: (isOpen: boolean) => void;
   setIsLoading: (isLoading: boolean) => void;
+  setChatId: (chatId: string | null) => void;
   sendMessage: (message: string) => Promise<void>;
   loadHistory: () => Promise<void>;
   clearHistory: () => Promise<void>;
+  createNewChat: () => void;
 }
 
 export const useChatStore = create<ChatStore>()(
@@ -29,6 +32,7 @@ export const useChatStore = create<ChatStore>()(
     persist(
       (set, get) => ({
         messages: [],
+        chatId: null,
         isOpen: false,
         isLoading: false,
 
@@ -54,6 +58,14 @@ export const useChatStore = create<ChatStore>()(
           set({ isLoading });
         },
 
+        setChatId: (chatId: string | null) => {
+          set({ chatId });
+        },
+
+        createNewChat: () => {
+          set({ messages: [], chatId: null });
+        },
+
         sendMessage: async (message: string) => {
           const userMessage = message.trim();
           if (!userMessage || get().isLoading) return;
@@ -71,13 +83,21 @@ export const useChatStore = create<ChatStore>()(
             const response = await fetch('/api/chat/message', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ message: userMessage })
+              body: JSON.stringify({ 
+                message: userMessage,
+                chatId: get().chatId 
+              })
             });
 
             const data = await response.json();
 
             if (!response.ok) {
               throw new Error(data.error || 'Failed to send message');
+            }
+
+            // Update chatId if it's a new chat
+            if (data.chatId && data.chatId !== get().chatId) {
+              set({ chatId: data.chatId });
             }
 
             // Add AI assistant's response to local store
@@ -104,8 +124,13 @@ export const useChatStore = create<ChatStore>()(
               throw new Error(data.error || 'Failed to load chat history');
             }
 
+            // Set chatId from server response
+            if (data.chatId) {
+              set({ chatId: data.chatId });
+            }
+
             // Convert DB messages to store format
-            const historyMessages: ChatMessage[] = data.messages.map((msg: { role: string; content: string }) => ({
+            const historyMessages: ChatMessage[] = (data.messages || []).map((msg: { role: string; content: string }) => ({
               role: msg.role as 'user' | 'assistant',
               content: msg.content,
               timestamp: Date.now() // DB doesn't have timestamp in current schema
@@ -119,24 +144,9 @@ export const useChatStore = create<ChatStore>()(
         },
 
         clearHistory: async () => {
-          try {
-            const response = await fetch('/api/chat/message', {
-              method: 'DELETE'
-            });
-
-            if (!response.ok) {
-              const data = await response.json();
-              throw new Error(data.error || 'Failed to clear chat history');
-            }
-
-            // Clear local messages after successful DB clear
-            set({ messages: [] });
-            showAlert.success('История чата очищена');
-          } catch (error) {
-            showAlert.error(
-              error instanceof Error ? error.message : 'Ошибка при очистке истории'
-            );
-          }
+          // Simply start a new chat - old messages stay in DB
+          set({ messages: [], chatId: null });
+          showAlert.success('Начат новый чат');
         }
       }),
       {
