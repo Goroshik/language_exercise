@@ -71,6 +71,7 @@ export const useAppStore = create<AppStore>()(
 
         const data = response.data || [];
         const sentenceIds = response.sentenceIds || [];
+        const hasAnswers = response.hasAnswers || {};
 
         let sentencesList;
 
@@ -79,14 +80,16 @@ export const useAppStore = create<AppStore>()(
           sentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
             correctAnswers: [],
-            sentenceId: sentenceIds[index] || undefined
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
           }));
         } else {
           // For teacher mode, accept both formats: {{input}} and **bold**
           sentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
             correctAnswers: [],
-            sentenceId: sentenceIds[index] || undefined
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
           }));
         }
 
@@ -143,6 +146,7 @@ export const useAppStore = create<AppStore>()(
 
         const data = response.data || [];
         const sentenceIds = response.sentenceIds || [];
+        const hasAnswers = response.hasAnswers || {};
 
         let newSentencesList;
 
@@ -151,14 +155,16 @@ export const useAppStore = create<AppStore>()(
           newSentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
             correctAnswers: [],
-            sentenceId: sentenceIds[index] || undefined
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
           }));
         } else {
           // For teacher mode, accept both formats: {{input}} and **bold**
           newSentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
             correctAnswers: [],
-            sentenceId: sentenceIds[index] || undefined
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
           }));
         }
 
@@ -218,6 +224,7 @@ export const useAppStore = create<AppStore>()(
 
         const data = response.data || [];
         const sentenceIds = response.sentenceIds || [];
+        const hasAnswers = response.hasAnswers || {};
 
         let sentencesList;
 
@@ -225,13 +232,15 @@ export const useAppStore = create<AppStore>()(
           sentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
             correctAnswers: [],
-            sentenceId: sentenceIds[index] || undefined
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
           }));
         } else {
           sentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
             correctAnswers: [],
-            sentenceId: sentenceIds[index] || undefined
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
           }));
         }
 

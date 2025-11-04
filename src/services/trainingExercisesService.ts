@@ -1,5 +1,5 @@
 import Joi from 'joi';
-import { sentenceHistoryRepository } from 'src/repository/client';
+import { sentenceHistoryRepository, userAnswerRepository } from 'src/repository/client';
 
 export interface TrainingExercisesRequest {
   topic: string;
@@ -53,11 +53,27 @@ export async function getTrainingExercisesService(
       };
     }
 
+    // Check which sentences have previous answers
+    const sentenceIds = sentences.map(s => s.id);
+    const hasAnswers = await userAnswerRepository.checkAnswersExist({
+      userId,
+      sentenceIds
+    });
+
     // Format response similar to generateText service
     const data = sentences.map(s => s.sentence);
-    const sentenceIds = sentences.map(s => s.id);
 
-    return { status: 200, body: { success: true, data: { data, sentenceIds } } };
+    return { 
+      status: 200, 
+      body: { 
+        success: true, 
+        data: { 
+          data, 
+          sentenceIds,
+          hasAnswers // добавляем информацию о наличии ответов
+        } 
+      } 
+    };
   } catch (err) {
     console.error('Error in getTrainingExercisesService:', err);
     return { status: 500, body: { error: 'Internal server error' } };

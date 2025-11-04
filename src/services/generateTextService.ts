@@ -1,6 +1,10 @@
 import Joi from 'joi';
 import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
-import { languageRepository, sentenceHistoryRepository } from 'src/repository/client';
+import {
+  languageRepository,
+  sentenceHistoryRepository,
+  userAnswerRepository
+} from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
 import { DictionaryWord } from 'src/types';
 import { showAlert } from 'src/utils/alert';
@@ -150,13 +154,24 @@ export async function processGenerateTextRequest(
       }
     }
 
+    // Check which sentences have previous answers (для новых предложений всегда будет false)
+    const hasAnswers: Record<string, boolean> = {};
+    if (sentenceIds.length > 0) {
+      const answersMap = await userAnswerRepository.checkAnswersExist({
+        userId,
+        sentenceIds
+      });
+      Object.assign(hasAnswers, answersMap);
+    }
+
     return { 
       status: 200, 
       body: { 
         success: true, 
         data: { 
           data: result, 
-          sentenceIds 
+          sentenceIds,
+          hasAnswers // добавляем информацию о наличии ответов
         } 
       } 
     };
