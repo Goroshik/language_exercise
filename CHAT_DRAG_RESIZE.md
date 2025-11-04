@@ -31,9 +31,9 @@ const DEFAULT_HEIGHT = 500;
 ### State управление
 
 ```typescript
-const [size, setSize] = useState({ 
-  width: DEFAULT_WIDTH, 
-  height: DEFAULT_HEIGHT 
+const [size, setSize] = useState({
+  width: DEFAULT_WIDTH,
+  height: DEFAULT_HEIGHT
 });
 const [isResizing, setIsResizing] = useState(false);
 const resizeRef = useRef<{
@@ -49,41 +49,47 @@ const resizeRef = useRef<{
 #### 1. Начало изменения (onMouseDown)
 
 ```typescript
-const handleResizeStart = useCallback((e: React.MouseEvent) => {
-  e.preventDefault();
-  e.stopPropagation();
-  setIsResizing(true);
-  resizeRef.current = {
-    startX: e.clientX,
-    startY: e.clientY,
-    startWidth: size.width,
-    startHeight: size.height
-  };
-}, [size]);
+const handleResizeStart = useCallback(
+  (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsResizing(true);
+    resizeRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startWidth: size.width,
+      startHeight: size.height
+    };
+  },
+  [size]
+);
 ```
 
 #### 2. Процесс изменения (onMouseMove)
 
 ```typescript
-const handleResizeMove = useCallback((e: MouseEvent) => {
-  if (!isResizing || !resizeRef.current) return;
+const handleResizeMove = useCallback(
+  (e: MouseEvent) => {
+    if (!isResizing || !resizeRef.current) return;
 
-  // Разница в пикселях от начальной точки
-  const deltaX = resizeRef.current.startX - e.clientX;
-  const deltaY = resizeRef.current.startY - e.clientY;
+    // Разница в пикселях от начальной точки
+    const deltaX = resizeRef.current.startX - e.clientX;
+    const deltaY = resizeRef.current.startY - e.clientY;
 
-  // Новые размеры с ограничениями
-  const newWidth = Math.min(
-    MAX_WIDTH,
-    Math.max(MIN_WIDTH, resizeRef.current.startWidth + deltaX)
-  );
-  const newHeight = Math.min(
-    MAX_HEIGHT,
-    Math.max(MIN_HEIGHT, resizeRef.current.startHeight + deltaY)
-  );
+    // Новые размеры с ограничениями
+    const newWidth = Math.min(
+      MAX_WIDTH,
+      Math.max(MIN_WIDTH, resizeRef.current.startWidth + deltaX)
+    );
+    const newHeight = Math.min(
+      MAX_HEIGHT,
+      Math.max(MIN_HEIGHT, resizeRef.current.startHeight + deltaY)
+    );
 
-  setSize({ width: newWidth, height: newHeight });
-}, [isResizing]);
+    setSize({ width: newWidth, height: newHeight });
+  },
+  [isResizing]
+);
 ```
 
 #### 3. Завершение изменения (onMouseUp)
@@ -103,7 +109,7 @@ useEffect(() => {
     // Добавляем глобальные обработчики
     document.addEventListener('mousemove', handleResizeMove);
     document.addEventListener('mouseup', handleResizeEnd);
-    
+
     // Меняем курсор и блокируем выделение текста
     document.body.style.cursor = 'nwse-resize';
     document.body.style.userSelect = 'none';
@@ -138,7 +144,7 @@ useEffect(() => {
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
     '&:hover .resize-indicator': {
-      opacity: 1  // Показываем индикатор при наведении
+      opacity: 1 // Показываем индикатор при наведении
     }
   }}
 >
@@ -205,6 +211,7 @@ useEffect(() => {
 ### Логика направления
 
 Изменение размера происходит влево-вверх (от правого нижнего угла):
+
 - Движение мыши влево → увеличение ширины
 - Движение мыши вверх → увеличение высоты
 
@@ -212,12 +219,12 @@ useEffect(() => {
 
 ## Отличия от кнопки expand/collapse
 
-| Старый способ (кнопка) | Новый способ (drag) |
-|------------------------|---------------------|
+| Старый способ (кнопка)  | Новый способ (drag)      |
+| ----------------------- | ------------------------ |
 | 2 фиксированных размера | Любой размер в диапазоне |
-| Клик по кнопке | Перетаскивание угла |
-| Резкое изменение | Плавное изменение |
-| Занимает место в UI | Скрытый функционал |
+| Клик по кнопке          | Перетаскивание угла      |
+| Резкое изменение        | Плавное изменение        |
+| Занимает место в UI     | Скрытый функционал       |
 
 ## Использование
 
@@ -297,6 +304,7 @@ useEffect(() => {
 ## Заключение
 
 Теперь ChatWidget имеет:
+
 - 🎯 Интуитивное изменение размера drag-and-drop
 - 👁️ Визуальный индикатор зоны захвата
 - 🔒 Ограничения для оптимального UX

@@ -4,7 +4,6 @@ import { userRepository } from 'src/repository/client';
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || '***REMOVED***');
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
-const JWT_COOKIE_NAME = process.env.JWT_COOKIE_NAME || 'app_token';
 
 export async function loginService(email: string, password: string) {
   if (!email || !password) {

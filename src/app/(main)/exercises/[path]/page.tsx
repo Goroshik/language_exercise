@@ -28,14 +28,13 @@ const Page: React.FC = () => {
   const [selectedMode, setSelectedMode] = useState<'student' | 'teacher'>('student');
   const [selectedLevel, setSelectedLevel] = useState<string>('A1');
   const [selectedWords, setSelectedWords] = useState<DictionaryWord[]>([]);
-  const [languages, setLanguages] = useState<Language[]>([]);
   const [selectedLanguageId, setSelectedLanguageId] = useState<string>('');
 
   // Get learning language from settings
   const { settings, loadSettings } = useSettingsStore();
 
   // Decode the topic name from URL - convert underscores to spaces and capitalize first letter
-  const selectedTopic = path 
+  const selectedTopic = path
     ? decodeURIComponent(path)
         .replace(/_/g, ' ')
         .replace(/\b\w/g, char => char.toUpperCase())
@@ -55,8 +54,7 @@ const Page: React.FC = () => {
         const res = await fetch('/api/languages');
         const data = await res.json();
         const langs = data.data || [];
-        setLanguages(langs);
-        
+
         // Use learning language from settings
         if (settings?.learningLanguage) {
           const userLang = langs.find((l: Language) => l.code === settings.learningLanguage);
@@ -151,7 +149,7 @@ const Page: React.FC = () => {
           <Typography variant="h6">Тема:</Typography>
           <Typography variant="h6" sx={{ fontWeight: 'normal' }}>
             {selectedTopic}
-          </Typography> 
+          </Typography>
           <Button
             size="small"
             onClick={handleBackToTopics}

@@ -11,12 +11,14 @@ According to the task, complete documentation of the word import system was crea
 ## 📚 Созданные файлы / Created Files
 
 ### 1. **WORDS_IMPORT.md** - Основная документация для разработчиков
-   **Main documentation for developers**
+
+**Main documentation for developers**
 
 **Объем**: 372 строки, ~11KB  
 **Scope**: 372 lines, ~11KB
 
 **Содержание / Contents:**
+
 - ✅ Обзор системы с двумя методами импорта (ручной + AI)
   - Overview of system with two import methods (manual + AI)
 - ✅ Архитектура с компонентами, API маршрутами, сервисами
@@ -35,6 +37,7 @@ According to the task, complete documentation of the word import system was crea
   - Testing recommendations
 
 **Ключевые разделы / Key Sections:**
+
 - Manual Word Addition (Ручное добавление)
 - AI-Powered Text Import (Импорт с помощью AI)
 - Data Flow Diagrams (Диаграммы потока данных)
@@ -44,7 +47,8 @@ According to the task, complete documentation of the word import system was crea
 ---
 
 ### 2. **TODO_WORDS.md** - TODO лист с задачами для будущих агентов
-   **TODO list with tasks for future agents**
+
+**TODO list with tasks for future agents**
 
 **Объем**: 391 строка, ~16KB  
 **Scope**: 391 lines, ~16KB
@@ -52,12 +56,14 @@ According to the task, complete documentation of the word import system was crea
 **Структура / Structure:**
 
 #### **Приоритет 1: Критические проблемы / Priority 1: Critical Issues**
+
 - 🔴 **1.1** Несоответствие формата ответа API
   - API response format inconsistency
 - 🔴 **1.2** Отсутствует резервный ручной парсинг
   - Missing fallback manual parsing
 
 #### **Приоритет 2: Улучшение функций / Priority 2: Feature Enhancements**
+
 - 💡 **2.1** Массовое редактирование слов
   - Bulk edit actions
 - 💡 **2.2** Поддержка нескольких языковых пар
@@ -70,6 +76,7 @@ According to the task, complete documentation of the word import system was crea
   - Undo/Redo support
 
 #### **Приоритет 3: Пользовательский опыт / Priority 3: User Experience**
+
 - 💡 **3.1** Улучшенные состояния загрузки
   - Improved loading states
 - 💡 **3.2** Горячие клавиши
@@ -80,6 +87,7 @@ According to the task, complete documentation of the word import system was crea
   - Real-time validation
 
 #### **Приоритет 4: Производительность / Priority 4: Performance**
+
 - 💡 **4.1** Ограничения размера пакетов
   - Batch size limits
 - 💡 **4.2** Оптимизация API вызовов
@@ -88,6 +96,7 @@ According to the task, complete documentation of the word import system was crea
   - Parsing results caching
 
 #### **Приоритет 5: Тестирование / Priority 5: Testing**
+
 - ⚠️ **5.1** Юнит-тесты
   - Unit tests
 - ⚠️ **5.2** E2E тесты
@@ -96,6 +105,7 @@ According to the task, complete documentation of the word import system was crea
   - OpenAPI documentation
 
 #### **Приоритет 6: Продвинутые функции / Priority 6: Advanced Features**
+
 - 💡 **6.1** Умные подсказки
   - Smart suggestions
 - 💡 **6.2** Оценка качества перевода
@@ -108,6 +118,7 @@ According to the task, complete documentation of the word import system was crea
   - Collaborative import
 
 **Каждая задача включает / Each task includes:**
+
 - ✅ Подробное описание проблемы/функции
   - Detailed problem/feature description
 - ✅ Ожидаемое поведение
@@ -120,11 +131,13 @@ According to the task, complete documentation of the word import system was crea
 ---
 
 ### 3. **.github/copilot-instructions.md** - Обновлен для Copilot
-   **Updated for Copilot**
+
+**Updated for Copilot**
 
 **Добавлена новая секция / New section added:**
 
 #### **"Word Import System"**
+
 - 📖 Краткая справка по двум методам импорта
   - Quick reference for two import methods
 - 📖 Критически важные детали реализации
@@ -156,9 +169,7 @@ According to the task, complete documentation of the word import system was crea
 
 ```json
 {
-  "words": [
-    { "word": "apple", "translate": "яблоко" }
-  ]
+  "words": [{ "word": "apple", "translate": "яблоко" }]
 }
 ```
 
@@ -237,6 +248,7 @@ Frontend Component (ImportWordsModal)
 ## 🧪 Тестирование / Testing
 
 **Сценарии для тестирования / Test Scenarios:**
+
 1. ✅ Ручное добавление одного слова
    - Manual addition of single word
 2. ✅ Импорт текста с AI парсингом
@@ -255,14 +267,17 @@ Frontend Component (ImportWordsModal)
 ## 📁 Важные файлы / Important Files
 
 ### Frontend
+
 - `src/components/ImportWordsModal.tsx` - UI компонент с 3 шагами
 - `src/components/WordTranslationPanel.tsx` - Панель перевода с кнопкой добавления
 
 ### Backend
+
 - `src/app/api/dictionary/words/route.ts` - API для сохранения слов
 - `src/app/api/ai/parse-words/route.ts` - API для AI парсинга
 
 ### Services
+
 - `src/services/wordsService.ts` - Бизнес-логика слов
 - `src/services/parseWordsFromTextService.ts` - Оркестрация AI парсинга
 - `src/services/googleAI.ts` - Реализация Gemini
@@ -270,6 +285,7 @@ Frontend Component (ImportWordsModal)
 - `src/services/claudeAI.ts` - Реализация Claude
 
 ### Repository
+
 - `src/repository/WordRepository.ts` - Слой данных с методом `addManyWord()`
 
 ---
@@ -277,6 +293,7 @@ Frontend Component (ImportWordsModal)
 ## 🚀 Как использовать документацию / How to Use Documentation
 
 ### Для разработчиков / For Developers
+
 1. Читайте **WORDS_IMPORT.md** для понимания системы
    - Read **WORDS_IMPORT.md** to understand the system
 2. Используйте как референс при изменениях
@@ -285,6 +302,7 @@ Frontend Component (ImportWordsModal)
    - Check code examples and API contracts
 
 ### Для ИИ-агентов / For AI Agents
+
 1. Читайте **.github/copilot-instructions.md** для быстрого старта
    - Read **.github/copilot-instructions.md** for quick start
 2. Используйте **TODO_WORDS.md** для выбора задачи
@@ -293,6 +311,7 @@ Frontend Component (ImportWordsModal)
    - Copy "Agent Prompt" from TODO to execute task
 
 ### Для менеджеров / For Managers
+
 1. Читайте "Priority" секции в **TODO_WORDS.md**
    - Read "Priority" sections in **TODO_WORDS.md**
 2. Приоритезируйте задачи по меткам (🔴 критичные, 💡 улучшения)

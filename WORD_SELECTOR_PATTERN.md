@@ -25,9 +25,9 @@ The Word Selector follows a specific UX pattern:
 
 ```typescript
 interface WordSelectorProps {
-  selectedWords: DictionaryWord[];      // Currently selected words
-  onWordsChange: (words: DictionaryWord[]) => void;  // Callback when selection changes
-  maxWords?: number;                    // Maximum words that can be selected (default: 5)
+  selectedWords: DictionaryWord[]; // Currently selected words
+  onWordsChange: (words: DictionaryWord[]) => void; // Callback when selection changes
+  maxWords?: number; // Maximum words that can be selected (default: 5)
 }
 ```
 
@@ -36,6 +36,7 @@ interface WordSelectorProps {
 #### 1. Search Functionality
 
 **User Experience:**
+
 - Search input at the top of the selector
 - Placeholder: "Поиск слов..." (Search words...)
 - Real-time filtering as user types
@@ -43,6 +44,7 @@ interface WordSelectorProps {
 - **Case-insensitive matching**
 
 **Implementation:**
+
 ```typescript
 const getFilteredWords = (searchQuery: string = '') => {
   return words.filter(word => {
@@ -58,6 +60,7 @@ const getFilteredWords = (searchQuery: string = '') => {
 #### 2. Word Selection
 
 **User Experience:**
+
 - Checkbox next to each word
 - Click anywhere on the word row to toggle selection
 - Selected words show checked checkbox
@@ -65,6 +68,7 @@ const getFilteredWords = (searchQuery: string = '') => {
 - Disabled state when max limit reached
 
 **Selection Logic:**
+
 ```typescript
 const handleWordToggle = (word: DictionaryWord) => {
   const currentIndex = selectedWords.indexOf(word);
@@ -93,6 +97,7 @@ const handleWordToggle = (word: DictionaryWord) => {
 #### 4. Tag Filtering (Planned Feature)
 
 The component has infrastructure for tag-based filtering:
+
 - Tag chips would appear above search
 - Click to filter by tag
 - Multiple tags can be selected (AND/OR logic)
@@ -141,9 +146,9 @@ The component has infrastructure for tag-based filtering:
 const [selectedWords, setSelectedWords] = useState<DictionaryWord[]>([]);
 
 // Word selector in sidebar
-<WordSelector 
-  selectedWords={selectedWords} 
-  onWordsChange={setSelectedWords} 
+<WordSelector
+  selectedWords={selectedWords}
+  onWordsChange={setSelectedWords}
   maxWords={5}
 />
 
@@ -212,12 +217,14 @@ See `TODO.md` for detailed improvement plans.
 ### When to Use
 
 ✅ **Use Word Selector when:**
+
 - Generating exercises based on specific vocabulary
 - User needs to choose from their personal dictionary
 - Selection limit is needed (e.g., 5 words max)
 - Search is the primary interaction method
 
 ❌ **Don't use when:**
+
 - Displaying all words (use dictionary page instead)
 - No selection needed (use read-only list)
 - Selecting from pre-defined options (use dropdown)
@@ -229,7 +236,7 @@ See `TODO.md` for detailed improvement plans.
    - Vocabulary drills: 20-30 words
    - Quick practice: 3-5 words
 
-2. **Display Style**: 
+2. **Display Style**:
    - Compact: Checkbox + word only
    - Detailed: Include context, example sentences
    - Card-based: Visual representation
@@ -345,11 +352,21 @@ When working with the Word Selector:
 
 ```typescript
 describe('WordSelector', () => {
-  it('should filter words by search query', () => { /* ... */ });
-  it('should enforce max word limit', () => { /* ... */ });
-  it('should toggle word selection', () => { /* ... */ });
-  it('should show correct selection count', () => { /* ... */ });
-  it('should disable unselected words at max limit', () => { /* ... */ });
+  it('should filter words by search query', () => {
+    /* ... */
+  });
+  it('should enforce max word limit', () => {
+    /* ... */
+  });
+  it('should toggle word selection', () => {
+    /* ... */
+  });
+  it('should show correct selection count', () => {
+    /* ... */
+  });
+  it('should disable unselected words at max limit', () => {
+    /* ... */
+  });
 });
 ```
 
@@ -374,11 +391,13 @@ describe('WordSelector', () => {
 The Word Selector is a critical component for user engagement. A smooth, intuitive word selection experience directly impacts how often users create exercises and how much they learn.
 
 **Key Success Metrics:**
+
 - Time to select words < 10 seconds
 - Search results accuracy > 95%
 - User retention with word-based exercises > 70%
 
 Focus future improvements on:
+
 1. Keeping selected words visible (priority 1)
 2. Smart word suggestions based on learning history
 3. Quick-select presets (e.g., "Last 5 words", "Random 5")

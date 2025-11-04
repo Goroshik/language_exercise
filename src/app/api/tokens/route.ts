@@ -4,17 +4,6 @@ import { getUserTokensService, upsertUserTokenService } from 'src/services/userT
 import { getUserIdFromRequest } from 'src/utils/auth';
 import { safeJson } from 'src/utils/jsonWrapper';
 
-// NOTE: Type definitions for API requests
-interface TokenCreateRequest {
-  service: string;
-  token: string;
-}
-
-interface TokenUpdateRequest {
-  service: string;
-  token: string;
-}
-
 // GET /api/tokens - Get all tokens for a user (decrypted)
 export async function GET(request: NextRequest) {
   try {

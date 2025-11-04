@@ -9,12 +9,14 @@ This file contains planned improvements and prompts for AI assistants and develo
 **Problem:** When using search in WordSelector, selected words disappear if they don't match the search query. This breaks the user's mental model and makes it hard to see what's already selected.
 
 **Expected Behavior:**
+
 - Selected words should always appear at the top of the list
 - Search results should appear below selected words
 - Visual separator between selected and search results
 - Selected words should be clearly marked (different background color)
 
 **Implementation Prompt:**
+
 ```
 Modify the WordSelector component to:
 1. Split filtered words into two groups: selected and unselected
@@ -40,12 +42,14 @@ Test cases:
 **Problem:** WordSelector loads all words at once, which can be slow for users with large dictionaries (500+ words).
 
 **Expected Behavior:**
+
 - Load first 20-30 words initially
 - Search triggers API call with query parameter
 - Infinite scroll or "Load more" for browsing
 - Selected words always loaded (stored separately)
 
 **Implementation Prompt:**
+
 ```
 Optimize WordSelector loading:
 1. Add initial load limit to API endpoint (query param: limit=30)
@@ -71,6 +75,7 @@ GET /api/dictionary/words?limit=30&offset=0&query=hello
 **Problem:** Users can't organize words by topic, difficulty, or context.
 
 **Expected Behavior:**
+
 - Add tags field to Word model
 - UI to add/remove tags when creating/editing words
 - Tag filter in WordSelector and Dictionary page
@@ -78,6 +83,7 @@ GET /api/dictionary/words?limit=30&offset=0&query=hello
 - Custom tags support
 
 **Implementation Prompt:**
+
 ```
 Add tagging system:
 1. Update Prisma schema: Add tags field (array of strings) to Word model
@@ -105,6 +111,7 @@ UI changes:
 **Problem:** Users don't know which words they've practiced recently or which need more review.
 
 **Expected Behavior:**
+
 - Track when word is used in exercises
 - Show "last used" date on word card
 - Filter by "least recently used"
@@ -112,6 +119,7 @@ UI changes:
 - Suggest words that haven't been practiced
 
 **Implementation Prompt:**
+
 ```
 Add usage tracking:
 1. Create WordUsage model (or add fields to Word)
@@ -132,12 +140,14 @@ Consider:
 **Problem:** Users spend time searching for words instead of getting intelligent suggestions.
 
 **Expected Behavior:**
+
 - "Recently added" quick select (last 10 words)
 - "Least practiced" quick select
 - "Random 5" button for variety
 - "Related words" based on current selection (AI-powered)
 
 **Implementation Prompt:**
+
 ```
 Add quick-select presets to WordSelector:
 1. Add preset buttons above search field
@@ -159,6 +169,7 @@ UI design:
 **Problem:** Current import is AI-based but no export functionality. Users can't backup or share word lists.
 
 **Expected Behavior:**
+
 - Export words to CSV
 - Export words to JSON
 - Import from CSV (structured format)
@@ -166,6 +177,7 @@ UI design:
 - Duplicate detection during import
 
 **Implementation Prompt:**
+
 ```
 Add export functionality:
 1. Add "Export" button to Dictionary page
@@ -192,6 +204,7 @@ Files to add:
 **Problem:** No systematic way to review words at optimal intervals.
 
 **Expected Behavior:**
+
 - Track word difficulty (user rating after exercises)
 - Calculate next review date using SM-2 algorithm
 - "Review due" section in Dictionary page
@@ -199,6 +212,7 @@ Files to add:
 - Adjust intervals based on performance
 
 **Implementation Prompt:**
+
 ```
 Implement spaced repetition:
 1. Add fields to Word: difficulty (1-5), nextReview (Date), interval (days)
@@ -222,12 +236,14 @@ References:
 **Problem:** Users don't know how to pronounce words.
 
 **Expected Behavior:**
+
 - Play button on each word card
 - TTS (text-to-speech) using Web Speech API or cloud service
 - Support for multiple languages
 - Slow playback option for learning
 
 **Implementation Prompt:**
+
 ```
 Add pronunciation feature:
 1. Add speaker icon to WordCard
@@ -253,12 +269,14 @@ speechSynthesis.speak(utterance);
 **Problem:** Words shown in isolation without context.
 
 **Expected Behavior:**
+
 - Optional example sentence for each word
 - AI-generated examples on demand
 - Show word usage in previously generated exercises
 - Link to external resources (dictionaries)
 
 **Implementation Prompt:**
+
 ```
 Add context to words:
 1. Add optional "example" field to Word model
@@ -269,7 +287,7 @@ Add context to words:
 6. Link to external dictionary (configurable in settings)
 
 AI prompt for example:
-"Generate a simple example sentence using the word '{word}' 
+"Generate a simple example sentence using the word '{word}'
 at {level} proficiency level. Keep it under 15 words."
 ```
 
@@ -278,6 +296,7 @@ at {level} proficiency level. Keep it under 15 words."
 **Problem:** Users can't share word lists with teachers or study partners.
 
 **Expected Behavior:**
+
 - Share word list via link
 - Public/private word lists
 - Subscribe to teacher's word list
@@ -285,6 +304,7 @@ at {level} proficiency level. Keep it under 15 words."
 - Version control (track changes)
 
 **Implementation Prompt:**
+
 ```
 Add sharing feature:
 1. Add "shared" field to Word (already exists but unused)
@@ -314,12 +334,14 @@ model SharedList {
 **Problem:** Fetching all words for pagination is inefficient.
 
 **Expected Behavior:**
+
 - API returns paginated results
 - Cursor-based pagination for MongoDB
 - Faster page loads
 - Reduced memory usage
 
 **Implementation Prompt:**
+
 ```
 Implement server-side pagination:
 1. Update API to accept: page, limit, cursor params
@@ -346,12 +368,14 @@ API response format:
 **Problem:** Case-insensitive contains search is slow on large datasets.
 
 **Expected Behavior:**
+
 - Text indexes on word and translate fields
 - Full-text search support
 - Fuzzy matching for typos
 - Search autocomplete
 
 **Implementation Prompt:**
+
 ```
 Optimize search:
 1. Add MongoDB text index on Word.word and Word.translate
@@ -373,12 +397,14 @@ db.words.createIndex({ word: "text", translate: "text" })
 **Problem:** App requires internet connection for all operations.
 
 **Expected Behavior:**
+
 - Cache words locally (IndexedDB)
 - Offline browsing of dictionary
 - Queue changes for sync when online
 - PWA with offline capabilities
 
 **Implementation Prompt:**
+
 ```
 Add offline support:
 1. Setup PWA (manifest, service worker)
@@ -401,6 +427,7 @@ Technologies:
 **Problem:** No overview of learning progress.
 
 **Expected Behavior:**
+
 - Total words learned
 - Words practiced this week
 - Streak counter
@@ -408,6 +435,7 @@ Technologies:
 - Most practiced topics
 
 **Implementation Prompt:**
+
 ```
 Create dashboard page (/dashboard):
 1. Aggregate statistics from word usage
@@ -427,12 +455,14 @@ Use charting library:
 **Problem:** Can't identify which words are hardest.
 
 **Expected Behavior:**
+
 - Track correct/incorrect usage in exercises
 - Calculate difficulty score
 - "Struggling with" section
 - Recommendations for review
 
 **Implementation Prompt:**
+
 ```
 Add difficulty tracking:
 1. Store exercise results linked to words

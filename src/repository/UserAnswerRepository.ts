@@ -50,13 +50,7 @@ export class UserAnswerRepository {
     });
   }
 
-  async getAnswer({
-    userId,
-    sentenceId
-  }: {
-    userId: string;
-    sentenceId: string;
-  }) {
+  async getAnswer({ userId, sentenceId }: { userId: string; sentenceId: string }) {
     return this.client.findUnique({
       where: {
         userId_sentenceId: {
@@ -67,13 +61,7 @@ export class UserAnswerRepository {
     });
   }
 
-  async deleteAnswer({
-    userId,
-    sentenceId
-  }: {
-    userId: string;
-    sentenceId: string;
-  }) {
+  async deleteAnswer({ userId, sentenceId }: { userId: string; sentenceId: string }) {
     return this.client.delete({
       where: {
         userId_sentenceId: {

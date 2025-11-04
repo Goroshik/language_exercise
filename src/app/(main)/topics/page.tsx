@@ -60,22 +60,23 @@ const Page: React.FC = () => {
       </Typography>
       <Stack direction="column" alignItems="center">
         <List sx={{ width: '1000px', alignItems: 'center' }}>
-          {topics && Object.entries(topics).map(([topicTitle, topicItems]) => (
-            <ListItem key={topicTitle} disablePadding sx={{ alignItems: 'flex-start' }}>
-              <ListItemText sx={{ flex: 1 }}>
-                <Typography variant="h5">{topicTitle}</Typography>
-              </ListItemText>
-              <List sx={{ pl: 2, flex: 3 }}>
-                {Object.entries(topicItems).map(([topicKey, topicValue]) => (
-                  <ListItem key={topicKey} disablePadding>
-                    <ListItemButton onClick={() => handleTopicSelect(topicValue)}>
-                      <ListItemText primary={topicValue} />
-                    </ListItemButton>
-                  </ListItem>
-                ))}
-              </List>
-            </ListItem>
-          ))}
+          {topics &&
+            Object.entries(topics).map(([topicTitle, topicItems]) => (
+              <ListItem key={topicTitle} disablePadding sx={{ alignItems: 'flex-start' }}>
+                <ListItemText sx={{ flex: 1 }}>
+                  <Typography variant="h5">{topicTitle}</Typography>
+                </ListItemText>
+                <List sx={{ pl: 2, flex: 3 }}>
+                  {Object.entries(topicItems).map(([topicKey, topicValue]) => (
+                    <ListItem key={topicKey} disablePadding>
+                      <ListItemButton onClick={() => handleTopicSelect(topicValue)}>
+                        <ListItemText primary={topicValue} />
+                      </ListItemButton>
+                    </ListItem>
+                  ))}
+                </List>
+              </ListItem>
+            ))}
         </List>
       </Stack>
     </Box>

@@ -20,7 +20,16 @@ import ConfirmDialog from './ConfirmDialog';
 import MarkdownMessage from './MarkdownMessage';
 
 const ChatModal: React.FC = () => {
-  const { messages, isOpen, isLoading, setIsOpen, sendMessage, loadHistory, clearHistory, setCurrentLanguage } = useChatStore();
+  const {
+    messages,
+    isOpen,
+    isLoading,
+    setIsOpen,
+    sendMessage,
+    loadHistory,
+    clearHistory,
+    setCurrentLanguage
+  } = useChatStore();
   const { settings } = useSettingsStore();
   const [inputMessage, setInputMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -47,10 +56,10 @@ const ChatModal: React.FC = () => {
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
-    
+
     const message = inputMessage.trim();
     setInputMessage('');
-    
+
     await sendMessage(message);
   };
 
@@ -76,9 +85,9 @@ const ChatModal: React.FC = () => {
 
   return (
     <>
-      <Dialog 
-        open={isOpen} 
-        onClose={() => setIsOpen(false)} 
+      <Dialog
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
         maxWidth="lg"
         fullWidth
         PaperProps={{
@@ -90,107 +99,101 @@ const ChatModal: React.FC = () => {
           }
         }}
       >
-      <DialogTitle>
-        <Box display="flex" justifyContent="space-between" alignItems="center">
-          <Typography variant="h6">AI Помощник</Typography>
-          <Box>
-            <IconButton onClick={handleRefresh} size="small" sx={{ mr: 1 }}>
-              <RefreshIcon />
-            </IconButton>
-            <IconButton onClick={() => setIsOpen(false)} size="small">
-              <CloseIcon />
-            </IconButton>
+        <DialogTitle>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">AI Помощник</Typography>
+            <Box>
+              <IconButton onClick={handleRefresh} size="small" sx={{ mr: 1 }}>
+                <RefreshIcon />
+              </IconButton>
+              <IconButton onClick={() => setIsOpen(false)} size="small">
+                <CloseIcon />
+              </IconButton>
+            </Box>
           </Box>
-        </Box>
-      </DialogTitle>
-      <DialogContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 0 }}>
-        <Box
-          sx={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            p: 2
-          }}
-        >
-          {/* Messages area */}
+        </DialogTitle>
+        <DialogContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 0 }}>
           <Box
             sx={{
               flex: 1,
-              overflowY: 'auto',
-              mb: 2,
-              p: 2,
-              backgroundColor: '#f5f5f5',
-              borderRadius: 1,
               display: 'flex',
-              flexDirection: 'column'
+              flexDirection: 'column',
+              p: 2
             }}
           >
-            {messages.length === 0 && (
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  height: '100%'
-                }}
-              >
-                <Typography color="text.secondary">
-                  Начните диалог с AI помощником
-                </Typography>
-              </Box>
-            )}
-
-            {messages.map((message, index) => (
-              <MarkdownMessage
-                key={index}
-                content={message.content}
-                role={message.role}
-              />
-            ))}
-
-            {isLoading && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                <CircularProgress size={20} />
-                <Typography variant="body2" color="text.secondary">
-                  AI думает...
-                </Typography>
-              </Box>
-            )}
-
-            <div ref={messagesEndRef} />
-          </Box>
-
-          {/* Input area */}
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <TextField
-              fullWidth
-              multiline
-              maxRows={3}
-              value={inputMessage}
-              onChange={e => setInputMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Введите ваш вопрос..."
-              disabled={isLoading}
-              variant="outlined"
-              size="small"
-            />
-            <IconButton
-              color="primary"
-              onClick={handleSendMessage}
-              disabled={!inputMessage.trim() || isLoading}
+            {/* Messages area */}
+            <Box
               sx={{
-                backgroundColor: 'primary.main',
-                color: 'white',
-                '&:hover': { backgroundColor: 'primary.dark' },
-                '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                flex: 1,
+                overflowY: 'auto',
+                mb: 2,
+                p: 2,
+                backgroundColor: '#f5f5f5',
+                borderRadius: 1,
+                display: 'flex',
+                flexDirection: 'column'
               }}
             >
-              <SendIcon />
-            </IconButton>
+              {messages.length === 0 && (
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '100%'
+                  }}
+                >
+                  <Typography color="text.secondary">Начните диалог с AI помощником</Typography>
+                </Box>
+              )}
+
+              {messages.map((message, index) => (
+                <MarkdownMessage key={index} content={message.content} role={message.role} />
+              ))}
+
+              {isLoading && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+                  <CircularProgress size={20} />
+                  <Typography variant="body2" color="text.secondary">
+                    AI думает...
+                  </Typography>
+                </Box>
+              )}
+
+              <div ref={messagesEndRef} />
+            </Box>
+
+            {/* Input area */}
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <TextField
+                fullWidth
+                multiline
+                maxRows={3}
+                value={inputMessage}
+                onChange={e => setInputMessage(e.target.value)}
+                onKeyPress={handleKeyPress}
+                placeholder="Введите ваш вопрос..."
+                disabled={isLoading}
+                variant="outlined"
+                size="small"
+              />
+              <IconButton
+                color="primary"
+                onClick={handleSendMessage}
+                disabled={!inputMessage.trim() || isLoading}
+                sx={{
+                  backgroundColor: 'primary.main',
+                  color: 'white',
+                  '&:hover': { backgroundColor: 'primary.dark' },
+                  '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                }}
+              >
+                <SendIcon />
+              </IconButton>
+            </Box>
           </Box>
-        </Box>
-      </DialogContent>
-    </Dialog>
+        </DialogContent>
+      </Dialog>
 
       <ConfirmDialog
         open={confirmOpen}

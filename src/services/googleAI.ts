@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { BaseAIService, AIResponse, ParsedWord } from './baseAI';
 import { userSettingsRepository } from 'src/repository/client';
 import { showAlert } from 'src/utils/alert';
+import { AIResponse, BaseAIService, ParsedWord } from './baseAI';
 
 export class GoogleAIService extends BaseAIService {
   serviceName = 'gemini';
@@ -43,11 +43,11 @@ ${text}`;
           return parsedWords.filter(item => item.word && typeof item.word === 'string');
         }
         return [];
-      } catch (parseError) {
+      } catch (_parseError) {
         showAlert.error('Failed to parse AI response as JSON');
         return [];
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert.error('Error parsing words with AI');
       return [];
     }
@@ -123,7 +123,7 @@ ${text}`;
       }
 
       return null;
-    } catch (error) {
+    } catch (_error) {
       showAlert.error('Error fetching user model settings');
       return null;
     }

@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const language = searchParams.get('language') || 'en';
     const topics = getTopicsService(language);
     return NextResponse.json({ success: true, topics });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { success: false, error: 'Failed to load topics', topics: [] },
       { status: 500 }

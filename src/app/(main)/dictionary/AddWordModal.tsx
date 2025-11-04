@@ -57,12 +57,12 @@ const AddWordModal: React.FC<AddWordModalProps> = ({
   const getLanguageDisplayName = () => {
     const languageCode = settings?.learningLanguage || 'en';
     const languageNames: Record<string, string> = {
-      'en': 'Английский',
-      'pl': 'Польский',
-      'de': 'Немецкий',
-      'fr': 'Французский',
-      'es': 'Испанский',
-      'it': 'Итальянский'
+      en: 'Английский',
+      pl: 'Польский',
+      de: 'Немецкий',
+      fr: 'Французский',
+      es: 'Испанский',
+      it: 'Итальянский'
     };
     return languageNames[languageCode] || languageCode.toUpperCase();
   };
@@ -124,9 +124,9 @@ const AddWordModal: React.FC<AddWordModalProps> = ({
       <DialogTitle>
         <Box display="flex" alignItems="center" justifyContent="space-between">
           <Typography variant="h6">Добавить новое слово</Typography>
-          <Chip 
+          <Chip
             icon={<LanguageIcon />}
-            label={getLanguageDisplayName()} 
+            label={getLanguageDisplayName()}
             color="primary"
             size="small"
           />
