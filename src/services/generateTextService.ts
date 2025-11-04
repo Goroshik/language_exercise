@@ -1,6 +1,10 @@
 import Joi from 'joi';
 import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
-import { languageRepository, sentenceHistoryRepository } from 'src/repository/client';
+import {
+  languageRepository,
+  sentenceHistoryRepository,
+  userAnswerRepository
+} from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
 import { DictionaryWord } from 'src/types';
 import { showAlert } from 'src/utils/alert';
@@ -122,8 +126,17 @@ export async function processGenerateTextRequest(
             }
           }
 
-          // Удаляем подсказки из предложения перед сохранением в историю
-          // Формат подсказок: (hint text) в конце предложения
+          // Извлекаем подсказки из предложения
+          // Формат подсказок: (hint1, hint2) в конце предложения
+          const hintMatch = sentence.match(/\s*\(([^)]+)\)\s*$/);
+          const hints: string[] = hintMatch
+            ? hintMatch[1]
+                .split(/[,;]+/)
+                .map(h => h.trim())
+                .filter(Boolean)
+            : [];
+
+          // Удаляем подсказки из предложения перед сохранением
           const sentenceWithoutHints = sentence.replace(/\s*\([^)]+\)\s*$/, '').trim();
 
           // Возвращаем запись даже если нет найденных слов (с пустым массивом)
@@ -134,30 +147,44 @@ export async function processGenerateTextRequest(
             usedWordIds: Array.from(wordsInSentence),
             level,
             mode, // Сохраняем режим генерации (student/teacher)
-            topic // Сохраняем топик, под которым были сгенерированы предложения
+            topic, // Сохраняем топик, под которым были сгенерированы предложения
+            hints // Сохраняем подсказки в отдельном поле
           };
         });
 
         if (sentencesToSave.length > 0) {
-          await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
 
-          // Fetch the recently created sentences to get their IDs
-          const recentSentences = await sentenceHistoryRepository.getHistory({
-            ownerId: userId,
-            languageId,
-            level,
-            ...(topic && { searchText: topic })
-          });
+          const sentences = await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
 
           // Get the most recent sentence IDs matching our batch size
-          sentenceIds = recentSentences.slice(0, sentencesToSave.length).map(s => s.id);
+          sentenceIds = sentences.map(s => s.id);
         }
       } catch (_saveErr) {
         showAlert.warning('Failed to save generated sentence history');
       }
     }
 
-    return { status: 200, body: { success: true, data: result, sentenceIds } };
+    // Check which sentences have previous answers (для новых предложений всегда будет false)
+    const hasAnswers: Record<string, boolean> = {};
+    if (sentenceIds.length > 0) {
+      const answersMap = await userAnswerRepository.checkAnswersExist({
+        userId,
+        sentenceIds
+      });
+      Object.assign(hasAnswers, answersMap);
+    }
+
+    return { 
+      status: 200, 
+      body: { 
+        success: true, 
+        data: { 
+          data: result, 
+          sentenceIds,
+          hasAnswers // добавляем информацию о наличии ответов
+        } 
+      } 
+    };
   } catch (_err) {
     showAlert.error('Unexpected error in generateText service');
     return { status: 500, body: { error: 'Internal server error' } };

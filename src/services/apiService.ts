@@ -28,8 +28,30 @@ interface Tag {
 export class ApiService {
   static async generateText(
     data: GenerateTextRequest
-  ): Promise<{ data: string[]; sentenceIds: string[] }> {
-    return this.post<{ data: string[]; sentenceIds: string[] }>('/api/ai/generate-text', data);
+  ): Promise<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }> {
+    return this.post<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }>('/api/ai/generate-text', data);
+  }
+
+  static async getTrainingExercises(data: {
+    topic: string;
+    languageId: string;
+    level: string;
+    limit?: number;
+    currentSentenceIds?: string[];
+  }): Promise<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }> {
+    return this.post<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }>('/api/ai/training-exercises', data);
+  }
+
+  static async checkHistoryAvailability(data: {
+    topic: string;
+    languageId: string;
+    level: string;
+    currentSentenceIds?: string[];
+  }): Promise<{ available: boolean; count: number }> {
+    return this.post<{ available: boolean; count: number }>(
+      '/api/ai/check-history-availability',
+      data
+    );
   }
 
   static async getTags(): Promise<Tag[]> {

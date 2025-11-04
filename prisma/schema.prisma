@@ -126,6 +126,7 @@ model SentenceHistory {
   level       String
   mode        String   @default("exercise") // "learn" or "exercise" - режим для которого было сгенерировано предложение
   topic       String? // топик, под которым были сгенерированы предложения
+  hints       String[] @default([]) // подсказки для упражнения (например, формы глаголов)
   ownerId     String   @db.ObjectId
   owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   language    Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
