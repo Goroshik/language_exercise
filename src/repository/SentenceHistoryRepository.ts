@@ -1,4 +1,5 @@
-import { PrismaClient, Prisma } from 'src/generated/prisma/client';
+import { Prisma, PrismaClient } from 'src/generated/prisma/client';
+import { prisma } from './client';
 
 export class SentenceHistoryRepository {
   private client: PrismaClient['sentenceHistory'];
@@ -48,14 +49,9 @@ export class SentenceHistoryRepository {
       topic?: string;
     }[]
   ) {
-    if (sentences.length === 0) return { count: 0 };
-
-    return this.client.createMany({
-      data: sentences.map(s => ({
-        ...s,
-        mode: s.mode || 'exercise'
-      }))
-    });
+    return prisma.$transaction(sentences.map(sentenceData => 
+      this.client.create({ data: sentenceData, select: { id: true } })
+    ));
   }
 
   async getHistory({

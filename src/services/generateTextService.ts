@@ -139,25 +139,27 @@ export async function processGenerateTextRequest(
         });
 
         if (sentencesToSave.length > 0) {
-          await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
 
-          // Fetch the recently created sentences to get their IDs
-          const recentSentences = await sentenceHistoryRepository.getHistory({
-            ownerId: userId,
-            languageId,
-            level,
-            ...(topic && { searchText: topic })
-          });
+          const sentences = await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
 
           // Get the most recent sentence IDs matching our batch size
-          sentenceIds = recentSentences.slice(0, sentencesToSave.length).map(s => s.id);
+          sentenceIds = sentences.map(s => s.id);
         }
       } catch (_saveErr) {
         showAlert.warning('Failed to save generated sentence history');
       }
     }
 
-    return { status: 200, body: { success: true, data: result, sentenceIds } };
+    return { 
+      status: 200, 
+      body: { 
+        success: true, 
+        data: { 
+          data: result, 
+          sentenceIds 
+        } 
+      } 
+    };
   } catch (_err) {
     showAlert.error('Unexpected error in generateText service');
     return { status: 500, body: { error: 'Internal server error' } };
