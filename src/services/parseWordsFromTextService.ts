@@ -13,6 +13,8 @@ export async function parseWordsFromTextService(text: string, userId: string) {
     throw new NextResponseError('Text parameter is required and must be a string', 400);
   }
   const aiService = await AIFactory.getAIService(userId);
+  // TODO: Fix type - ensure all AI services implement parseWordsFromText instead of non-null assertion
+  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const words = await aiService.parseWordsFromText!(text, userId);
 
   // Check for duplicates

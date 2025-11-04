@@ -98,7 +98,6 @@ model UserSettings {
   learningLanguage  String?  @default("en") // language being studied (en, pl)
   lastSelectedTopic String? // last selected topic for exercises
   chatIdsByLanguage Json?   // { "en": "chatId1", "pl": "chatId2" } - chat IDs per language
-  customSettings    Json? // for additional flexible settings storage
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 

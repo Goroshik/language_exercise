@@ -1,6 +1,6 @@
 import { Box, Stack, styled, Typography } from '@mui/material';
 
-export const ExerciseBlockContainer = styled(Stack)(({ theme }) => ({
+export const ExerciseBlockContainer = styled(Stack)(() => ({
   marginBottom: 16,
   padding: 0,
   border: 'none',
@@ -39,7 +39,7 @@ export const ExerciseIndex = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary
 }));
 
-export const ExerciseContent = styled(Box)(({ theme }) => ({
+export const ExerciseContent = styled(Box)(() => ({
   flex: 1
 }));
 

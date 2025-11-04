@@ -367,6 +367,8 @@ export const useAppStore = create<AppStore>()(
 );
 
 // Expose store globally for components that can't use hooks
+// TODO: Fix types - properly type window.__appStore instead of using any
 if (typeof window !== 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).__appStore = useAppStore;
 }

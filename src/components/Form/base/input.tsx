@@ -36,13 +36,19 @@ const BaseInput = (props: Omit<TextFieldProps, 'variant'>) => {
       const { min, max } = props.inputProps as { min?: number; max?: number };
       const { value } = target;
 
+      // TODO: Fix types - properly type onChange handler instead of using any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       if (value === '') return props.onChange?.(null as any);
 
       if (typeof min === 'number' && Number(value) < Number(min))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         props.onChange?.(String(min) as any);
       else if (typeof max === 'number' && Number(value) > Number(max))
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         props.onChange?.(String(max) as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       else props.onChange?.(value as any);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } else props.onChange?.(target.value as any);
   };
 

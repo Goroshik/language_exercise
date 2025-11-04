@@ -104,18 +104,24 @@ const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, role }) => {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          code({ node, inline, className, children, ...props }: any) {
+          // TODO: Fix types - properly type ReactMarkdown component props
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          code({ inline, className, children, ...props }: any) {
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : '';
 
             if (!inline && match) {
-              return React.createElement(SyntaxHighlighter as any, {
-                style: vscDarkPlus,
-                language: language,
-                PreTag: 'div',
-                children: String(children).replace(/\n$/, ''),
-                ...props
-              });
+              return React.createElement(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                SyntaxHighlighter as any,
+                {
+                  style: vscDarkPlus,
+                  language: language,
+                  PreTag: 'div',
+                  ...props
+                },
+                String(children).replace(/\n$/, '')
+              );
             }
 
             return (

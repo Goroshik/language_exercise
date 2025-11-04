@@ -13,8 +13,7 @@ export class UserSettingsRepository {
     aiModel?: string;
     language?: string;
     translationLang?: string;
-    learningLanguage?: string;
-    customSettings?: any;
+    learningLanguage?: string
   }) {
     return this.client.create({ data });
   }
@@ -33,7 +32,6 @@ export class UserSettingsRepository {
       language?: string;
       translationLang?: string;
       learningLanguage?: string;
-      customSettings?: any;
     }
   ) {
     return this.client.update({
@@ -50,7 +48,6 @@ export class UserSettingsRepository {
       language?: string;
       translationLang?: string;
       learningLanguage?: string;
-      customSettings?: any;
     }
   ) {
     const settings = {

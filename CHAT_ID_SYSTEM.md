@@ -5,6 +5,7 @@
 ### ✅ Система chatId для разделения чатов
 
 Каждая переписка теперь имеет уникальный `chatId`, что позволяет:
+
 - Вести несколько независимых чатов
 - Сохранять историю всех чатов в БД
 - Синхронизировать текущий чат между устройствами
@@ -12,6 +13,7 @@
 ### 🗄️ Изменения в базе данных
 
 #### ChatMessage модель:
+
 ```prisma
 model ChatMessage {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -29,6 +31,7 @@ model ChatMessage {
 ```
 
 #### UserSettings модель:
+
 ```prisma
 model UserSettings {
   // ... остальные поля
@@ -42,6 +45,7 @@ model UserSettings {
 ### 1. Создание chatId
 
 При первом сообщении:
+
 ```typescript
 // Если chatId не передан
 if (!chatId) {
@@ -54,10 +58,11 @@ if (!chatId) {
 ### 2. Сохранение сообщений
 
 Все сообщения сохраняются с chatId:
+
 ```typescript
 await chatMessageRepository.addMessage({
   userId,
-  chatId,  // Обязательное поле
+  chatId, // Обязательное поле
   role: 'user',
   content: message
 });
@@ -66,15 +71,16 @@ await chatMessageRepository.addMessage({
 ### 3. Загрузка истории
 
 При открытии чата:
+
 ```typescript
 // Если chatId не указан, берем lastChatId из настроек
 const settings = await userSettingsRepository.findByUserId(userId);
 const activeChatId = settings?.lastChatId;
 
 // Загружаем сообщения только для этого chatId
-const messages = await chatMessageRepository.getMessages({ 
-  userId, 
-  chatId: activeChatId 
+const messages = await chatMessageRepository.getMessages({
+  userId,
+  chatId: activeChatId
 });
 ```
 
@@ -88,7 +94,7 @@ clearHistory: async () => {
   // Просто сбрасываем локальное состояние
   set({ messages: [], chatId: null });
   showAlert.success('Начат новый чат');
-}
+};
 ```
 
 При следующей отправке сообщения автоматически создастся новый `chatId`.
@@ -98,6 +104,7 @@ clearHistory: async () => {
 ### POST /api/chat/message
 
 **Request**:
+
 ```json
 {
   "message": "Привет!",
@@ -106,6 +113,7 @@ clearHistory: async () => {
 ```
 
 **Response**:
+
 ```json
 {
   "message": {
@@ -119,10 +127,12 @@ clearHistory: async () => {
 ### GET /api/chat/message
 
 **Query params**:
+
 - `chatId` (optional) - ID конкретного чата
 - `limit` (optional) - Количество сообщений (default: 50)
 
 **Response**:
+
 ```json
 {
   "messages": [...],
@@ -141,31 +151,33 @@ clearHistory: async () => {
 ```typescript
 interface ChatStore {
   messages: ChatMessage[];
-  chatId: string | null;  // Новое!
+  chatId: string | null; // Новое!
   // ...
-  
+
   setChatId: (chatId: string | null) => void;
-  createNewChat: () => void;  // Новое!
+  createNewChat: () => void; // Новое!
 }
 ```
 
 ### Workflow
 
 1. **Открытие чата**:
+
    ```typescript
-   loadHistory() // Загружает lastChatId из настроек и историю
+   loadHistory(); // Загружает lastChatId из настроек и историю
    ```
 
 2. **Отправка сообщения**:
+
    ```typescript
-   sendMessage(message) 
+   sendMessage(message);
    // Передает текущий chatId
    // Если chatId = null, сервер создаст новый
    ```
 
 3. **"Очистка" (новый чат)**:
    ```typescript
-   clearHistory()
+   clearHistory();
    // Сбрасывает: messages = [], chatId = null
    // БД не трогается!
    ```
@@ -201,26 +213,26 @@ interface ChatStore {
 
 ```typescript
 // Добавить сообщение
-addMessage({ userId, chatId, role, content })
+addMessage({ userId, chatId, role, content });
 
 // Получить сообщения чата
-getMessages({ userId, chatId, limit })
+getMessages({ userId, chatId, limit });
 
 // Удалить чат (НЕ используется на UI)
-deleteAllMessages(userId, chatId)
+deleteAllMessages(userId, chatId);
 
 // Получить список всех chatId пользователя
-getAllChats(userId)
+getAllChats(userId);
 ```
 
 ### UserSettingsRepository
 
 ```typescript
 // Обновить lastChatId
-updateLastChatId(userId, chatId)
+updateLastChatId(userId, chatId);
 
 // Или через upsert
-upsert(userId, { lastChatId: chatId })
+upsert(userId, { lastChatId: chatId });
 ```
 
 ## Будущие улучшения
@@ -228,6 +240,7 @@ upsert(userId, { lastChatId: chatId })
 ### 1. UI для управления чатами
 
 Можно добавить:
+
 - Список всех чатов пользователя
 - Переключение между чатами
 - Удаление старых чатов
@@ -236,14 +249,14 @@ upsert(userId, { lastChatId: chatId })
 ```typescript
 // Пример компонента
 <ChatList>
-  <ChatItem 
-    chatId="abc-123" 
+  <ChatItem
+    chatId="abc-123"
     preview="Последнее сообщение..."
     timestamp="2 часа назад"
     onClick={() => loadChat("abc-123")}
   />
-  <ChatItem 
-    chatId="xyz-789" 
+  <ChatItem
+    chatId="xyz-789"
     preview="Привет! Чем могу..."
     timestamp="Вчера"
     isActive
@@ -254,6 +267,7 @@ upsert(userId, { lastChatId: chatId })
 ### 2. Метаданные чата
 
 Добавить модель Chat:
+
 ```prisma
 model Chat {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -262,9 +276,9 @@ model Chat {
   title     String?  // Авто-генерация из первого сообщения
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   user User @relation(fields: [userId], references: [id])
-  
+
   @@map("chats")
 }
 ```
@@ -272,6 +286,7 @@ model Chat {
 ### 3. Автоматическое название чата
 
 Генерировать title из первого сообщения:
+
 ```typescript
 async function generateChatTitle(firstMessage: string): Promise<string> {
   // Обрезать до 50 символов или использовать AI для генерации
@@ -296,21 +311,21 @@ async function migrateOldMessages() {
   const messages = await prisma.chatMessage.findMany({
     where: { chatId: null }
   });
-  
+
   // Группируем по userId
   const grouped = groupBy(messages, 'userId');
-  
+
   for (const [userId, userMessages] of Object.entries(grouped)) {
     const chatId = randomUUID();
-    
+
     await prisma.chatMessage.updateMany({
-      where: { 
-        userId, 
-        chatId: null 
+      where: {
+        userId,
+        chatId: null
       },
       data: { chatId }
     });
-    
+
     await prisma.userSettings.update({
       where: { userId },
       data: { lastChatId: chatId }
@@ -335,18 +350,18 @@ async function migrateOldMessages() {
 
 ```typescript
 // 1. Новый чат
-await sendMessage("Привет");
+await sendMessage('Привет');
 expect(chatId).toBeDefined();
 expect(userSettings.lastChatId).toBe(chatId);
 
 // 2. Продолжение чата
-await sendMessage("Как дела?");
+await sendMessage('Как дела?');
 expect(chatId).toBe(previousChatId); // Тот же!
 
 // 3. Новый чат
 clearHistory();
 expect(chatId).toBeNull();
-await sendMessage("Новая тема");
+await sendMessage('Новая тема');
 expect(chatId).not.toBe(previousChatId); // Другой!
 
 // 4. БД сохранность
@@ -357,6 +372,7 @@ expect(allMessages.length).toBe(3); // Все на месте!
 ## Заключение
 
 Теперь система чата:
+
 - 💾 Сохраняет всю историю в БД
 - 🔄 Синхронизируется между устройствами
 - 📝 Поддерживает множественные чаты

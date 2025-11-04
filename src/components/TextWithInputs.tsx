@@ -33,7 +33,7 @@ const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
 };
 
 const stripTranslationLabel = (value: string) =>
-  value.replace(/^(?:перевод|translation)\s*[:\-]?\s*/i, '').trim();
+  value.replace(/^(?:перевод|translation)\s*[:−-]?\s*/i, '').trim();
 
 const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
   if (!rawText) {
@@ -45,7 +45,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     return EMPTY_PARSED_CONTENT;
   }
 
-  const withoutNumbering = normalized.replace(/^[\d)\-\*\.\s]+/, '').trim();
+  const withoutNumbering = normalized.replace(/^[\d).*\s-]+/, '').trim();
   const lines = withoutNumbering
     .split('\n')
     .map(line => line.trim())
@@ -155,6 +155,8 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   useEffect(() => {
     if (typeof window !== 'undefined' && sentenceId) {
       // Try to get from store first
+      // TODO: Fix types - properly type window.__appStore instead of using any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { savedAnswers } = (window as any).__appStore?.getState?.() || {};
       const savedAnswer = savedAnswers?.[sentenceId];
       if (savedAnswer) {
@@ -183,12 +185,16 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
 
     // Save answer to store if sentenceId is provided
     if (sentenceId && typeof window !== 'undefined') {
+      // TODO: Fix types - properly type window.__appStore instead of using any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const store = (window as any).__appStore;
       if (store?.getState) {
         const { saveAnswer } = store.getState();
         if (saveAnswer) {
           // Debounce the save operation
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           clearTimeout((handleTextareaChange as any).timeout);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (handleTextareaChange as any).timeout = setTimeout(() => {
             saveAnswer(sentenceId, newValue);
           }, 1000); // Save after 1 second of no typing

@@ -28,7 +28,6 @@ const Page: React.FC = () => {
   const [selectedMode, setSelectedMode] = useState<'student' | 'teacher'>('student');
   const [selectedLevel, setSelectedLevel] = useState<string>('A1');
   const [selectedWords, setSelectedWords] = useState<DictionaryWord[]>([]);
-  const [languages, setLanguages] = useState<Language[]>([]);
   const [selectedLanguageId, setSelectedLanguageId] = useState<string>('');
   const [historyAvailable, setHistoryAvailable] = useState<boolean>(false);
   const [historyCount, setHistoryCount] = useState<number>(0);
@@ -57,7 +56,6 @@ const Page: React.FC = () => {
         const res = await fetch('/api/languages');
         const data = await res.json();
         const langs = data.data || [];
-        setLanguages(langs);
 
         // Use learning language from settings
         if (settings?.learningLanguage) {

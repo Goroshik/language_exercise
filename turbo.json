@@ -2,7 +2,14 @@
   "globalEnv": ["IMPORTANT_GLOBAL_VARIABLE"],
   "tasks": {
     "build": {
-      "env": ["TOKEN_SECRET","JWT_EXPIRES_IN","JWT_SECRET","JWT_COOKIE_NAME","DATABASE_URL","MONGODB_URI"]
+      "env": [
+        "TOKEN_SECRET",
+        "JWT_EXPIRES_IN",
+        "JWT_SECRET",
+        "JWT_COOKIE_NAME",
+        "DATABASE_URL",
+        "MONGODB_URI"
+      ]
     }
   }
 }

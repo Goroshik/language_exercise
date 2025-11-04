@@ -8,7 +8,6 @@ export interface UserSettings {
   translationLang: string;
   learningLanguage: string;
   lastSelectedTopic?: string;
-  customSettings?: Record<string, any>;
 }
 
 interface SettingsStore {

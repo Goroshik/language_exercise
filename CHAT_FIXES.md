@@ -3,9 +3,11 @@
 ## Проблемы, которые были исправлены
 
 ### 1. Отсутствие модели ChatMessage в Prisma схеме
+
 **Проблема**: В базе данных не была создана модель для хранения сообщений чата.
 
 **Решение**: Добавлена модель `ChatMessage` в `prisma/schema.prisma`:
+
 ```prisma
 model ChatMessage {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
@@ -21,9 +23,11 @@ model ChatMessage {
 ```
 
 ### 2. Отсутствие index.ts в репозитории
+
 **Проблема**: Импорт `import { chatMessageRepository } from 'src/repository'` не работал.
 
 **Решение**: Создан файл `src/repository/index.ts` для экспорта всех репозиториев:
+
 ```typescript
 export {
   prisma,
@@ -36,35 +40,41 @@ export {
   sentenceHistoryRepository,
   languageRepository,
   userAnswerRepository,
-  chatMessageRepository,
+  chatMessageRepository
 } from './client';
 ```
 
 ### 3. Неправильный импорт в ChatMessageRepository
+
 **Проблема**: Импорт из `'src/generated/prisma/client'` вместо правильного пути.
 
 **Решение**: Исправлен импорт на `'src/generated/prisma'`.
 
 ### 4. Отсутствие API endpoints для истории чата
+
 **Проблема**: Не было возможности загрузить историю чата из БД и очистить её.
 
 **Решение**: Добавлены методы GET и DELETE в `/api/chat/message/route.ts`:
+
 - `GET /api/chat/message?limit=50` - получение истории
 - `DELETE /api/chat/message` - очистка истории
 
 ## Новые функции
 
 ### 1. Загрузка истории чата из БД
+
 - При открытии чата автоматически загружается история из базы данных
 - Метод `loadHistory()` в `chatStore.ts`
 - Синхронизация между локальным хранилищем и БД
 
 ### 2. Очистка истории в БД
+
 - Кнопка очистки истории теперь удаляет сообщения из базы данных
 - Метод `clearHistory()` в `chatStore.ts`
 - Показывает уведомление об успешной очистке
 
 ### 3. Полная интеграция с базой данных
+
 - Все сообщения сохраняются в MongoDB
 - История сохраняется между сессиями
 - Связь с моделью User через userId
@@ -72,6 +82,7 @@ export {
 ## Архитектура
 
 ### Backend (API)
+
 ```
 POST   /api/chat/message   - Отправка сообщения AI
 GET    /api/chat/message   - Получение истории чата
@@ -79,18 +90,21 @@ DELETE /api/chat/message   - Очистка истории чата
 ```
 
 ### Services
+
 - `ChatService` - бизнес-логика чата
   - `sendMessage()` - отправка сообщения и получение ответа AI
   - `getChatHistory()` - получение истории из БД
   - `clearChatHistory()` - очистка истории в БД
 
 ### Repository
+
 - `ChatMessageRepository` - работа с БД
   - `addMessage()` - добавление сообщения
   - `getMessages()` - получение сообщений пользователя
   - `deleteAllMessages()` - удаление всех сообщений пользователя
 
 ### Frontend (Store)
+
 - `chatStore.ts` - состояние чата (Zustand)
   - `sendMessage()` - отправка сообщения через API
   - `loadHistory()` - загрузка истории из API
@@ -98,6 +112,7 @@ DELETE /api/chat/message   - Очистка истории чата
   - Сохранение в localStorage для offline доступа
 
 ### Components
+
 - `ChatModal` - модальное окно чата (для десктопа)
 - `ChatWidget` - виджет чата с плавающей кнопкой (для мобильных)
 - Оба компонента используют одинаковый store и загружают историю при открытии
@@ -105,18 +120,21 @@ DELETE /api/chat/message   - Очистка истории чата
 ## Использование
 
 ### Отправка сообщения
+
 ```typescript
 const { sendMessage } = useChatStore();
-await sendMessage("Привет, AI!");
+await sendMessage('Привет, AI!');
 ```
 
 ### Загрузка истории
+
 ```typescript
 const { loadHistory } = useChatStore();
 await loadHistory(); // Автоматически вызывается при открытии чата
 ```
 
 ### Очистка истории
+
 ```typescript
 const { clearHistory } = useChatStore();
 await clearHistory(); // Очищает БД и локальное хранилище

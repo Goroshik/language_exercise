@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
+import { NextRequest, NextResponse } from 'next/server';
 
 const publicRoutes = ['/auth/login', '/auth/reset'];
 
@@ -23,6 +23,8 @@ export async function middleware(request: NextRequest) {
     try {
       const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'dev_secret_change_me');
       const { payload } = await jwtVerify(rawToken, secret);
+      // TODO: Fix types - properly type JWT payload instead of using any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       userId = (payload as any).id as string | null;
     } catch {
       userId = null;

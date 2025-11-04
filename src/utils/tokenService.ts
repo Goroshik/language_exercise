@@ -30,7 +30,7 @@ export class TokenService {
       return {
         token: tokenData.token
       };
-    } catch (error) {
+    } catch (_error) {
       showAlert.error(`Error fetching token for service ${service}`);
       return {
         token: null,

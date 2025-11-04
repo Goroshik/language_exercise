@@ -6,12 +6,12 @@ This directory contains comprehensive documentation for the exercise functionali
 
 ### Quick Navigation
 
-| File | Purpose | Size | Who Should Read |
-|------|---------|------|-----------------|
+| File                                                             | Purpose                   | Size   | Who Should Read            |
+| ---------------------------------------------------------------- | ------------------------- | ------ | -------------------------- |
 | **[EXERCISES_QUICKFIX_GUIDE.md](./EXERCISES_QUICKFIX_GUIDE.md)** | 🔧 Step-by-step bug fixes | 7.5 KB | Developers fixing the bugs |
-| **[EXERCISES_SUMMARY_RU.md](./EXERCISES_SUMMARY_RU.md)** | 🇷🇺 Quick Russian summary | 11 KB | Russian speakers, PMs |
-| **[EXERCISES_TODO.md](./EXERCISES_TODO.md)** | 📋 Complete TODO list | 24 KB | Developers, Team Leads |
-| **[EXERCISES_DOCUMENTATION.md](./EXERCISES_DOCUMENTATION.md)** | 📘 Full technical docs | 32 KB | All developers, AI agents |
+| **[EXERCISES_SUMMARY_RU.md](./EXERCISES_SUMMARY_RU.md)**         | 🇷🇺 Quick Russian summary  | 11 KB  | Russian speakers, PMs      |
+| **[EXERCISES_TODO.md](./EXERCISES_TODO.md)**                     | 📋 Complete TODO list     | 24 KB  | Developers, Team Leads     |
+| **[EXERCISES_DOCUMENTATION.md](./EXERCISES_DOCUMENTATION.md)**   | 📘 Full technical docs    | 32 KB  | All developers, AI agents  |
 
 **Total Documentation:** 74.5 KB | 2,036 lines
 
@@ -20,16 +20,19 @@ This directory contains comprehensive documentation for the exercise functionali
 ## 🚀 Start Here
 
 ### If you're a Developer fixing bugs:
+
 1. Start with **[EXERCISES_QUICKFIX_GUIDE.md](./EXERCISES_QUICKFIX_GUIDE.md)** (30-45 min)
 2. Reference **[EXERCISES_TODO.md](./EXERCISES_TODO.md)** for details
 3. Use **[EXERCISES_DOCUMENTATION.md](./EXERCISES_DOCUMENTATION.md)** for context
 
 ### If you're a Project Manager:
+
 1. Read **[EXERCISES_SUMMARY_RU.md](./EXERCISES_SUMMARY_RU.md)** (5 min)
 2. Check priorities and time estimates
 3. Review impact assessment
 
 ### If you're an AI Agent:
+
 1. Read **[EXERCISES_DOCUMENTATION.md](./EXERCISES_DOCUMENTATION.md)** fully
 2. Follow **[EXERCISES_TODO.md](./EXERCISES_TODO.md)** priorities
 3. Use correct implementations from docs
@@ -39,6 +42,7 @@ This directory contains comprehensive documentation for the exercise functionali
 ## 🎯 What's Documented
 
 ### Exercise Functionality
+
 - ✅ **Generation Process:** Topic, language, level, words → AI → sentences
 - ✅ **Teacher Mode:** 10 correct examples with translations
 - ✅ **Student Mode:** 5 practice exercises with validation
@@ -47,6 +51,7 @@ This directory contains comprehensive documentation for the exercise functionali
 - ✅ **Data Formats:** Bold `**word**` (current) and legacy `{{input}}` (supported)
 
 ### Architecture
+
 - ✅ **Components:** ExerciseBlock, LearnModeText, TextWithInputs, WordSelector
 - ✅ **Services:** generateTextService, checkAnswersService, AIFactory
 - ✅ **State Management:** Zustand store with exerciseBlocks and validationResults
@@ -62,6 +67,7 @@ This directory contains comprehensive documentation for the exercise functionali
 **Status:** 🔴 **CRITICAL** - Core functionality not working
 
 **Issues:**
+
 1. ❌ Wrong textarea IDs used (searches `input_*` instead of `textarea_*`)
 2. ❌ Validation results saved to non-existent field IDs
 3. ❌ Wrong API endpoint (uses generateText instead of checkAnswers)
@@ -69,6 +75,7 @@ This directory contains comprehensive documentation for the exercise functionali
 5. ⚠️ Missing languageId parameter
 
 **Impact:**
+
 - Teacher mode ✅ **WORKS** (view correct examples)
 - Student mode ❌ **BROKEN** (validation doesn't work)
 
@@ -80,9 +87,11 @@ This directory contains comprehensive documentation for the exercise functionali
 ## 📖 Documentation Details
 
 ### EXERCISES_QUICKFIX_GUIDE.md
+
 **For:** Developers who need to fix bugs quickly
 
 **Contains:**
+
 - 7 specific code changes with exact file and line numbers
 - Before/after code snippets ready to copy-paste
 - Testing procedure
@@ -94,9 +103,11 @@ This directory contains comprehensive documentation for the exercise functionali
 ---
 
 ### EXERCISES_SUMMARY_RU.md
+
 **For:** Russian-speaking developers, managers, stakeholders
 
 **Contains:**
+
 - Overview of all documentation
 - Critical bugs with business impact
 - Priority recommendations
@@ -108,9 +119,11 @@ This directory contains comprehensive documentation for the exercise functionali
 ---
 
 ### EXERCISES_TODO.md
+
 **For:** Developers planning the fix work
 
 **Contains:**
+
 - 3 critical bugs (blocking)
 - 7 functional improvements (important)
 - 2 refactoring tasks (code quality)
@@ -121,6 +134,7 @@ This directory contains comprehensive documentation for the exercise functionali
 - 1 documentation task
 
 **Priorities:**
+
 - High: 2-3 hours (must fix)
 - Medium: 4-6 hours (should fix)
 - Low: 8-10 hours (nice to have)
@@ -130,9 +144,11 @@ This directory contains comprehensive documentation for the exercise functionali
 ---
 
 ### EXERCISES_DOCUMENTATION.md
+
 **For:** All developers and AI agents
 
 **Contains:**
+
 - Complete architecture overview
 - Generation flow with code examples
 - Both teacher and student mode details
@@ -170,6 +186,7 @@ These features are implemented correctly and don't need changes:
 ## 🔍 How to Use This Documentation
 
 ### Scenario 1: Quick Bug Fix
+
 ```
 1. Open EXERCISES_QUICKFIX_GUIDE.md
 2. Follow the 7 code changes
@@ -178,6 +195,7 @@ These features are implemented correctly and don't need changes:
 ```
 
 ### Scenario 2: Understanding the System
+
 ```
 1. Read EXERCISES_SUMMARY_RU.md (overview)
 2. Read EXERCISES_DOCUMENTATION.md (architecture)
@@ -186,6 +204,7 @@ These features are implemented correctly and don't need changes:
 ```
 
 ### Scenario 3: Planning the Work
+
 ```
 1. Read EXERCISES_SUMMARY_RU.md (5 min - context)
 2. Review EXERCISES_TODO.md priorities (20 min)
@@ -194,6 +213,7 @@ These features are implemented correctly and don't need changes:
 ```
 
 ### Scenario 4: Code Review
+
 ```
 1. Use EXERCISES_DOCUMENTATION.md as reference
 2. Check implementations against documented architecture
@@ -206,6 +226,7 @@ These features are implemented correctly and don't need changes:
 ## 📝 Documentation Quality
 
 ### Coverage
+
 - ✅ All major features documented
 - ✅ Architecture explained with diagrams (text-based)
 - ✅ Code examples provided
@@ -213,11 +234,13 @@ These features are implemented correctly and don't need changes:
 - ✅ Issues documented with solutions
 
 ### Languages
+
 - ✅ Full bilingual documentation (Russian/English)
 - ✅ Russian summary for quick reference
 - ✅ English technical details
 
 ### Completeness
+
 - ✅ Generation process
 - ✅ Both modes (teacher/student)
 - ✅ Validation flow
@@ -234,18 +257,21 @@ These features are implemented correctly and don't need changes:
 ## 🎓 Learning Path
 
 ### Beginner Developer
+
 1. Start: EXERCISES_SUMMARY_RU.md (Russian overview)
 2. Then: EXERCISES_DOCUMENTATION.md (sections 1-4)
 3. Practice: Run the app and trace the code
 4. Time: 2-3 hours
 
 ### Experienced Developer
+
 1. Start: EXERCISES_QUICKFIX_GUIDE.md (fix critical bugs)
 2. Then: EXERCISES_DOCUMENTATION.md (understand architecture)
 3. Reference: EXERCISES_TODO.md (plan improvements)
 4. Time: 1-2 hours
 
 ### Team Lead
+
 1. Start: EXERCISES_SUMMARY_RU.md (business context)
 2. Then: EXERCISES_TODO.md (priorities & estimates)
 3. Reference: EXERCISES_DOCUMENTATION.md (technical details)
@@ -265,6 +291,7 @@ These features are implemented correctly and don't need changes:
 ## 📞 Support
 
 For questions or issues with the documentation:
+
 1. Create an issue in the repository
 2. Tag with `documentation` label
 3. Reference the specific file and section
@@ -273,9 +300,9 @@ For questions or issues with the documentation:
 
 ## 📅 Version History
 
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-10-24 | Initial comprehensive documentation |
+| Version | Date       | Changes                             |
+| ------- | ---------- | ----------------------------------- |
+| 1.0.0   | 2025-10-24 | Initial comprehensive documentation |
 
 ---
 

@@ -1,16 +1,16 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
 import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Stack,
-  Chip,
   Autocomplete,
-  MenuItem
+  Box,
+  Button,
+  Chip,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography
 } from '@mui/material';
+import { useEffect, useState } from 'react';
 import LearnModeText from 'src/app/(main)/exercises/[path]/LearnModeText';
 import { useDebounce } from 'src/hooks/useDebounce';
 
@@ -105,7 +105,6 @@ export default function GeneratedHistoryPage() {
     fetchLanguages();
     fetchLevels();
     fetchHistory();
-    // eslint-disable-next-line
   }, []);
 
   // Fetch words when debounced search input changes
