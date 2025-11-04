@@ -87,7 +87,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
       try {
         await removeWord(word.id);
         onWordDelete?.();
-      } catch (error) {
+      } catch (_error) {
         showAlert.error('Failed to delete word');
         // NOTE: Check if alert is available (client-side only)
         if (typeof window !== 'undefined') {
@@ -107,7 +107,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
         await updateWord(word.id, editWord, editTranslate);
         setEditDialogOpen(false);
         onWordUpdate?.();
-      } catch (error) {
+      } catch (_error) {
         showAlert.error('Failed to update word');
         alert('Не удалось обновить слово. Попробуйте еще раз.');
       } finally {
@@ -126,12 +126,12 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
   const getLanguageDisplayName = (code?: string) => {
     if (!code) return '';
     const languageNames: Record<string, string> = {
-      'en': 'EN',
-      'pl': 'PL',
-      'de': 'DE',
-      'fr': 'FR',
-      'es': 'ES',
-      'it': 'IT'
+      en: 'EN',
+      pl: 'PL',
+      de: 'DE',
+      fr: 'FR',
+      es: 'ES',
+      it: 'IT'
     };
     return languageNames[code] || code.toUpperCase();
   };
@@ -147,9 +147,9 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
                   {word.word}
                 </Typography>
                 {word.languageCode && (
-                  <Chip 
-                    label={getLanguageDisplayName(word.languageCode)} 
-                    size="small" 
+                  <Chip
+                    label={getLanguageDisplayName(word.languageCode)}
+                    size="small"
                     color="primary"
                     variant="outlined"
                   />

@@ -127,6 +127,8 @@ export class GoogleTranslateService {
       const data = await response.json();
 
       if (data.data?.translations) {
+        // TODO: Fix types - properly type Google Translate API response instead of using any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return data.data.translations.map((translation: any) => ({
           text: translation.translatedText || ''
         }));

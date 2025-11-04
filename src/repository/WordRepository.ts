@@ -20,6 +20,8 @@ export class WordRepository {
   }
 
   async searchWords(userId: string, query: string, languageCode?: string) {
+    // TODO: Fix types - create proper Prisma where clause type instead of using any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       ownerId: userId
     };
@@ -41,7 +43,13 @@ export class WordRepository {
 
   async addWord(
     userId: string,
-    data: { word: string; translate: string; languageCode?: string; createdAt?: Date; shared?: boolean }
+    data: {
+      word: string;
+      translate: string;
+      languageCode?: string;
+      createdAt?: Date;
+      shared?: boolean;
+    }
   ) {
     return this.client.create({
       data: {
@@ -53,7 +61,13 @@ export class WordRepository {
 
   async addManyWord(
     userId: string,
-    data: { word: string; translate: string; languageCode?: string; createdAt?: Date; shared?: boolean }[]
+    data: {
+      word: string;
+      translate: string;
+      languageCode?: string;
+      createdAt?: Date;
+      shared?: boolean;
+    }[]
   ) {
     return this.client.createMany({
       data: data.map(word => ({ ...word, ownerId: userId }))
@@ -61,6 +75,8 @@ export class WordRepository {
   }
 
   async getAllWords(userId: string, languageCode?: string) {
+    // TODO: Fix types - create proper Prisma where clause type instead of using any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { ownerId: userId };
     if (languageCode) {
       where.languageCode = languageCode;

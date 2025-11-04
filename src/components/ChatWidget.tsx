@@ -28,14 +28,28 @@ const DEFAULT_WIDTH = 380;
 const DEFAULT_HEIGHT = 500;
 
 const ChatWidget: React.FC = () => {
-  const { messages, isOpen, isLoading, setIsOpen, sendMessage, loadHistory, clearHistory, setCurrentLanguage } = useChatStore();
+  const {
+    messages,
+    isOpen,
+    isLoading,
+    setIsOpen,
+    sendMessage,
+    loadHistory,
+    clearHistory,
+    setCurrentLanguage
+  } = useChatStore();
   const { settings } = useSettingsStore();
   const [inputMessage, setInputMessage] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [size, setSize] = useState({ width: DEFAULT_WIDTH, height: DEFAULT_HEIGHT });
   const [isResizing, setIsResizing] = useState(false);
   const messagesEndRef = useRef<globalThis.HTMLDivElement | null>(null);
-  const resizeRef = useRef<{ startX: number; startY: number; startWidth: number; startHeight: number } | null>(null);
+  const resizeRef = useRef<{
+    startX: number;
+    startY: number;
+    startWidth: number;
+    startHeight: number;
+  } | null>(null);
 
   // Update current language in chat store when it changes
   useEffect(() => {
@@ -59,36 +73,42 @@ const ChatWidget: React.FC = () => {
   }, [messages, isOpen]);
 
   // Handle resize start
-  const handleResizeStart = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsResizing(true);
-    resizeRef.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      startWidth: size.width,
-      startHeight: size.height
-    };
-  }, [size]);
+  const handleResizeStart = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsResizing(true);
+      resizeRef.current = {
+        startX: e.clientX,
+        startY: e.clientY,
+        startWidth: size.width,
+        startHeight: size.height
+      };
+    },
+    [size]
+  );
 
   // Handle resize move
-  const handleResizeMove = useCallback((e: MouseEvent) => {
-    if (!isResizing || !resizeRef.current) return;
+  const handleResizeMove = useCallback(
+    (e: MouseEvent) => {
+      if (!isResizing || !resizeRef.current) return;
 
-    const deltaX = resizeRef.current.startX - e.clientX;
-    const deltaY = resizeRef.current.startY - e.clientY;
+      const deltaX = resizeRef.current.startX - e.clientX;
+      const deltaY = resizeRef.current.startY - e.clientY;
 
-    const newWidth = Math.min(
-      MAX_WIDTH,
-      Math.max(MIN_WIDTH, resizeRef.current.startWidth + deltaX)
-    );
-    const newHeight = Math.min(
-      MAX_HEIGHT,
-      Math.max(MIN_HEIGHT, resizeRef.current.startHeight + deltaY)
-    );
+      const newWidth = Math.min(
+        MAX_WIDTH,
+        Math.max(MIN_WIDTH, resizeRef.current.startWidth + deltaX)
+      );
+      const newHeight = Math.min(
+        MAX_HEIGHT,
+        Math.max(MIN_HEIGHT, resizeRef.current.startHeight + deltaY)
+      );
 
-    setSize({ width: newWidth, height: newHeight });
-  }, [isResizing]);
+      setSize({ width: newWidth, height: newHeight });
+    },
+    [isResizing]
+  );
 
   // Handle resize end
   const handleResizeEnd = useCallback(() => {
@@ -265,11 +285,7 @@ const ChatWidget: React.FC = () => {
             )}
 
             {messages.map((message, index) => (
-              <MarkdownMessage
-                key={index}
-                content={message.content}
-                role={message.role}
-              />
+              <MarkdownMessage key={index} content={message.content} role={message.role} />
             ))}
 
             {isLoading && (

@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  List,
-  ListItem,
-  ListItemText,
-  MenuItem,
-  Select,
-  TextField
+    Button,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    List,
+    ListItem,
+    ListItemText,
+    MenuItem,
+    Select,
+    TextField
 } from '@mui/material';
 
 const SERVICES = [
@@ -60,6 +60,8 @@ export const UserTokensSettings: React.FC = () => {
         Добавить токен
       </Button>
       <List>
+        {/* TODO: Fix types - create proper Token interface instead of using any */}
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         {tokens.map((t: any) => (
           <ListItem
             key={t.id}

@@ -13,8 +13,7 @@ export class UserSettingsRepository {
     aiModel?: string;
     language?: string;
     translationLang?: string;
-    learningLanguage?: string;
-    customSettings?: any;
+    learningLanguage?: string
   }) {
     return this.client.create({ data });
   }
@@ -33,7 +32,6 @@ export class UserSettingsRepository {
       language?: string;
       translationLang?: string;
       learningLanguage?: string;
-      customSettings?: any;
     }
   ) {
     return this.client.update({
@@ -50,7 +48,6 @@ export class UserSettingsRepository {
       language?: string;
       translationLang?: string;
       learningLanguage?: string;
-      customSettings?: any;
     }
   ) {
     const settings = {
@@ -74,7 +71,7 @@ export class UserSettingsRepository {
   async getChatIdForLanguage(userId: string, languageCode: string): Promise<string | null> {
     const settings = await this.findByUserId(userId);
     if (!settings?.chatIdsByLanguage) return null;
-    
+
     const chatIds = settings.chatIdsByLanguage as Record<string, string>;
     return chatIds[languageCode] || null;
   }
@@ -85,9 +82,9 @@ export class UserSettingsRepository {
   async setChatIdForLanguage(userId: string, languageCode: string, chatId: string) {
     const settings = await this.findByUserId(userId);
     const chatIds = (settings?.chatIdsByLanguage as Record<string, string>) || {};
-    
+
     chatIds[languageCode] = chatId;
-    
+
     return this.client.update({
       where: { userId },
       data: { chatIdsByLanguage: chatIds }

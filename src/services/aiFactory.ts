@@ -1,9 +1,9 @@
-import { GoogleAIService } from './googleAI';
-import { OpenAIService } from './openAI';
-import { ClaudeAIService } from './claudeAI';
-import { IAIService } from './baseAI';
 import { userSettingsRepository } from 'src/repository/client';
 import { showAlert } from 'src/utils/alert';
+import { IAIService } from './baseAI';
+import { ClaudeAIService } from './claudeAI';
+import { GoogleAIService } from './googleAI';
+import { OpenAIService } from './openAI';
 
 /**
  * AI Factory for dynamically selecting AI service based on user settings
@@ -32,7 +32,7 @@ export class AIFactory {
         showAlert.warning(`Unknown model ${selectedModel}, falling back to Gemini`);
         return new GoogleAIService();
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert.error('Error getting AI service');
       // Default to Gemini on error
       return new GoogleAIService();

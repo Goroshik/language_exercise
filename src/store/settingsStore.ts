@@ -8,7 +8,6 @@ export interface UserSettings {
   translationLang: string;
   learningLanguage: string;
   lastSelectedTopic?: string;
-  customSettings?: Record<string, any>;
 }
 
 interface SettingsStore {
@@ -54,10 +53,10 @@ export const useSettingsStore = create<SettingsStore>()(
         }
       } catch (error) {
         console.error('Failed to load settings:', error);
-        set({ 
-          settings: defaultSettings, 
-          isLoading: false, 
-          error: 'Failed to load settings' 
+        set({
+          settings: defaultSettings,
+          isLoading: false,
+          error: 'Failed to load settings'
         });
       }
     },
@@ -78,11 +77,11 @@ export const useSettingsStore = create<SettingsStore>()(
 
         if (response.ok) {
           const updatedSettings = await response.json();
-          set({ 
-            settings: { ...currentSettings, ...updatedSettings }, 
-            isLoading: false 
+          set({
+            settings: { ...currentSettings, ...updatedSettings },
+            isLoading: false
           });
-          
+
           // Dispatch event for other components
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('learningLanguageChanged'));
@@ -114,9 +113,9 @@ export const useSettingsStore = create<SettingsStore>()(
 
         if (response.ok) {
           const updatedSettings = await response.json();
-          set({ 
-            settings: { ...currentSettings, ...updatedSettings }, 
-            isLoading: false 
+          set({
+            settings: { ...currentSettings, ...updatedSettings },
+            isLoading: false
           });
         } else {
           set({ isLoading: false, error: 'Failed to update settings' });
@@ -145,9 +144,9 @@ export const useSettingsStore = create<SettingsStore>()(
         }
       } catch (error) {
         console.error('Failed to load topics:', error);
-        set({ 
-          isLoadingTopics: false, 
-          error: 'Failed to load topics' 
+        set({
+          isLoadingTopics: false,
+          error: 'Failed to load topics'
         });
       }
     }

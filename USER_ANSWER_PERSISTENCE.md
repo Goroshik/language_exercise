@@ -1,9 +1,11 @@
 # User Answer Persistence Implementation
 
 ## Overview
+
 This document describes the implementation of user answer persistence for exercises in the language learning application.
 
 ## Requirements
+
 - User answers must be saved to the database for each exercise sentence
 - Only one answer per sentence per user (updates existing answer)
 - Answers must persist when navigating between pages
@@ -12,6 +14,7 @@ This document describes the implementation of user answer persistence for exerci
 ## Architecture
 
 ### Database Schema
+
 Added `UserAnswer` model to Prisma schema:
 
 ```prisma
@@ -32,6 +35,7 @@ model UserAnswer {
 ```
 
 **Key Features:**
+
 - Unique constraint on `[userId, sentenceId]` ensures one answer per sentence per user
 - Cascade delete: answers are deleted if user or sentence is deleted
 - `updatedAt` field automatically tracks when answers are modified
@@ -39,9 +43,11 @@ model UserAnswer {
 ### API Endpoints
 
 #### POST /api/user-answers
+
 Saves or updates a user's answer for a specific sentence.
 
 **Request:**
+
 ```json
 {
   "sentenceId": "507f1f77bcf86cd799439011",
@@ -50,6 +56,7 @@ Saves or updates a user's answer for a specific sentence.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -65,14 +72,17 @@ Saves or updates a user's answer for a specific sentence.
 ```
 
 #### GET /api/user-answers?sentenceIds=id1,id2,id3
+
 Retrieves saved answers for multiple sentences.
 
 **Request:**
+
 ```
 GET /api/user-answers?sentenceIds=507f1f77bcf86cd799439011,507f1f77bcf86cd799439013
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -92,6 +102,7 @@ GET /api/user-answers?sentenceIds=507f1f77bcf86cd799439011,507f1f77bcf86cd799439
 ### Repository Layer
 
 **UserAnswerRepository** (`src/repository/UserAnswerRepository.ts`):
+
 - `saveAnswer()`: Upserts answer (creates or updates)
 - `getAnswersBySentenceIds()`: Retrieves multiple answers by sentence IDs
 - `getAnswer()`: Gets single answer by userId and sentenceId
@@ -100,11 +111,13 @@ GET /api/user-answers?sentenceIds=507f1f77bcf86cd799439011,507f1f77bcf86cd799439
 ### Service Layer
 
 **generateTextService** (`src/services/generateTextService.ts`):
+
 - Modified to return sentence IDs along with generated sentences
 - Uses `addHistoryBatch()` which now returns created sentence objects with IDs
 - Returns: `{ data: string[], sentenceIds: string[] }`
 
 **ApiService** (`src/services/apiService.ts`):
+
 - `saveUserAnswer(sentenceId, answer)`: Saves answer via API
 - `getUserAnswers(sentenceIds)`: Retrieves answers via API
 - `generateText()`: Updated return type to include sentenceIds
@@ -112,6 +125,7 @@ GET /api/user-answers?sentenceIds=507f1f77bcf86cd799439011,507f1f77bcf86cd799439
 ### State Management
 
 **appStore** (`src/store/appStore.ts`):
+
 - Added `savedAnswers` state: `{ [sentenceId: string]: string }`
 - Added `loadSavedAnswers(sentenceIds)`: Fetches and stores answers from API
 - Added `saveAnswer(sentenceId, answer)`: Saves answer to API and updates state
@@ -120,13 +134,16 @@ GET /api/user-answers?sentenceIds=507f1f77bcf86cd799439011,507f1f77bcf86cd799439
 ### UI Components
 
 #### TextWithInputs Component
+
 **Key Changes:**
+
 1. Accepts `sentenceId` prop
 2. On mount: loads saved answer from global store
 3. On change: debounces save to API (1 second delay)
 4. Restores textarea value when sentenceId matches saved answer
 
 **Implementation:**
+
 ```typescript
 // Load saved answer on mount
 useEffect(() => {
@@ -160,13 +177,16 @@ const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => 
 ```
 
 #### ExerciseBlock Component
+
 **Key Changes:**
+
 - Updated to pass `sentenceId` prop to `TextWithInputs`
 - Added `sentenceId` to local Exercise interface
 
 ## Data Flow
 
 ### Exercise Generation Flow
+
 1. User clicks "Создать упражнения"
 2. `handleTopicSelect()` called in page component
 3. API request to `/api/ai/generate-text`
@@ -179,6 +199,7 @@ const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => 
 7. Components render with loaded data
 
 ### Answer Saving Flow
+
 1. User types in textarea
 2. `handleTextareaChange()` triggered
 3. After 1 second of no typing:
@@ -189,6 +210,7 @@ const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => 
 4. Answer persisted successfully
 
 ### Answer Loading Flow
+
 1. When exercises load with sentenceIds
 2. Store calls `loadSavedAnswers(sentenceIds)`
 3. API GET to `/api/user-answers?sentenceIds=...`
@@ -208,21 +230,25 @@ const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => 
 ## Technical Decisions
 
 ### Why Debounce Auto-save?
+
 - Prevents API call on every keystroke
 - Balances between responsiveness and performance
 - 1 second delay is short enough to feel instant but reduces API load
 
 ### Why Global Store Access?
+
 - `TextWithInputs` is a presentational component
 - Accessing hooks would require restructuring component hierarchy
 - Global access keeps component simple and focused
 
 ### Why Upsert Pattern?
+
 - Allows same code path for create and update
 - Prevents errors if answer already exists
 - Ensures data consistency with unique constraint
 
 ### Why Promise.all Instead of createMany?
+
 - MongoDB's `createMany` doesn't return created document IDs
 - Need IDs to map back to sentences
 - `Promise.all` with individual creates is acceptable for batch sizes < 20
@@ -230,6 +256,7 @@ const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => 
 ## Testing Considerations
 
 When testing this feature:
+
 1. Generate exercises and verify sentenceIds are present
 2. Type answer and wait 1 second, check database for saved answer
 3. Navigate away and back, verify answer is restored
@@ -239,6 +266,7 @@ When testing this feature:
 ## Future Enhancements
 
 Potential improvements:
+
 1. **Optimistic updates**: Update UI immediately before API confirms
 2. **Offline support**: Queue saves when offline, sync when online
 3. **Answer history**: Track revisions for learning analytics

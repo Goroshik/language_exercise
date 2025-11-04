@@ -9,6 +9,7 @@ This document contains AI-ready prompts for implementing future enhancements to 
 **Impact**: Performance improvement for users with large history
 
 ### AI Prompt
+
 ```
 Implement pagination for the Exercise History page (/exercises/generated-history).
 
@@ -49,6 +50,7 @@ Testing:
 **Impact**: User convenience, data portability
 
 ### AI Prompt
+
 ```
 Add export functionality to the Exercise History page to allow users to export their history to various formats.
 
@@ -94,6 +96,7 @@ Testing:
 **Impact**: User insights, motivation
 
 ### AI Prompt
+
 ```
 Create a statistics dashboard for the Exercise History feature to show users insights about their learning progress.
 
@@ -145,6 +148,7 @@ Testing:
 **Impact**: Power user feature
 
 ### AI Prompt
+
 ```
 Enhance the search functionality on the Exercise History page with advanced search capabilities.
 
@@ -193,6 +197,7 @@ Testing:
 **Impact**: User convenience
 
 ### AI Prompt
+
 ```
 Add the ability for users to mark sentences as favorites/bookmarks in their Exercise History.
 
@@ -239,6 +244,7 @@ Testing:
 **Impact**: Data quality
 
 ### AI Prompt
+
 ```
 Implement duplicate detection to prevent or flag duplicate sentences in the Exercise History.
 
@@ -282,6 +288,7 @@ Testing:
 **Impact**: User convenience
 
 ### AI Prompt
+
 ```
 Add bulk action capabilities to the Exercise History page to allow users to perform actions on multiple sentences at once.
 
@@ -328,6 +335,7 @@ Testing:
 **Impact**: User flexibility
 
 ### AI Prompt
+
 ```
 Allow users to edit saved sentences in their Exercise History.
 
@@ -375,6 +383,7 @@ Testing:
 **Impact**: Advanced user feature
 
 ### AI Prompt
+
 ```
 Add intelligent filtering suggestions based on user's history and usage patterns.
 
@@ -422,6 +431,7 @@ Testing:
 **Impact**: Social/collaborative feature
 
 ### AI Prompt
+
 ```
 Enable users to share selected sentences or entire exercise sets with others.
 
@@ -473,6 +483,7 @@ Testing:
 **Impact**: Scalability
 
 ### AI Prompt
+
 ```
 Optimize the Exercise History feature for better performance with large datasets.
 
@@ -520,6 +531,7 @@ Testing:
 **Impact**: Advanced learning feature
 
 ### AI Prompt
+
 ```
 Use AI to analyze user's exercise history and provide personalized learning insights and recommendations.
 
@@ -575,24 +587,25 @@ Testing:
 
 ## Implementation Priority Matrix
 
-| Feature | Priority | Effort | Impact | Order |
-|---------|----------|--------|--------|-------|
-| Pagination | High | Medium | High | 1 |
-| Duplication Check | Medium | Low | Medium | 2 |
-| Export | Medium | Medium | Medium | 3 |
-| Performance Opt. | Medium | Medium | High | 4 |
-| Statistics | Medium | High | Medium | 5 |
-| Favorites | Low | Medium | Medium | 6 |
-| Advanced Search | Low | Medium | Low | 7 |
-| Bulk Actions | Low | Medium | Medium | 8 |
-| Editing | Low | High | Low | 9 |
-| Smart Filtering | Low | High | Low | 10 |
-| Sharing | Low | High | Low | 11 |
-| AI Insights | Low | Very High | Low | 12 |
+| Feature           | Priority | Effort    | Impact | Order |
+| ----------------- | -------- | --------- | ------ | ----- |
+| Pagination        | High     | Medium    | High   | 1     |
+| Duplication Check | Medium   | Low       | Medium | 2     |
+| Export            | Medium   | Medium    | Medium | 3     |
+| Performance Opt.  | Medium   | Medium    | High   | 4     |
+| Statistics        | Medium   | High      | Medium | 5     |
+| Favorites         | Low      | Medium    | Medium | 6     |
+| Advanced Search   | Low      | Medium    | Low    | 7     |
+| Bulk Actions      | Low      | Medium    | Medium | 8     |
+| Editing           | Low      | High      | Low    | 9     |
+| Smart Filtering   | Low      | High      | Low    | 10    |
+| Sharing           | Low      | High      | Low    | 11    |
+| AI Insights       | Low      | Very High | Low    | 12    |
 
 ## Notes for AI Assistants
 
 When implementing these features:
+
 1. **Follow existing patterns**: Use the same repository/service/API structure
 2. **Maintain consistency**: Match existing code style and TypeScript patterns
 3. **Test thoroughly**: Each feature should be tested as described
