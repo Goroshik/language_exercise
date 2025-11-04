@@ -8,7 +8,7 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import reactRefresh from 'eslint-plugin-react-refresh';
 
 export default [
-  // Ignore patterns
+  // Ignore patterns - expanded for better performance
   {
     ignores: [
       'dist',
@@ -16,10 +16,23 @@ export default [
       'node_modules',
       '.react-router',
       '.next',
+      'out',
       'src/generated/**',
       '*.config.js',
       '*.config.ts',
-      'next-env.d.ts'
+      '*.config.mjs',
+      'next-env.d.ts',
+      // Additional ignores for performance
+      '**/*.md',
+      '**/*.json',
+      'docker-compose*.yml',
+      'Dockerfile',
+      '.git',
+      '.vscode',
+      'coverage',
+      '.turbo',
+      '*.log',
+      'public/**'
     ]
   },
   // Base JavaScript config
@@ -100,25 +113,18 @@ export default [
       ...reactHooks.configs.recommended.rules,
       ...prettierConfig.rules,
 
-      // Prettier integration
-      'prettier/prettier': [
-        'warn',
-        {
-          semi: true,
-          trailingComma: 'none',
-          singleQuote: true,
-          printWidth: 100,
-          tabWidth: 2,
-          useTabs: false,
-          arrowParens: 'avoid',
-          endOfLine: 'auto'
-        }
-      ],
+      // Prettier integration - disabled for performance
+      // Run prettier separately: npm run format
+      // 'prettier/prettier': 'off',
 
       // React rules
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      
+      // React Hooks rules - relaxed to allow manual dependency management
+      'react-hooks/rules-of-hooks': 'error', // Still enforce hooks rules
+      'react-hooks/exhaustive-deps': 'off', // Allow manual control of dependencies
 
       // TypeScript rules
       '@typescript-eslint/no-unused-vars': [

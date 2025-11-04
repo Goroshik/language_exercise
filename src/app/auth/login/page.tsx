@@ -1,9 +1,7 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-
-import { signIn } from 'next-auth/react';
+import React, { Suspense, useState } from 'react';
 
 import { Box, Button, TextField, Typography } from '@mui/material';
 

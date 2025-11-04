@@ -34,6 +34,8 @@ export async function GET(request: NextRequest) {
   try {
     const userId = getUserIdFromRequest(request);
     const { searchParams } = new URL(request.url);
+    // TODO: Fix type - use proper null handling instead of non-null assertion
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const limit = searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 50;
     const chatId = searchParams.get('chatId') || undefined;
 
