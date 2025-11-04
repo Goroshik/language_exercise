@@ -1,7 +1,9 @@
+import HistoryIcon from '@mui/icons-material/History';
 import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { useTextSelection } from 'src/hooks/useTextSelection';
+import { useAlertStore } from 'src/store/alertStore';
 import type { TranslationPanelState } from 'src/types/translation';
 import TextSelectionPopover from './TextSelectionPopover';
 import WordTranslationPanel from './WordTranslationPanel';
@@ -10,6 +12,7 @@ interface TextWithInputsProps {
   text: string;
   exerciseIndex?: string | number;
   sentenceId?: string;
+  hasAnswer?: boolean; // флаг наличия предыдущего ответа
   validationResults?: {
     [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] };
   };
@@ -36,7 +39,7 @@ const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
 };
 
 const stripTranslationLabel = (value: string) =>
-  value.replace(/^(?:перевод|translation)\s*[:\-]?\s*/i, '').trim();
+  value.replace(/^(?:перевод|translation)\s*[:−-]?\s*/i, '').trim();
 
 const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
   if (!rawText) {
@@ -48,7 +51,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     return EMPTY_PARSED_CONTENT;
   }
 
-  const withoutNumbering = normalized.replace(/^[\d)\-\*\.\s]+/, '').trim();
+  const withoutNumbering = normalized.replace(/^[\d).*\s-]+/, '').trim();
   const lines = withoutNumbering
     .split('\n')
     .map(line => line.trim())
@@ -141,6 +144,7 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   text,
   exerciseIndex = 0,
   sentenceId,
+  hasAnswer = false,
   validationResults = {}
 }) => {
   const [textareaValue, setTextareaValue] = useState('');
@@ -155,24 +159,16 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
     closeSelectionPopover,
     closeTranslationPanel: closeSelectionTranslationPanel
   } = useTextSelection();
+  const [isLoadingPreviousAnswer, setIsLoadingPreviousAnswer] = useState(false);
+
+  const { addAlert } = useAlertStore();
 
   const textareaId = `textarea_${exerciseIndex}`;
 
   const parsedContent = useMemo(() => parseExerciseContent(text), [text]);
   const { displaySentence, prefillSentence, hints, translation, additionalNotes } = parsedContent;
 
-  // Load saved answer when component mounts or sentenceId changes
-  useEffect(() => {
-    if (typeof window !== 'undefined' && sentenceId) {
-      // Try to get from store first
-      const { savedAnswers } = (window as any).__appStore?.getState?.() || {};
-      const savedAnswer = savedAnswers?.[sentenceId];
-      if (savedAnswer) {
-        setTextareaValue(savedAnswer);
-      }
-    }
-  }, [sentenceId]);
-
+  // Remove auto-loading of saved answers
   useEffect(() => {
     // Reset when text changes (new exercise)
     if (!sentenceId) {
@@ -187,21 +183,48 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
     setTextareaValue(prefillSentence);
   };
 
+  const handleLoadPreviousAnswer = async () => {
+    if (!sentenceId || isLoadingPreviousAnswer) {
+      return;
+    }
+
+    try {
+      setIsLoadingPreviousAnswer(true);
+
+      const response = await fetch(`/api/user-answers?sentenceIds=${sentenceId}`);
+      const result = await response.json();
+
+      if (result.success && result.data && result.data.length > 0) {
+        const previousAnswer = result.data[0].answer;
+        setTextareaValue(previousAnswer);
+        addAlert('Предыдущий ответ загружен', 'success');
+      } else {
+        // No previous answer found
+        addAlert('Предыдущий ответ не найден', 'warning');
+      }
+    } catch (error) {
+      console.error('Error loading previous answer:', error);
+      addAlert('Ошибка при загрузке предыдущего ответа', 'error');
+    } finally {
+      setIsLoadingPreviousAnswer(false);
+    }
+  };
+
   const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = event.target.value;
     setTextareaValue(newValue);
+  };
 
-    // Save answer to store if sentenceId is provided
-    if (sentenceId && typeof window !== 'undefined') {
+  const handleTextareaBlur = () => {
+    // Save answer to store when textarea loses focus
+    if (sentenceId && textareaValue.trim() && typeof window !== 'undefined') {
+      // TODO: Fix types - properly type window.__appStore instead of using any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const store = (window as any).__appStore;
       if (store?.getState) {
         const { saveAnswer } = store.getState();
         if (saveAnswer) {
-          // Debounce the save operation
-          clearTimeout((handleTextareaChange as any).timeout);
-          (handleTextareaChange as any).timeout = setTimeout(() => {
-            saveAnswer(sentenceId, newValue);
-          }, 1000); // Save after 1 second of no typing
+          saveAnswer(sentenceId, textareaValue);
         }
       }
     }
@@ -312,30 +335,55 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
             variant="outlined"
             value={textareaValue}
             onChange={handleTextareaChange}
+            onBlur={handleTextareaBlur}
             placeholder="Введите ваш ответ здесь..."
             className={`exercise-input ${
               isValidated ? (isCorrect ? 'exercise-input-correct' : 'exercise-input-incorrect') : ''
             }`}
-            sx={{ paddingRight: '120px' }}
+            sx={{ paddingRight: '140px' }}
           />
 
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={handlePrefillClick}
-            disabled={isPrefillDisabled}
+          <Stack
+            direction="column"
+            spacing={1}
             sx={{
               position: 'absolute',
               top: 8,
               right: 8,
-              textTransform: 'none',
-              whiteSpace: 'nowrap',
-              minWidth: 'auto',
               zIndex: 10
             }}
           >
-            Предзаполнить
-          </Button>
+            {sentenceId && hasAnswer && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleLoadPreviousAnswer}
+                disabled={isLoadingPreviousAnswer}
+                startIcon={<HistoryIcon />}
+                sx={{
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  minWidth: 'auto'
+                }}
+              >
+                {isLoadingPreviousAnswer ? 'Загрузка...' : 'Пред. ответ'}
+              </Button>
+            )}
+
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handlePrefillClick}
+              disabled={isPrefillDisabled}
+              sx={{
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                minWidth: 'auto'
+              }}
+            >
+              Предзаполнить
+            </Button>
+          </Stack>
         </Box>
 
         {isValidated && !isCorrect && errorMessage && (

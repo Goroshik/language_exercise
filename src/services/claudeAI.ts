@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { BaseAIService, AIResponse, ParsedWord } from './baseAI';
 import { userSettingsRepository } from 'src/repository/client';
 import { showAlert } from 'src/utils/alert';
+import { AIResponse, BaseAIService, ParsedWord } from './baseAI';
 
 export class ClaudeAIService extends BaseAIService {
   serviceName = 'anthropic';
@@ -56,11 +56,11 @@ ${text}`;
           return parsedWords.filter(item => item.word && typeof item.word === 'string');
         }
         return [];
-      } catch (parseError) {
+      } catch (_parseError) {
         showAlert.error('Failed to parse Claude response as JSON');
         return [];
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert.error('Error parsing words with Claude');
       return [];
     }
@@ -160,7 +160,7 @@ ${text}`;
       }
 
       return null;
-    } catch (error) {
+    } catch (_error) {
       showAlert.error('Error fetching user model settings');
       return null;
     }

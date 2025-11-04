@@ -9,6 +9,7 @@ The answer validation in student mode is **completely broken**. This guide shows
 **File:** `src/store/appStore.ts` (lines 188-198)
 
 **Find this code:**
+
 ```typescript
 const answersText = block.exercises
   .map((exercise, index) => {
@@ -24,12 +25,13 @@ const answersText = block.exercises
 ```
 
 **Replace with:**
+
 ```typescript
 const answersText = block.exercises
   .map((exercise, index) => {
     const textareaId = `textarea_${blockId}_${index}`;
     const userAnswer = userAnswers[textareaId];
-    
+
     // Send only filled answers
     if (userAnswer && userAnswer.trim()) {
       return `${index + 1}. ${userAnswer.trim()}`;
@@ -58,6 +60,7 @@ if (!answersText.trim()) {
 **File:** `src/store/appStore.ts` (lines 203-220)
 
 **Find this code:**
+
 ```typescript
 const results: { [key: string]: { isCorrect: boolean; error?: string } } = {};
 
@@ -80,23 +83,24 @@ data.forEach((line: string, index: number) => {
 ```
 
 **Replace with:**
+
 ```typescript
-const results: { 
-  [key: string]: { 
-    isCorrect: boolean; 
+const results: {
+  [key: string]: {
+    isCorrect: boolean;
     error?: string;
     incorrectTranslations?: string[];
-  } 
+  };
 } = {};
 
 data.forEach((line: string, index: number) => {
   const textareaId = `textarea_${blockId}_${index}`;
-  
+
   // Skip if this textarea wasn't in userAnswers (not filled)
   if (!userAnswers[textareaId]) {
     return;
   }
-  
+
   const isCorrect = line.includes('CORRECT');
   let errorMessage: string | undefined;
   let incorrectTranslations: string[] | undefined;
@@ -107,13 +111,13 @@ data.forEach((line: string, index: number) => {
       const errorPart = line.split('|')[0];
       errorMessage = errorPart.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
     }
-    
+
     // Handle translation errors
     if (line.includes('TRANSLATION_ERRORS:')) {
       const translationPart = line.includes('|')
         ? line.split('|')[1].split('TRANSLATION_ERRORS:')[1]
         : line.split('TRANSLATION_ERRORS:')[1];
-      
+
       incorrectTranslations = translationPart
         ?.split(',')
         .map(item => item.trim())
@@ -121,10 +125,10 @@ data.forEach((line: string, index: number) => {
     }
   }
 
-  results[textareaId] = { 
-    isCorrect, 
+  results[textareaId] = {
+    isCorrect,
     error: errorMessage,
-    incorrectTranslations 
+    incorrectTranslations
   };
 });
 ```
@@ -136,12 +140,14 @@ data.forEach((line: string, index: number) => {
 **File:** `src/store/appStore.ts` (lines 200-201)
 
 **Find this code:**
+
 ```typescript
 const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
 const data = await ApiService.generateText({ prompt: validatePrompt });
 ```
 
 **Replace with:**
+
 ```typescript
 // Get language for API call (you'll need to pass languageId to this function)
 const language = await languageRepository.findById(languageId);
@@ -161,14 +167,16 @@ const data = await ApiService.checkAnswers({
 **File:** `src/store/appStore.ts`
 
 **Find this:**
+
 ```typescript
 handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string }) => {
 ```
 
 **Replace with:**
+
 ```typescript
 handleCheckAnswers: async (
-  blockId: string, 
+  blockId: string,
   userAnswers: { [key: string]: string },
   languageId: string
 ) => {
@@ -181,6 +189,7 @@ handleCheckAnswers: async (
 **File:** `src/app/(main)/exercises/[path]/page.tsx` (around line 212)
 
 **Find this:**
+
 ```typescript
 <ExerciseBlock
   key={block.id}
@@ -193,13 +202,14 @@ handleCheckAnswers: async (
 ```
 
 **Replace with:**
+
 ```typescript
 <ExerciseBlock
   key={block.id}
   block={block}
   blockIndex={blockIndex}
   validationResults={validationResults[block.id] || {}}
-  onCheckAnswers={(blockId, userAnswers) => 
+  onCheckAnswers={(blockId, userAnswers) =>
     handleCheckAnswers(blockId, userAnswers, selectedLanguageId)
   }
   mode={selectedMode}
@@ -213,6 +223,7 @@ handleCheckAnswers: async (
 **File:** `src/app/(main)/exercises/[path]/ExerciseBlock.tsx`
 
 **Find this:**
+
 ```typescript
 const handleCheckAnswers = () => {
   // Collect textarea values instead of individual inputs
@@ -226,20 +237,21 @@ const handleCheckAnswers = () => {
 ```
 
 **Replace with:**
+
 ```typescript
 const handleCheckAnswers = () => {
   const textareas = document.querySelectorAll(`textarea[id^="textarea_${block.id}_"]`);
-  
+
   // Check if at least one answer is filled
   const hasAnyFilledAnswer = Array.from(textareas).some(
     textarea => (textarea as HTMLTextAreaElement).value.trim().length > 0
   );
-  
+
   if (!hasAnyFilledAnswer) {
     showAlert.warning('Пожалуйста, заполните хотя бы одно упражнение перед проверкой');
     return;
   }
-  
+
   // Collect only filled answers
   const userAnswers: { [key: string]: string } = {};
   textareas.forEach(textarea => {
@@ -248,7 +260,7 @@ const handleCheckAnswers = () => {
       userAnswers[textarea.id] = value;
     }
   });
-  
+
   onCheckAnswers(block.id, userAnswers);
 };
 ```
@@ -260,6 +272,7 @@ const handleCheckAnswers = () => {
 **File:** `src/store/appStore.ts` (at the top)
 
 **Add this import:**
+
 ```typescript
 import { languageRepository } from 'src/repository/client';
 ```
@@ -295,6 +308,7 @@ After applying all fixes, verify:
 ## Need Help?
 
 See full documentation in:
+
 - `EXERCISES_DOCUMENTATION.md` - Complete architecture and flow
 - `EXERCISES_TODO.md` - Detailed explanation of all issues
 - `EXERCISES_SUMMARY_RU.md` - Russian summary

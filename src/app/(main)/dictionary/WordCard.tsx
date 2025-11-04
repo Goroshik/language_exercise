@@ -87,7 +87,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
       try {
         await removeWord(word.id);
         onWordDelete?.();
-      } catch (error) {
+      } catch (_error) {
         showAlert.error('Failed to delete word');
         // NOTE: Check if alert is available (client-side only)
         if (typeof window !== 'undefined') {
@@ -107,7 +107,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
         await updateWord(word.id, editWord, editTranslate);
         setEditDialogOpen(false);
         onWordUpdate?.();
-      } catch (error) {
+      } catch (_error) {
         showAlert.error('Failed to update word');
         alert('Не удалось обновить слово. Попробуйте еще раз.');
       } finally {

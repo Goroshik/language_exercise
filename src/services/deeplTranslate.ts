@@ -52,6 +52,8 @@ export class DeepLTranslateService {
         return { text: data.translations[0].text };
       }
       return { text: '', error: data.message || 'Ошибка перевода' };
+      // TODO: Fix types - use proper Error type instead of any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       return { text: '', error: error?.message || 'Ошибка при переводе' };
     }
@@ -86,7 +88,9 @@ export class DeepLTranslateService {
       const response = await fetch('/api/tokens');
       if (!response.ok) return null;
       const tokens = await response.json();
+      // TODO: Fix types - create proper Token interface instead of using any
       const deeplTokenObj = Array.isArray(tokens)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ? tokens.find((t: any) => t.service === 'deepl')
         : null;
       return deeplTokenObj?.token || null;

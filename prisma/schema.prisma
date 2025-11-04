@@ -98,7 +98,6 @@ model UserSettings {
   learningLanguage  String?  @default("en") // language being studied (en, pl)
   lastSelectedTopic String? // last selected topic for exercises
   chatIdsByLanguage Json?   // { "en": "chatId1", "pl": "chatId2" } - chat IDs per language
-  customSettings    Json? // for additional flexible settings storage
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -127,6 +126,7 @@ model SentenceHistory {
   level       String
   mode        String   @default("exercise") // "learn" or "exercise" - режим для которого было сгенерировано предложение
   topic       String? // топик, под которым были сгенерированы предложения
+  hints       String[] @default([]) // подсказки для упражнения (например, формы глаголов)
   ownerId     String   @db.ObjectId
   owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   language    Language @relation(fields: [languageId], references: [id], onDelete: Cascade)

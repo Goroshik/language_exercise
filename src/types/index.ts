@@ -2,6 +2,7 @@ export interface Exercise {
   sentence: string;
   correctAnswers: string[];
   sentenceId?: string; // ID from SentenceHistory table
+  hasAnswer?: boolean; // флаг наличия предыдущего ответа
 }
 
 export interface ExerciseBlock {
@@ -77,6 +78,12 @@ export interface AppStore {
     level?: string;
     selectedWords?: DictionaryWord[];
     mode?: 'student' | 'teacher';
+  }) => Promise<void>;
+  loadTrainingExercises: (data: {
+    languageId?: string;
+    level?: string;
+    mode?: 'student' | 'teacher';
+    limit?: number;
   }) => Promise<void>;
   handleCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => Promise<void>;
   clearError: () => void;

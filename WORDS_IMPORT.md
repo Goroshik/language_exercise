@@ -37,6 +37,7 @@ Both methods ultimately use the same API endpoint for saving words to the databa
 ### Implementation Details
 
 **Frontend (ImportWordsModal.tsx)**:
+
 ```typescript
 // Pre-filled word triggers review step
 useEffect(() => {
@@ -62,11 +63,12 @@ const addWords = async (words: ParsedWord[]) => {
 ```
 
 **API Endpoint (src/app/api/dictionary/words/route.ts)**:
+
 ```typescript
 export async function POST(request: NextRequest) {
   const userId = getUserIdFromRequest(request);
   const { words } = await safeJson(request);
-  
+
   // Words is an array, even for single word
   if (!words.length) {
     return NextResponse.json(
@@ -74,18 +76,17 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   }
-  
+
   const createdWord = await addManyWordService(userId, words);
   return NextResponse.json({ success: true, word: createdWord });
 }
 ```
 
 **Important Note**: Even when adding a single word manually, the request body contains an **array** with one element:
+
 ```json
 {
-  "words": [
-    { "word": "apple", "translate": "яблоко" }
-  ]
+  "words": [{ "word": "apple", "translate": "яблоко" }]
 }
 ```
 
@@ -109,48 +110,51 @@ export async function POST(request: NextRequest) {
 **Step 1: Parse Text with AI**
 
 Frontend calls `/api/ai/parse-words`:
+
 ```typescript
 const handleParseText = async () => {
   setIsLoading(true);
   setStep('parsing');
-  
+
   const response = await fetch('/api/ai/parse-words', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ text: inputText })
   });
-  
+
   const data = await response.json();
   const parsed: ParsedWord[] = data.data.map((item: any) => ({
     word: item.word || '',
     translate: item.translate || ''
   }));
-  
+
   setParsedWords(parsed);
   setStep('review');
 };
 ```
 
 **API Route (src/app/api/ai/parse-words/route.ts)**:
+
 ```typescript
 export async function POST(request: NextRequest) {
   const userId = getUserIdFromRequest(request);
   const { text } = await safeJson(request);
-  
+
   // AI service handles the parsing
   const words = await parseWordsFromTextService(text, userId);
-  
+
   return NextResponse.json({ words });
 }
 ```
 
 **Service Layer (parseWordsFromTextService.ts)**:
+
 ```typescript
 export async function parseWordsFromTextService(text: string, userId: string) {
   if (!text || typeof text !== 'string') {
     throw new NextResponseError('Text parameter is required', 400);
   }
-  
+
   // Factory pattern - selects AI service based on user settings
   const aiService = await AIFactory.getAIService(userId);
   return aiService.parseWordsFromText!(text, userId);
@@ -160,13 +164,14 @@ export async function parseWordsFromTextService(text: string, userId: string) {
 **AI Service Implementation (GoogleAIService example)**:
 
 The AI service uses a prompt to extract words:
-```typescript
+
+````typescript
 async parseWordsFromText(text: string, userId: string): Promise<ParsedWord[]> {
   const token = await this.validateAndGetToken(userId);
   const genAI = new GoogleGenerativeAI(token);
   const model = genAI.getGenerativeModel({ model: modelName });
-  
-  const prompt = `Parse the following text and extract English words or phrases with their Russian translations. 
+
+  const prompt = `Parse the following text and extract English words or phrases with their Russian translations.
 Return ONLY a valid JSON array with format: [{"word": "english_word", "translate": "russian_translation"}].
 Do not include any other text, explanations, or formatting.
 If a line contains both English and Russian, extract them as word-translation pairs.
@@ -175,17 +180,17 @@ Skip empty lines and non-word content.
 
 Text to parse:
 ${text}`;
-  
+
   const result = await model.generateContent(prompt);
   const responseText = result.response.text();
-  
+
   // Clean and parse JSON response
   const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
   const parsedWords = JSON.parse(cleanedResponse);
-  
+
   return parsedWords.filter(item => item.word && typeof item.word === 'string');
 }
-```
+````
 
 **Step 2: Review and Save**
 
@@ -204,6 +209,7 @@ The AI provider is selected based on user settings (`aiModel` field in `UserSett
 ## Data Flow Diagram
 
 ### Manual Addition
+
 ```
 WordTranslationPanel
   └─> ImportWordsModal (pre-filled)
@@ -215,6 +221,7 @@ WordTranslationPanel
 ```
 
 ### AI Import
+
 ```
 ImportWordsModal
   └─> Input Step (user enters text)
@@ -274,6 +281,7 @@ async searchWords(userId: string, query: string) {
 ### POST /api/dictionary/words
 
 **Request Body**:
+
 ```json
 {
   "words": [
@@ -290,14 +298,18 @@ async searchWords(userId: string, query: string) {
 ```
 
 **Success Response** (200):
+
 ```json
 {
   "success": true,
-  "word": { /* created words result */ }
+  "word": {
+    /* created words result */
+  }
 }
 ```
 
 **Error Response** (400):
+
 ```json
 {
   "success": false,
@@ -308,6 +320,7 @@ async searchWords(userId: string, query: string) {
 ### POST /api/ai/parse-words
 
 **Request Body**:
+
 ```json
 {
   "text": "apple - яблоко\nbook - книга\ncat - кот"
@@ -315,6 +328,7 @@ async searchWords(userId: string, query: string) {
 ```
 
 **Success Response** (200):
+
 ```json
 {
   "words": [
@@ -326,6 +340,7 @@ async searchWords(userId: string, query: string) {
 ```
 
 **Error Response** (402 - No AI Token):
+
 ```json
 {
   "error": "AI service token not configured for user"
@@ -333,6 +348,7 @@ async searchWords(userId: string, query: string) {
 ```
 
 **Error Response** (500):
+
 ```json
 {
   "error": "Internal server error"

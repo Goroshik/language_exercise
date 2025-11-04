@@ -3,6 +3,7 @@
 This guide provides comprehensive instructions for deploying the Language Exercise application to production.
 
 ## Table of Contents
+
 1. [Prerequisites](#prerequisites)
 2. [Environment Variables](#environment-variables)
 3. [Database Setup](#database-setup)
@@ -18,6 +19,7 @@ This guide provides comprehensive instructions for deploying the Language Exerci
 ## Prerequisites
 
 Before deploying, ensure you have:
+
 - Node.js 20+ installed (for local development)
 - A MongoDB database (MongoDB Atlas recommended for managed hosting)
 - All required API keys (Gemini, OpenAI, Claude - optional, users can add their own)
@@ -99,6 +101,7 @@ node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"
    - Replace `<dbname>` with `exercises`
 
    Example:
+
    ```
    mongodb+srv://myuser:mypassword@cluster0.xxxxx.mongodb.net/exercises?retryWrites=true&w=majority
    ```
@@ -125,6 +128,7 @@ rs.initiate({
 #### Steps:
 
 1. **Prepare Your Repository**
+
    ```bash
    git push origin main
    ```
@@ -162,6 +166,7 @@ rs.initiate({
 #### Continuous Deployment
 
 Vercel automatically deploys on every push to main branch. To deploy from other branches:
+
 - Go to Settings → Git → Production Branch
 - Configure deployment branches
 
@@ -212,6 +217,7 @@ Vercel automatically deploys on every push to main branch. To deploy from other 
 #### Note on MongoDB Replica Set
 
 Railway's MongoDB doesn't have replica sets by default. You have two options:
+
 1. Use MongoDB Atlas instead (recommended)
 2. Use Railway's MongoDB for development and Atlas for production
 
@@ -293,6 +299,7 @@ Railway's MongoDB doesn't have replica sets by default. You have two options:
 **Cons:** Requires server management
 
 #### Prerequisites
+
 - A VPS or cloud server (DigitalOcean Droplet, AWS EC2, etc.)
 - Docker and Docker Compose installed
 - Domain name (optional)
@@ -300,53 +307,59 @@ Railway's MongoDB doesn't have replica sets by default. You have two options:
 #### Steps:
 
 1. **Set Up Server**
+
    ```bash
    # SSH into your server
    ssh user@your-server-ip
-   
+
    # Install Docker
    curl -fsSL https://get.docker.com -o get-docker.sh
    sudo sh get-docker.sh
-   
+
    # Install Docker Compose
    sudo apt-get update
    sudo apt-get install docker-compose-plugin
    ```
 
 2. **Clone Repository**
+
    ```bash
    git clone https://github.com/yourusername/language_exercise.git
    cd language_exercise
    ```
 
 3. **Configure Environment**
+
    ```bash
    # Copy and edit .env file
    cp .env.example .env
    nano .env
-   
+
    # Update all environment variables
    # For DATABASE_URL, use: mongodb://mongodb:27017/exercises?replicaSet=rs0
    ```
 
 4. **Build and Deploy**
+
    ```bash
    # Build and start containers
    docker-compose -f docker-compose.production.yml up -d
-   
+
    # Check logs
    docker-compose -f docker-compose.production.yml logs -f
    ```
 
 5. **Set Up Nginx Reverse Proxy** (Optional but recommended)
+
    ```bash
    sudo apt-get install nginx certbot python3-certbot-nginx
-   
+
    # Create Nginx configuration
    sudo nano /etc/nginx/sites-available/language-exercise
    ```
 
    Add:
+
    ```nginx
    server {
        listen 80;
@@ -368,7 +381,7 @@ Railway's MongoDB doesn't have replica sets by default. You have two options:
    sudo ln -s /etc/nginx/sites-available/language-exercise /etc/nginx/sites-enabled/
    sudo nginx -t
    sudo systemctl reload nginx
-   
+
    # Get SSL certificate
    sudo certbot --nginx -d your-domain.com
    ```
@@ -423,6 +436,7 @@ Railway's MongoDB doesn't have replica sets by default. You have two options:
 ### Build Fails
 
 **Issue:** Prisma client not generated
+
 ```bash
 # Solution: Ensure prisma generate runs during build
 npm run build
@@ -431,6 +445,7 @@ npx prisma generate
 ```
 
 **Issue:** TypeScript errors
+
 ```bash
 # Check typescript configuration
 npx tsc --noEmit
@@ -439,6 +454,7 @@ npx tsc --noEmit
 ### Database Connection Issues
 
 **Issue:** Cannot connect to MongoDB
+
 - Verify DATABASE_URL is correct
 - Check MongoDB Atlas network access settings
 - Ensure replica set is configured
@@ -448,6 +464,7 @@ npx tsc --noEmit
   ```
 
 **Issue:** Prisma transactions fail
+
 - MongoDB must have replica set enabled
 - Local MongoDB: Initialize replica set
 - Atlas: Already configured
@@ -455,14 +472,17 @@ npx tsc --noEmit
 ### Runtime Errors
 
 **Issue:** JWT_SECRET not found
+
 - Ensure all environment variables are set in deployment platform
 - Restart the application after adding variables
 
 **Issue:** Token encryption fails
+
 - Verify TOKEN_SECRET is exactly 32 characters
 - Generate new secret: `node -e "console.log(require('crypto').randomBytes(16).toString('hex'))"`
 
 **Issue:** AI features not working
+
 - Users must add their own API keys via Settings
 - Check that token encryption/decryption works
 - Verify API keys are valid
@@ -470,10 +490,12 @@ npx tsc --noEmit
 ### Performance Issues
 
 **Issue:** Slow cold starts (Vercel/Render free tier)
+
 - Consider upgrading to paid tier
 - Implement loading states in UI
 
 **Issue:** Database queries slow
+
 - Review and optimize Prisma queries
 - Add database indexes for frequently queried fields
 - Consider caching strategy
@@ -481,6 +503,7 @@ npx tsc --noEmit
 ### Docker Issues
 
 **Issue:** Container won't start
+
 ```bash
 # Check logs
 docker-compose -f docker-compose.production.yml logs app
@@ -490,6 +513,7 @@ docker-compose -f docker-compose.production.yml up -d --build --force-recreate
 ```
 
 **Issue:** MongoDB replica set not initialized
+
 ```bash
 # Check MongoDB logs
 docker-compose -f docker-compose.production.yml logs mongodb
@@ -504,13 +528,13 @@ rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]})
 
 ## Platform Comparison Summary
 
-| Platform | Ease of Setup | Free Tier | MongoDB Included | Best For |
-|----------|--------------|-----------|------------------|----------|
-| **Vercel** | ⭐⭐⭐⭐⭐ | Yes | No (use Atlas) | Quick deployment, hobby projects |
-| **Railway** | ⭐⭐⭐⭐ | Limited | Yes | Full-stack apps, prototypes |
-| **Render** | ⭐⭐⭐⭐ | Yes | No (use Atlas) | Simple deployments |
-| **DigitalOcean** | ⭐⭐⭐ | No | Optional (expensive) | Production apps |
-| **Docker/VPS** | ⭐⭐ | No | Manual setup | Full control, large scale |
+| Platform         | Ease of Setup | Free Tier | MongoDB Included     | Best For                         |
+| ---------------- | ------------- | --------- | -------------------- | -------------------------------- |
+| **Vercel**       | ⭐⭐⭐⭐⭐    | Yes       | No (use Atlas)       | Quick deployment, hobby projects |
+| **Railway**      | ⭐⭐⭐⭐      | Limited   | Yes                  | Full-stack apps, prototypes      |
+| **Render**       | ⭐⭐⭐⭐      | Yes       | No (use Atlas)       | Simple deployments               |
+| **DigitalOcean** | ⭐⭐⭐        | No        | Optional (expensive) | Production apps                  |
+| **Docker/VPS**   | ⭐⭐          | No        | Manual setup         | Full control, large scale        |
 
 ### Recommendations:
 
@@ -531,6 +555,7 @@ rs.initiate({_id:"rs0",members:[{_id:0,host:"localhost:27017"}]})
 ## Getting Help
 
 If you encounter issues not covered in this guide:
+
 1. Check the [GitHub Issues](https://github.com/yourusername/language_exercise/issues)
 2. Review application logs in your deployment platform
 3. Consult platform-specific documentation

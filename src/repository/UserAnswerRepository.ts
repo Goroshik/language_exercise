@@ -50,6 +50,31 @@ export class UserAnswerRepository {
     });
   }
 
+  async checkAnswersExist({
+    userId,
+    sentenceIds
+  }: {
+    userId: string;
+    sentenceIds: string[];
+  }): Promise<Record<string, boolean>> {
+    const answers = await this.client.findMany({
+      where: {
+        userId,
+        sentenceId: { in: sentenceIds }
+      },
+      select: {
+        sentenceId: true
+      }
+    });
+
+    const result: Record<string, boolean> = {};
+    sentenceIds.forEach(id => {
+      result[id] = answers.some(answer => answer.sentenceId === id);
+    });
+
+    return result;
+  }
+
   async getAnswer({ userId, sentenceId }: { userId: string; sentenceId: string }) {
     return this.client.findUnique({
       where: {

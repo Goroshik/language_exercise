@@ -1,6 +1,10 @@
 import Joi from 'joi';
 import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
-import { sentenceHistoryRepository, languageRepository } from 'src/repository/client';
+import {
+  languageRepository,
+  sentenceHistoryRepository,
+  userAnswerRepository
+} from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
 import { DictionaryWord } from 'src/types';
 import { showAlert } from 'src/utils/alert';
@@ -15,6 +19,8 @@ export interface GenerateTextRequest {
   selectedWords?: DictionaryWord[];
 }
 
+// TODO: Fix types - properly type ServiceResponse body instead of using any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ServiceResponse = { status: number; body: any };
 
 const schema = Joi.object({
@@ -37,7 +43,7 @@ export function formatAIResponse(text: string): string[] {
     .split(/\r?\n/)
     .map(line => line.trim())
     .filter(line => line.length > 0)
-    .map(line => line.replace(/^[\d\)\.\-\*\s]+/, ''));
+    .map(line => line.replace(/^[\d).*\s-]+/, ''));
 }
 
 export async function processGenerateTextRequest(
@@ -46,8 +52,11 @@ export async function processGenerateTextRequest(
 ): Promise<ServiceResponse> {
   try {
     const validation = schema.validate(rawBody, { abortEarly: false, stripUnknown: true });
+    // TODO: Fix types - properly type Joi validation result instead of using any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error, value } = validation as { error?: any; value: any };
     if (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const messages: string[] = (error.details || []).map((d: any) => String(d.message));
       return { status: 400, body: { error: messages.join('; ') } };
     }
@@ -87,6 +96,8 @@ export async function processGenerateTextRequest(
       typeof rawResult === 'string'
         ? rawResult
         : rawResult && typeof rawResult === 'object'
+          // TODO: Fix types - properly type AI result instead of using any
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ? ((rawResult as any).text ?? '')
           : '';
     const result = formatAIResponse(text);
@@ -109,12 +120,23 @@ export async function processGenerateTextRequest(
           while ((match = regex.exec(sentence)) !== null) {
             const word = match[1].toLowerCase();
             if (wordMap.has(word)) {
+              // TODO: Fix type - use proper null handling instead of non-null assertion
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               wordsInSentence.add(wordMap.get(word)!);
             }
           }
 
-          // Удаляем подсказки из предложения перед сохранением в историю
-          // Формат подсказок: (hint text) в конце предложения
+          // Извлекаем подсказки из предложения
+          // Формат подсказок: (hint1, hint2) в конце предложения
+          const hintMatch = sentence.match(/\s*\(([^)]+)\)\s*$/);
+          const hints: string[] = hintMatch
+            ? hintMatch[1]
+                .split(/[,;]+/)
+                .map(h => h.trim())
+                .filter(Boolean)
+            : [];
+
+          // Удаляем подсказки из предложения перед сохранением
           const sentenceWithoutHints = sentence.replace(/\s*\([^)]+\)\s*$/, '').trim();
 
           // Возвращаем запись даже если нет найденных слов (с пустым массивом)
@@ -125,31 +147,45 @@ export async function processGenerateTextRequest(
             usedWordIds: Array.from(wordsInSentence),
             level,
             mode, // Сохраняем режим генерации (student/teacher)
-            topic // Сохраняем топик, под которым были сгенерированы предложения
+            topic, // Сохраняем топик, под которым были сгенерированы предложения
+            hints // Сохраняем подсказки в отдельном поле
           };
         });
 
         if (sentencesToSave.length > 0) {
-          await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
 
-          // Fetch the recently created sentences to get their IDs
-          const recentSentences = await sentenceHistoryRepository.getHistory({
-            ownerId: userId,
-            languageId,
-            level,
-            ...(topic && { searchText: topic })
-          });
+          const sentences = await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
 
           // Get the most recent sentence IDs matching our batch size
-          sentenceIds = recentSentences.slice(0, sentencesToSave.length).map(s => s.id);
+          sentenceIds = sentences.map(s => s.id);
         }
-      } catch (saveErr) {
+      } catch (_saveErr) {
         showAlert.warning('Failed to save generated sentence history');
       }
     }
 
-    return { status: 200, body: { success: true, data: result, sentenceIds } };
-  } catch (err) {
+    // Check which sentences have previous answers (для новых предложений всегда будет false)
+    const hasAnswers: Record<string, boolean> = {};
+    if (sentenceIds.length > 0) {
+      const answersMap = await userAnswerRepository.checkAnswersExist({
+        userId,
+        sentenceIds
+      });
+      Object.assign(hasAnswers, answersMap);
+    }
+
+    return { 
+      status: 200, 
+      body: { 
+        success: true, 
+        data: { 
+          data: result, 
+          sentenceIds,
+          hasAnswers // добавляем информацию о наличии ответов
+        } 
+      } 
+    };
+  } catch (_err) {
     showAlert.error('Unexpected error in generateText service');
     return { status: 500, body: { error: 'Internal server error' } };
   }
