@@ -126,8 +126,17 @@ export async function processGenerateTextRequest(
             }
           }
 
-          // Удаляем подсказки из предложения перед сохранением в историю
-          // Формат подсказок: (hint text) в конце предложения
+          // Извлекаем подсказки из предложения
+          // Формат подсказок: (hint1, hint2) в конце предложения
+          const hintMatch = sentence.match(/\s*\(([^)]+)\)\s*$/);
+          const hints: string[] = hintMatch
+            ? hintMatch[1]
+                .split(/[,;]+/)
+                .map(h => h.trim())
+                .filter(Boolean)
+            : [];
+
+          // Удаляем подсказки из предложения перед сохранением
           const sentenceWithoutHints = sentence.replace(/\s*\([^)]+\)\s*$/, '').trim();
 
           // Возвращаем запись даже если нет найденных слов (с пустым массивом)
@@ -138,7 +147,8 @@ export async function processGenerateTextRequest(
             usedWordIds: Array.from(wordsInSentence),
             level,
             mode, // Сохраняем режим генерации (student/teacher)
-            topic // Сохраняем топик, под которым были сгенерированы предложения
+            topic, // Сохраняем топик, под которым были сгенерированы предложения
+            hints // Сохраняем подсказки в отдельном поле
           };
         });
 

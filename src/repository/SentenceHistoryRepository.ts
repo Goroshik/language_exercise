@@ -15,7 +15,8 @@ export class SentenceHistoryRepository {
     usedWordIds,
     level,
     mode = 'exercise',
-    topic
+    topic,
+    hints = []
   }: {
     ownerId: string;
     sentence: string;
@@ -24,6 +25,7 @@ export class SentenceHistoryRepository {
     level: string;
     mode?: string;
     topic?: string;
+    hints?: string[];
   }) {
     return this.client.create({
       data: {
@@ -33,7 +35,8 @@ export class SentenceHistoryRepository {
         usedWordIds,
         level,
         mode,
-        topic
+        topic,
+        hints
       }
     });
   }
@@ -47,6 +50,7 @@ export class SentenceHistoryRepository {
       level: string;
       mode?: string;
       topic?: string;
+      hints?: string[];
     }[]
   ) {
     return prisma.$transaction(sentences.map(sentenceData => 

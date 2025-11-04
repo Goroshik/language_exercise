@@ -64,7 +64,15 @@ export async function getTrainingExercisesService(
     });
 
     // Format response similar to generateText service
-    const data = sentences.map(s => s.sentence);
+    // Восстанавливаем формат с подсказками, если они есть
+    const data = sentences.map(s => {
+      const hints = s.hints || [];
+      if (hints.length > 0) {
+        // Добавляем подсказки в формате (hint1, hint2) в конец предложения
+        return `${s.sentence} (${hints.join(', ')})`;
+      }
+      return s.sentence;
+    });
 
     return { 
       status: 200, 
