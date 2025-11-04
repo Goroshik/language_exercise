@@ -182,22 +182,18 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = event.target.value;
     setTextareaValue(newValue);
+  };
 
-    // Save answer to store if sentenceId is provided
-    if (sentenceId && typeof window !== 'undefined') {
+  const handleTextareaBlur = () => {
+    // Save answer to store when textarea loses focus
+    if (sentenceId && textareaValue.trim() && typeof window !== 'undefined') {
       // TODO: Fix types - properly type window.__appStore instead of using any
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const store = (window as any).__appStore;
       if (store?.getState) {
         const { saveAnswer } = store.getState();
         if (saveAnswer) {
-          // Debounce the save operation
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          clearTimeout((handleTextareaChange as any).timeout);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (handleTextareaChange as any).timeout = setTimeout(() => {
-            saveAnswer(sentenceId, newValue);
-          }, 1000); // Save after 1 second of no typing
+          saveAnswer(sentenceId, textareaValue);
         }
       }
     }
@@ -308,6 +304,7 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
             variant="outlined"
             value={textareaValue}
             onChange={handleTextareaChange}
+            onBlur={handleTextareaBlur}
             placeholder="Введите ваш ответ здесь..."
             className={`exercise-input ${
               isValidated ? (isCorrect ? 'exercise-input-correct' : 'exercise-input-incorrect') : ''
