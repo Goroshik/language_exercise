@@ -1,4 +1,5 @@
-import { PrismaClient, Prisma } from 'src/generated/prisma/client';
+import { Prisma, PrismaClient } from 'src/generated/prisma/client';
+import { prisma } from './client';
 
 export class SentenceHistoryRepository {
   private client: PrismaClient['sentenceHistory'];
@@ -14,7 +15,8 @@ export class SentenceHistoryRepository {
     usedWordIds,
     level,
     mode = 'exercise',
-    topic
+    topic,
+    hints = []
   }: {
     ownerId: string;
     sentence: string;
@@ -23,6 +25,7 @@ export class SentenceHistoryRepository {
     level: string;
     mode?: string;
     topic?: string;
+    hints?: string[];
   }) {
     return this.client.create({
       data: {
@@ -32,7 +35,8 @@ export class SentenceHistoryRepository {
         usedWordIds,
         level,
         mode,
-        topic
+        topic,
+        hints
       }
     });
   }
@@ -46,16 +50,12 @@ export class SentenceHistoryRepository {
       level: string;
       mode?: string;
       topic?: string;
+      hints?: string[];
     }[]
   ) {
-    if (sentences.length === 0) return { count: 0 };
-
-    return this.client.createMany({
-      data: sentences.map(s => ({
-        ...s,
-        mode: s.mode || 'exercise'
-      }))
-    });
+    return prisma.$transaction(sentences.map(sentenceData => 
+      this.client.create({ data: sentenceData, select: { id: true } })
+    ));
   }
 
   async getHistory({
@@ -90,5 +90,73 @@ export class SentenceHistoryRepository {
         language: true
       }
     });
+  }
+
+  async getRandomSentencesByTopicAndLevel({
+    ownerId,
+    topic,
+    languageId,
+    level,
+    limit = 5,
+    excludeSentenceIds = []
+  }: {
+    ownerId: string;
+    topic: string;
+    languageId: string;
+    level: string;
+    limit?: number;
+    excludeSentenceIds?: string[];
+  }) {
+    const where: Prisma.SentenceHistoryWhereInput = {
+      ownerId,
+      languageId,
+      level,
+      topic
+    };
+
+    // Exclude sentences that user already answered
+    if (excludeSentenceIds.length > 0) {
+      where.id = { notIn: excludeSentenceIds };
+    }
+
+    // Get all matching sentences
+    const allSentences = await this.client.findMany({
+      where,
+      include: {
+        language: true
+      }
+    });
+
+    // Shuffle and take the requested number
+    const shuffled = allSentences.sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, limit);
+  }
+
+  async countSentencesByTopicAndLevel({
+    ownerId,
+    topic,
+    languageId,
+    level,
+    excludeSentenceIds = []
+  }: {
+    ownerId: string;
+    topic: string;
+    languageId: string;
+    level: string;
+    excludeSentenceIds?: string[];
+  }) {
+    const where: Prisma.SentenceHistoryWhereInput = {
+      ownerId,
+      languageId,
+      level,
+      topic
+    };
+
+    // Exclude sentences that are already displayed
+    if (excludeSentenceIds.length > 0) {
+      where.id = { notIn: excludeSentenceIds };
+    }
+
+    return this.client.count({ where });
   }
 }
