@@ -6,6 +6,7 @@ export interface TrainingExercisesRequest {
   languageId: string;
   level: string;
   limit?: number;
+  currentSentenceIds?: string[]; // IDs of sentences already displayed on the page
 }
 
 // TODO: Fix types - properly type ServiceResponse body instead of using any
@@ -16,7 +17,8 @@ const schema = Joi.object({
   topic: Joi.string().required(),
   languageId: Joi.string().required(),
   level: Joi.string().required(),
-  limit: Joi.number().integer().min(1).max(20).optional().default(5)
+  limit: Joi.number().integer().min(1).max(20).optional().default(5),
+  currentSentenceIds: Joi.array().items(Joi.string()).optional().default([])
 });
 
 export async function getTrainingExercisesService(
@@ -35,15 +37,16 @@ export async function getTrainingExercisesService(
     }
 
     const body = value as TrainingExercisesRequest;
-    const { topic, languageId, level, limit = 5 } = body;
+    const { topic, languageId, level, limit = 5, currentSentenceIds = [] } = body;
 
-    // Fetch random sentences from history
+    // Fetch random sentences from history, excluding sentences already on the page
     const sentences = await sentenceHistoryRepository.getRandomSentencesByTopicAndLevel({
       ownerId: userId,
       topic,
       languageId,
       level,
-      limit
+      limit,
+      excludeSentenceIds: currentSentenceIds
     });
 
     if (sentences.length === 0) {
@@ -88,7 +91,8 @@ export async function checkHistoryAvailabilityService(
     const schema = Joi.object({
       topic: Joi.string().required(),
       languageId: Joi.string().required(),
-      level: Joi.string().required()
+      level: Joi.string().required(),
+      currentSentenceIds: Joi.array().items(Joi.string()).optional().default([])
     });
 
     const validation = schema.validate(rawBody, { abortEarly: false, stripUnknown: true });
@@ -101,14 +105,15 @@ export async function checkHistoryAvailabilityService(
       return { status: 400, body: { error: messages.join('; ') } };
     }
 
-    const { topic, languageId, level } = value;
+    const { topic, languageId, level, currentSentenceIds = [] } = value;
 
-    // Count available sentences
+    // Count available sentences, excluding already displayed ones
     const count = await sentenceHistoryRepository.countSentencesByTopicAndLevel({
       ownerId: userId,
       topic,
       languageId,
-      level
+      level,
+      excludeSentenceIds: currentSentenceIds
     });
 
     return {

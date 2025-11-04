@@ -79,7 +79,20 @@ const Page: React.FC = () => {
     fetchLanguages();
   }, [settings?.learningLanguage]);
 
-  // Check history availability when topic, level, or language changes
+  // Use app state store
+  const {
+    state,
+    setState,
+    exerciseBlocks,
+    validationResults,
+    handleTopicSelect,
+    generateMoreExercises,
+    loadTrainingExercises,
+    handleCheckAnswers,
+    setIsNavigating
+  } = useAppStore();
+
+  // Check history availability when topic, level, language, or exerciseBlocks changes
   useEffect(() => {
     const checkHistory = async () => {
       if (!selectedLanguageId || !selectedTopic) {
@@ -90,13 +103,21 @@ const Page: React.FC = () => {
 
       try {
         const topicForApi = selectedTopic.toLowerCase();
+        
+        // Собираем ID предложений, которые уже отображаются на странице
+        const currentSentenceIds = exerciseBlocks
+          .flatMap(block => block.exercises)
+          .map(ex => ex.sentenceId)
+          .filter((id): id is string => id !== undefined);
+        
         const result = await fetch('/api/ai/check-history-availability', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             topic: topicForApi,
             languageId: selectedLanguageId,
-            level: selectedLevel
+            level: selectedLevel,
+            currentSentenceIds
           })
         });
         const json = await result.json();
@@ -110,20 +131,7 @@ const Page: React.FC = () => {
     };
 
     checkHistory();
-  }, [selectedTopic, selectedLevel, selectedLanguageId]);
-
-  // Use app state store
-  const {
-    state,
-    setState,
-    exerciseBlocks,
-    validationResults,
-    handleTopicSelect,
-    generateMoreExercises,
-    loadTrainingExercises,
-    handleCheckAnswers,
-    setIsNavigating
-  } = useAppStore();
+  }, [selectedTopic, selectedLevel, selectedLanguageId, exerciseBlocks]);
 
   // Update the store's selectedTopic when the component mounts
   useEffect(() => {

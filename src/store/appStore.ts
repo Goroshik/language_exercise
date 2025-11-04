@@ -209,6 +209,14 @@ export const useAppStore = create<AppStore>()(
       const urlPath = window.location.pathname;
       const topicRaw = urlPath.split('/').pop() || '';
       const topic = topicRaw.replace(/_/g, ' ');
+      
+      // Собираем ID всех предложений, которые уже отображаются на странице
+      const currentBlocks = get().exerciseBlocks;
+      const currentSentenceIds = currentBlocks
+        .flatMap(block => block.exercises)
+        .map(ex => ex.sentenceId)
+        .filter((id): id is string => id !== undefined);
+      
       set({
         selectedTopic: topic,
         state: 'loading-exercises',
@@ -219,7 +227,8 @@ export const useAppStore = create<AppStore>()(
           topic,
           languageId: languageId || '',
           level,
-          limit
+          limit,
+          currentSentenceIds
         });
 
         const data = response.data || [];

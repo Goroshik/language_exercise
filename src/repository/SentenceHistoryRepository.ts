@@ -93,13 +93,15 @@ export class SentenceHistoryRepository {
     topic,
     languageId,
     level,
-    limit = 5
+    limit = 5,
+    excludeSentenceIds = []
   }: {
     ownerId: string;
     topic: string;
     languageId: string;
     level: string;
     limit?: number;
+    excludeSentenceIds?: string[];
   }) {
     const where: Prisma.SentenceHistoryWhereInput = {
       ownerId,
@@ -107,6 +109,11 @@ export class SentenceHistoryRepository {
       level,
       topic
     };
+
+    // Exclude sentences that user already answered
+    if (excludeSentenceIds.length > 0) {
+      where.id = { notIn: excludeSentenceIds };
+    }
 
     // Get all matching sentences
     const allSentences = await this.client.findMany({
@@ -125,20 +132,27 @@ export class SentenceHistoryRepository {
     ownerId,
     topic,
     languageId,
-    level
+    level,
+    excludeSentenceIds = []
   }: {
     ownerId: string;
     topic: string;
     languageId: string;
     level: string;
+    excludeSentenceIds?: string[];
   }) {
-    return this.client.count({
-      where: {
-        ownerId,
-        languageId,
-        level,
-        topic
-      }
-    });
+    const where: Prisma.SentenceHistoryWhereInput = {
+      ownerId,
+      languageId,
+      level,
+      topic
+    };
+
+    // Exclude sentences that are already displayed
+    if (excludeSentenceIds.length > 0) {
+      where.id = { notIn: excludeSentenceIds };
+    }
+
+    return this.client.count({ where });
   }
 }

@@ -37,6 +37,7 @@ export class ApiService {
     languageId: string;
     level: string;
     limit?: number;
+    currentSentenceIds?: string[];
   }): Promise<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }> {
     return this.post<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }>('/api/ai/training-exercises', data);
   }
@@ -45,6 +46,7 @@ export class ApiService {
     topic: string;
     languageId: string;
     level: string;
+    currentSentenceIds?: string[];
   }): Promise<{ available: boolean; count: number }> {
     return this.post<{ available: boolean; count: number }>(
       '/api/ai/check-history-availability',
