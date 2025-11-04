@@ -8,6 +8,8 @@ export interface TrainingExercisesRequest {
   limit?: number;
 }
 
+// TODO: Fix types - properly type ServiceResponse body instead of using any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type ServiceResponse = { status: number; body: any };
 
 const schema = Joi.object({
@@ -23,8 +25,11 @@ export async function getTrainingExercisesService(
 ): Promise<ServiceResponse> {
   try {
     const validation = schema.validate(rawBody, { abortEarly: false, stripUnknown: true });
+    // TODO: Fix types - properly type Joi validation result instead of using any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error, value } = validation as { error?: any; value: any };
     if (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const messages: string[] = (error.details || []).map((d: any) => String(d.message));
       return { status: 400, body: { error: messages.join('; ') } };
     }
@@ -71,8 +76,11 @@ export async function checkHistoryAvailabilityService(
     });
 
     const validation = schema.validate(rawBody, { abortEarly: false, stripUnknown: true });
+    // TODO: Fix types - properly type Joi validation result instead of using any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error, value } = validation as { error?: any; value: any };
     if (error) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const messages: string[] = (error.details || []).map((d: any) => String(d.message));
       return { status: 400, body: { error: messages.join('; ') } };
     }
