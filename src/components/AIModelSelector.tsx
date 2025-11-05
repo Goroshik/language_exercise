@@ -1,24 +1,24 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
 import {
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Alert,
+  Box,
   Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
-  Alert,
-  CircularProgress,
-  Box,
+  Select,
   Typography,
   useMediaQuery,
   useTheme
 } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Controller, useForm } from 'react-hook-form';
 import {
   AIModel,
   PROVIDER_LABELS,
@@ -77,7 +77,6 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
     if (open) {
       loadData();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   // Handle provider change - auto-select first model
@@ -128,7 +127,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
           }
         }
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert.error('Failed to load data');
       setError('Не удалось загрузить данные');
     } finally {
@@ -166,7 +165,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
       setTimeout(() => {
         onClose();
       }, 1000);
-    } catch (error) {
+    } catch (_error) {
       showAlert.error('Failed to save model');
       setError('Не удалось сохранить модель');
     }

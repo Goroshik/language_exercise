@@ -1,5 +1,5 @@
 import { PrismaClient } from '../generated/prisma';
-import { encrypt, decrypt } from '../utils/crypto';
+import { decrypt, encrypt } from '../utils/crypto';
 
 export class UserTokenRepository {
   private client: PrismaClient['userToken'];
@@ -29,7 +29,7 @@ export class UserTokenRepository {
       try {
         return {
           ...data,
-          token: decrypt(token.encryptedToken)
+          token: decrypt(encryptedToken)
         };
       } catch (err) {
         return {

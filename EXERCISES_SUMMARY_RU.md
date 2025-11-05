@@ -5,9 +5,11 @@
 Создана полная документация по функционалу упражнений в двух файлах:
 
 ### 1. EXERCISES_DOCUMENTATION.md (32 KB, 834 строки)
+
 Подробная двуязычная документация (русский/английский) по всему функционалу упражнений:
 
 **Содержание:**
+
 - 📖 Обзор функционала
 - 🔄 Процесс генерации упражнений (параметры, этапы, формат ответа AI)
 - 👨‍🏫 Режим преподавателя (10 примеров с правильными ответами)
@@ -20,9 +22,11 @@
 - 🐛 Найденные проблемы с правильными решениями
 
 ### 2. EXERCISES_TODO.md (24 KB, 683 строки)
+
 Детальный список задач для исправления найденных проблем:
 
 **Содержание:**
+
 - ❌ 3 критических бага (неправильная обработка textarea, неверные ID, неправильный API)
 - ⚠️ 7 улучшений функционала (валидация, UX, передача параметров)
 - 📝 2 задачи рефакторинга (выделение функций, типизация)
@@ -38,14 +42,16 @@
 ### 🔴 Критические баги (требуют немедленного исправления):
 
 #### 1. Неправильная обработка ответов в handleCheckAnswers
+
 **Файл:** `src/store/appStore.ts`
 
-**Проблема:** 
+**Проблема:**
 Код пытается обработать несуществующий формат `{{input}}` и ищет ID `input_${blockId}_${index}_${counter}`, но в реальности используются textarea с ID `textarea_${blockId}_${index}`.
 
 **Эффект:** Проверка ответов не работает вообще, так как собираются неправильные данные.
 
 #### 2. Неправильное сохранение результатов проверки
+
 **Файл:** `src/store/appStore.ts`
 
 **Проблема:**
@@ -54,6 +60,7 @@
 **Эффект:** UI не показывает результаты проверки (зеленые/красные рамки, ошибки).
 
 #### 3. Использование неправильного API endpoint
+
 **Файл:** `src/store/appStore.ts`
 
 **Проблема:**
@@ -71,8 +78,9 @@
 ## Приоритеты исправления
 
 ### Высокий приоритет (исправить в первую очередь):
+
 1. ❌ Исправить обработку textarea в проверке ответов
-2. ❌ Исправить сохранение результатов проверки  
+2. ❌ Исправить сохранение результатов проверки
 3. ❌ Использовать правильный API endpoint
 4. ⚠️ Добавить валидацию заполненных ответов
 5. ⚠️ Передать languageId в handleCheckAnswers
@@ -80,6 +88,7 @@
 **Оценка:** ~2-3 часа на исправление всех критических багов
 
 ### Средний приоритет:
+
 6. Улучшить промпт для проверки
 7. Добавить счетчик заполненных упражнений
 8. Рефакторинг логики сбора ответов
@@ -89,6 +98,7 @@
 **Оценка:** ~4-6 часов
 
 ### Низкий приоритет (nice to have):
+
 - Тесты (unit, E2E)
 - Индикация сохранения
 - Автосохранение черновиков
@@ -114,17 +124,20 @@
 ## Как использовать документацию
 
 ### Для AI агентов:
+
 - Прочитайте **EXERCISES_DOCUMENTATION.md** для понимания архитектуры
 - Используйте **EXERCISES_TODO.md** как гайд для исправлений
 - Следуйте приоритетам задач (высокий → средний → низкий)
 
 ### Для разработчиков:
+
 1. **Изучите документацию:** EXERCISES_DOCUMENTATION.md содержит полное описание с примерами кода
 2. **Начните с критических багов:** см. раздел "Критические ошибки" в EXERCISES_TODO.md
 3. **Используйте правильные реализации:** в TODO приведен правильный код для каждой проблемы
 4. **Проверьте чек-лист:** после исправлений пройдите по чек-листу в конце EXERCISES_TODO.md
 
 ### Для менеджеров:
+
 - Оценки времени приведены выше
 - Критические баги блокируют функционал проверки ответов
 - Без исправления этих багов режим студента (тренировка) не работает
@@ -135,7 +148,11 @@
 ### Пример правильной реализации handleCheckAnswers:
 
 ```typescript
-handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string }, languageId: string) => {
+handleCheckAnswers: async (
+  blockId: string,
+  userAnswers: { [key: string]: string },
+  languageId: string
+) => {
   const { exerciseBlocks, selectedTopic } = get();
 
   // 1. Собираем ответы правильно
@@ -143,7 +160,7 @@ handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string
     .map((exercise, index) => {
       const textareaId = `textarea_${blockId}_${index}`;
       const userAnswer = userAnswers[textareaId];
-      
+
       if (userAnswer && userAnswer.trim()) {
         return `${index + 1}. ${userAnswer.trim()}`;
       }
@@ -173,9 +190,9 @@ handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string
   const results: { [key: string]: ValidationResult } = {};
   data.forEach((line: string, index: number) => {
     const textareaId = `textarea_${blockId}_${index}`;
-    
+
     if (!userAnswers[textareaId]) return;
-    
+
     const isCorrect = line.includes('CORRECT');
     let errorMessage: string | undefined;
     let incorrectTranslations: string[] | undefined;
@@ -185,10 +202,13 @@ handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string
         const errorPart = line.split('|')[0];
         errorMessage = errorPart.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
       }
-      
+
       if (line.includes('TRANSLATION_ERRORS:')) {
         const translationPart = line.split('TRANSLATION_ERRORS:')[1];
-        incorrectTranslations = translationPart?.split(',').map(item => item.trim()).filter(Boolean);
+        incorrectTranslations = translationPart
+          ?.split(',')
+          .map(item => item.trim())
+          .filter(Boolean);
       }
     }
 
@@ -201,7 +221,7 @@ handleCheckAnswers: async (blockId: string, userAnswers: { [key: string]: string
       [blockId]: results
     }
   }));
-}
+};
 ```
 
 ## Контакты

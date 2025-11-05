@@ -1,4 +1,4 @@
-import { TokenService, TokenResult } from 'src/utils/tokenService';
+import { TokenResult, TokenService } from 'src/utils/tokenService';
 
 export interface AIResponse {
   text: string;

@@ -9,15 +9,7 @@ import {
 import { getUserIdFromRequest } from 'src/utils/auth';
 import { safeJson } from 'src/utils/jsonWrapper';
 
-// NOTE: Type definitions for API requests
-interface SettingsRequest {
-  theme: string;
-  aiModel: string;
-  language: string;
-  translationLang: string;
-  learningLanguage: string;
-  customSettings: Record<string, any>;
-}
+
 
 // GET /api/settings - Get user settings
 export async function GET(request: NextRequest) {
@@ -25,7 +17,7 @@ export async function GET(request: NextRequest) {
     const userId = getUserIdFromRequest(request);
     const userSettings = await getUserSettingsService(userId);
     return NextResponse.json(userSettings);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ error: 'Failed to fetch user settings' }, { status: 500 });
   }
 }
@@ -51,7 +43,7 @@ export async function PATCH(request: NextRequest) {
     const updateData = { ...body, updatedAt: new Date() };
     const userSettings = await updateUserSettingsService(userId, updateData);
     return NextResponse.json(userSettings);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ error: 'Failed to update user settings' }, { status: 500 });
   }
 }
@@ -62,7 +54,7 @@ export async function DELETE(request: NextRequest) {
     const userId = getUserIdFromRequest(request);
     const result = await deleteUserSettingsService(userId);
     return NextResponse.json(result);
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json({ error: 'Failed to reset user settings' }, { status: 500 });
   }
 }

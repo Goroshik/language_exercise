@@ -1,9 +1,9 @@
 'use client';
 
+import { Box, FormControl, MenuItem, Select, SelectChangeEvent } from '@mui/material';
 import React, { useEffect } from 'react';
-import { Select, MenuItem, FormControl, SelectChangeEvent, Box } from '@mui/material';
-import { showAlert } from 'src/utils/alert';
 import { useSettingsStore } from 'src/store/settingsStore';
+import { showAlert } from 'src/utils/alert';
 
 interface LanguageSelectorProps {
   onChange?: (language: string) => void;
@@ -27,7 +27,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onChange }) => {
       if (onChange) {
         onChange(newLanguage);
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert.error('Ошибка при изменении языка');
     }
   };

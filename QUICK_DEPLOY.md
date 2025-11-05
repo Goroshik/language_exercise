@@ -69,16 +69,19 @@ Your app is now live! Vercel will give you a URL like `https://your-app.vercel.a
 ## Troubleshooting
 
 ### "Cannot connect to database"
+
 - Double-check your `DATABASE_URL` has the correct password
 - Make sure you added `/exercises` before the `?` in the connection string
 - Verify Network Access in MongoDB Atlas allows 0.0.0.0/0
 
 ### "Build failed"
+
 - Check the build logs in Vercel dashboard
 - Make sure all environment variables are set correctly
 - Try deploying again (sometimes first deploy fails)
 
 ### "Application error"
+
 - Check Function Logs in Vercel dashboard
 - Verify `JWT_SECRET` and `TOKEN_SECRET` are set
 - Make sure `TOKEN_SECRET` is exactly 32 characters (use the generation command from Step 2)
@@ -92,6 +95,7 @@ See the full [DEPLOYMENT.md](./DEPLOYMENT.md) guide for detailed instructions an
 ## What's Next?
 
 After deployment:
+
 1. Visit your deployed app
 2. Create an account
 3. Add your AI API keys in Settings (Gemini, OpenAI, or Claude)

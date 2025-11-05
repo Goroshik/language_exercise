@@ -5,6 +5,9 @@ import {
   LearnModeTextTypography
 } from './LearnModeText.styled';
 
+import { useTextSelection } from 'src/hooks/useTextSelection';
+import type { TranslationPanelState } from 'src/types/translation';
+import TextSelectionPopover from 'src/components/TextSelectionPopover';
 import WordTranslationPanel from 'src/components/WordTranslationPanel';
 
 interface LearnModeTextProps {
@@ -12,10 +15,17 @@ interface LearnModeTextProps {
 }
 
 const LearnModeText: React.FC<LearnModeTextProps> = ({ text }) => {
-  const [translationPanel, setTranslationPanel] = useState<{
-    word: string;
-    position: { x: number; y: number };
-  } | null>(null);
+  const [doubleClickTranslationPanel, setDoubleClickTranslationPanel] =
+    useState<TranslationPanelState | null>(null);
+
+  // Use the text selection hook for multiword translation
+  const {
+    selectionPopover,
+    translationPanel: selectionTranslationPanel,
+    handleSelectionPopoverTranslate,
+    closeSelectionPopover,
+    closeTranslationPanel: closeSelectionTranslationPanel
+  } = useTextSelection();
 
   // NOTE: Handle double-click on text to extract and translate words
   const handleTextDoubleClick = (event: React.MouseEvent) => {
@@ -53,15 +63,15 @@ const LearnModeText: React.FC<LearnModeTextProps> = ({ text }) => {
         y: event.clientY + 10
       };
 
-      setTranslationPanel({
+      setDoubleClickTranslationPanel({
         word: selectedWord.toLowerCase(),
         position
       });
     }
   };
 
-  const handleCloseTranslationPanel = () => {
-    setTranslationPanel(null);
+  const handleCloseDoubleClickTranslationPanel = () => {
+    setDoubleClickTranslationPanel(null);
   };
 
   // Parse text and convert **bold** markings to actual bold text
@@ -113,11 +123,30 @@ const LearnModeText: React.FC<LearnModeTextProps> = ({ text }) => {
         })}
       </LearnModeTextTypography>
 
-      {translationPanel && (
+      {/* Text selection popover - shows "Translate" button for selected text */}
+      {selectionPopover && (
+        <TextSelectionPopover
+          position={selectionPopover.position}
+          onTranslate={handleSelectionPopoverTranslate}
+          onClose={closeSelectionPopover}
+        />
+      )}
+
+      {/* Translation panel from text selection */}
+      {selectionTranslationPanel && (
         <WordTranslationPanel
-          word={translationPanel.word}
-          position={translationPanel.position}
-          onClose={handleCloseTranslationPanel}
+          word={selectionTranslationPanel.word}
+          position={selectionTranslationPanel.position}
+          onClose={closeSelectionTranslationPanel}
+        />
+      )}
+
+      {/* Translation panel from double-click */}
+      {doubleClickTranslationPanel && (
+        <WordTranslationPanel
+          word={doubleClickTranslationPanel.word}
+          position={doubleClickTranslationPanel.position}
+          onClose={handleCloseDoubleClickTranslationPanel}
         />
       )}
     </>

@@ -71,6 +71,7 @@ export const useAppStore = create<AppStore>()(
 
         const data = response.data || [];
         const sentenceIds = response.sentenceIds || [];
+        const hasAnswers = response.hasAnswers || {};
 
         let sentencesList;
 
@@ -79,14 +80,16 @@ export const useAppStore = create<AppStore>()(
           sentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
             correctAnswers: [],
-            sentenceId: sentenceIds[index] || undefined
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
           }));
         } else {
           // For teacher mode, accept both formats: {{input}} and **bold**
           sentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
             correctAnswers: [],
-            sentenceId: sentenceIds[index] || undefined
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
           }));
         }
 
@@ -143,6 +146,7 @@ export const useAppStore = create<AppStore>()(
 
         const data = response.data || [];
         const sentenceIds = response.sentenceIds || [];
+        const hasAnswers = response.hasAnswers || {};
 
         let newSentencesList;
 
@@ -151,14 +155,16 @@ export const useAppStore = create<AppStore>()(
           newSentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
             correctAnswers: [],
-            sentenceId: sentenceIds[index] || undefined
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
           }));
         } else {
           // For teacher mode, accept both formats: {{input}} and **bold**
           newSentencesList = data.map((sentence: string, index: number) => ({
             sentence: sentence.trim(),
             correctAnswers: [],
-            sentenceId: sentenceIds[index] || undefined
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
           }));
         }
 
@@ -184,6 +190,92 @@ export const useAppStore = create<AppStore>()(
         set({
           error: `Ошибка при загрузке дополнительных упражнений: ${errorMessage}`,
           state: 'exercises'
+        });
+      }
+    },
+
+    loadTrainingExercises: async ({
+      languageId,
+      level = 'A1',
+      mode = 'student',
+      limit = 5
+    }: {
+      languageId?: string;
+      level?: string;
+      mode?: 'student' | 'teacher';
+      limit?: number;
+    } = {}) => {
+      // Получаем topic из URL
+      const urlPath = window.location.pathname;
+      const topicRaw = urlPath.split('/').pop() || '';
+      const topic = topicRaw.replace(/_/g, ' ');
+      
+      // Собираем ID всех предложений, которые уже отображаются на странице
+      const currentBlocks = get().exerciseBlocks;
+      const currentSentenceIds = currentBlocks
+        .flatMap(block => block.exercises)
+        .map(ex => ex.sentenceId)
+        .filter((id): id is string => id !== undefined);
+      
+      set({
+        selectedTopic: topic,
+        state: 'loading-exercises',
+        error: ''
+      });
+      try {
+        const response = await ApiService.getTrainingExercises({
+          topic,
+          languageId: languageId || '',
+          level,
+          limit,
+          currentSentenceIds
+        });
+
+        const data = response.data || [];
+        const sentenceIds = response.sentenceIds || [];
+        const hasAnswers = response.hasAnswers || {};
+
+        let sentencesList;
+
+        if (mode === 'student') {
+          sentencesList = data.map((sentence: string, index: number) => ({
+            sentence: sentence.trim(),
+            correctAnswers: [],
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
+          }));
+        } else {
+          sentencesList = data.map((sentence: string, index: number) => ({
+            sentence: sentence.trim(),
+            correctAnswers: [],
+            sentenceId: sentenceIds[index] || undefined,
+            hasAnswer: sentenceIds[index] ? hasAnswers[sentenceIds[index]] || false : false
+          }));
+        }
+
+        const newBlock: ExerciseBlock = {
+          id: `block_${Date.now()}`,
+          exercises: sentencesList,
+          createdAt: new Date(),
+          isChecking: false
+        };
+
+        set(state => ({
+          exerciseBlocks: [...state.exerciseBlocks, newBlock],
+          state: 'exercises'
+        }));
+
+        // Load saved answers for these sentences
+        if (mode === 'student') {
+          get().loadSavedAnswers(sentenceIds);
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
+        const fullErrorMessage = `Ошибка при загрузке упражнений из истории: ${errorMessage}`;
+        showAlert.error(fullErrorMessage);
+        set({
+          error: fullErrorMessage,
+          state: 'topic-selection'
         });
       }
     },
@@ -293,6 +385,8 @@ export const useAppStore = create<AppStore>()(
 );
 
 // Expose store globally for components that can't use hooks
+// TODO: Fix types - properly type window.__appStore instead of using any
 if (typeof window !== 'undefined') {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   (window as any).__appStore = useAppStore;
 }

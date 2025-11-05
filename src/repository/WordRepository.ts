@@ -20,6 +20,8 @@ export class WordRepository {
   }
 
   async searchWords(userId: string, query: string, languageCode?: string) {
+    // TODO: Fix types - create proper Prisma where clause type instead of using any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       ownerId: userId
     };
@@ -73,6 +75,8 @@ export class WordRepository {
   }
 
   async getAllWords(userId: string, languageCode?: string) {
+    // TODO: Fix types - create proper Prisma where clause type instead of using any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = { ownerId: userId };
     if (languageCode) {
       where.languageCode = languageCode;

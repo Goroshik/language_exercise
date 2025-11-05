@@ -3,12 +3,14 @@
 ## Критические ошибки / Critical Issues
 
 ### 1. ❌ КРИТИЧНО: Исправить обработку textarea в проверке ответов
+
 **Файл:** `src/store/appStore.ts` → функция `handleCheckAnswers()`
 
 **Проблема:**
 Текущая реализация пытается обработать несуществующий формат `{{input}}` и ищет неправильные ID полей ввода. В режиме студента используется формат `**word**` и textarea с ID вида `textarea_${blockId}_${index}`, а не индивидуальные инпуты.
 
 **Текущий код (неправильный):**
+
 ```typescript
 const answersText = block.exercises
   .map((exercise, index) => {
@@ -24,12 +26,13 @@ const answersText = block.exercises
 ```
 
 **Правильная реализация:**
+
 ```typescript
 const answersText = block.exercises
   .map((exercise, index) => {
     const textareaId = `textarea_${blockId}_${index}`;
     const userAnswer = userAnswers[textareaId];
-    
+
     // Отправляем только заполненные ответы
     if (userAnswer && userAnswer.trim()) {
       return `${index + 1}. ${userAnswer.trim()}`;
@@ -49,12 +52,14 @@ if (!answersText.trim()) {
 ---
 
 ### 2. ❌ КРИТИЧНО: Исправить сохранение результатов проверки
+
 **Файл:** `src/store/appStore.ts` → функция `handleCheckAnswers()`
 
 **Проблема:**
 Результаты проверки сохраняются для несуществующих `input_*` ID вместо реальных `textarea_*` ID. Также не обрабатываются ошибки перевода (`TRANSLATION_ERRORS`).
 
 **Текущий код (неправильный):**
+
 ```typescript
 data.forEach((line: string, index: number) => {
   const isCorrect = line.includes('CORRECT');
@@ -74,15 +79,16 @@ data.forEach((line: string, index: number) => {
 ```
 
 **Правильная реализация:**
+
 ```typescript
 data.forEach((line: string, index: number) => {
   const textareaId = `textarea_${blockId}_${index}`;
-  
+
   // Пропускаем, если этого textarea не было в userAnswers (не заполнено)
   if (!userAnswers[textareaId]) {
     return;
   }
-  
+
   const isCorrect = line.includes('CORRECT');
   let errorMessage: string | undefined;
   let incorrectTranslations: string[] | undefined;
@@ -93,13 +99,13 @@ data.forEach((line: string, index: number) => {
       const errorPart = line.split('|')[0];
       errorMessage = errorPart.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
     }
-    
+
     // Обработка ошибок перевода
     if (line.includes('TRANSLATION_ERRORS:')) {
       const translationPart = line.includes('|')
         ? line.split('|')[1].split('TRANSLATION_ERRORS:')[1]
         : line.split('TRANSLATION_ERRORS:')[1];
-      
+
       incorrectTranslations = translationPart
         ?.split(',')
         .map(item => item.trim())
@@ -107,10 +113,10 @@ data.forEach((line: string, index: number) => {
     }
   }
 
-  results[textareaId] = { 
-    isCorrect, 
+  results[textareaId] = {
+    isCorrect,
     error: errorMessage,
-    incorrectTranslations 
+    incorrectTranslations
   };
 });
 ```
@@ -118,18 +124,21 @@ data.forEach((line: string, index: number) => {
 ---
 
 ### 3. ❌ КРИТИЧНО: Использовать правильный API endpoint для проверки
+
 **Файл:** `src/store/appStore.ts` → функция `handleCheckAnswers()`
 
 **Проблема:**
 Используется `ApiService.generateText()` вместо `ApiService.checkAnswers()`, что обходит специализированный endpoint `/api/ai/check-answers`.
 
 **Текущий код (неправильный):**
+
 ```typescript
 const validatePrompt = GRAMMAR_PROMPTS.validateAnswers(selectedTopic, answersText);
 const data = await ApiService.generateText({ prompt: validatePrompt });
 ```
 
 **Правильная реализация:**
+
 ```typescript
 // Получить язык для передачи в API
 const language = await languageRepository.findById(languageId);
@@ -149,34 +158,37 @@ const data = await ApiService.checkAnswers({
 ## Улучшения функционала / Feature Improvements
 
 ### 4. ⚠️ Добавить валидацию заполненных ответов перед проверкой
+
 **Файл:** `src/app/(main)/exercises/[path]/ExerciseBlock.tsx` → функция `handleCheckAnswers()`
 
 **Проблема:**
 Кнопка "Проверить" не проверяет, есть ли хотя бы одно заполненное упражнение. Пользователь может отправить пустую форму.
 
 **Добавить:**
+
 ```typescript
 const handleCheckAnswers = () => {
   const textareas = document.querySelectorAll(`textarea[id^="textarea_${block.id}_"]`);
-  
+
   // Проверка на наличие заполненных ответов
   const hasAnyFilledAnswer = Array.from(textareas).some(
     textarea => (textarea as HTMLTextAreaElement).value.trim().length > 0
   );
-  
+
   if (!hasAnyFilledAnswer) {
     showAlert.warning('Пожалуйста, заполните хотя бы одно упражнение перед проверкой');
     return;
   }
-  
+
   const userAnswers: { [key: string]: string } = {};
   textareas.forEach(textarea => {
     const value = (textarea as HTMLTextAreaElement).value;
-    if (value.trim()) {  // Собираем только заполненные
+    if (value.trim()) {
+      // Собираем только заполненные
       userAnswers[textarea.id] = value;
     }
   });
-  
+
   onCheckAnswers(block.id, userAnswers);
 };
 ```
@@ -184,12 +196,14 @@ const handleCheckAnswers = () => {
 ---
 
 ### 5. ⚠️ Улучшить промпт для проверки ответов с переводами
+
 **Файл:** `src/prompts/grammarPrompts.ts` → функция `validateAnswers()`
 
 **Проблема:**
 Промпт не указывает явно, в каком формате пользователь может добавить перевод. Нужно уточнить ожидаемый формат.
 
 **Улучшенный промпт:**
+
 ```typescript
 validateAnswers: (
   topic: string,
@@ -233,12 +247,14 @@ Return one line per sentence in the format shown above.`,
 ---
 
 ### 6. ⚠️ Добавить счетчик заполненных упражнений
+
 **Файл:** `src/app/(main)/exercises/[path]/ExerciseBlock.tsx`
 
 **Улучшение:**
 Показывать пользователю, сколько упражнений заполнено перед проверкой.
 
 **Добавить:**
+
 ```typescript
 const [filledCount, setFilledCount] = React.useState(0);
 
@@ -277,31 +293,34 @@ React.useEffect(() => {
 ---
 
 ### 7. ⚠️ Передать languageId в handleCheckAnswers
+
 **Файл:** `src/app/(main)/exercises/[path]/page.tsx`
 
 **Проблема:**
 `handleCheckAnswers` в store не имеет доступа к `languageId` для передачи языка в API проверки.
 
 **Изменить сигнатуру в store:**
+
 ```typescript
 // src/store/appStore.ts
 interface AppStore {
   handleCheckAnswers: (
-    blockId: string, 
+    blockId: string,
     userAnswers: { [key: string]: string },
-    languageId: string  // Добавить параметр
+    languageId: string // Добавить параметр
   ) => Promise<void>;
 }
 ```
 
 **Обновить вызов в page.tsx:**
+
 ```typescript
 <ExerciseBlock
   key={block.id}
   block={block}
   blockIndex={blockIndex}
   validationResults={validationResults[block.id] || {}}
-  onCheckAnswers={(blockId, userAnswers) => 
+  onCheckAnswers={(blockId, userAnswers) =>
     handleCheckAnswers(blockId, userAnswers, selectedLanguageId)
   }
   mode={selectedMode}
@@ -313,19 +332,23 @@ interface AppStore {
 ## Рефакторинг / Refactoring
 
 ### 8. 📝 Выделить логику сбора ответов в отдельную функцию
+
 **Файл:** `src/app/(main)/exercises/[path]/ExerciseBlock.tsx`
 
 **Рефакторинг:**
+
 ```typescript
 // Вынести в utils или в компонент
-const collectUserAnswers = (blockId: string): { 
-  answers: { [key: string]: string }, 
-  filledCount: number 
+const collectUserAnswers = (
+  blockId: string
+): {
+  answers: { [key: string]: string };
+  filledCount: number;
 } => {
   const textareas = document.querySelectorAll(`textarea[id^="textarea_${blockId}_"]`);
   const answers: { [key: string]: string } = {};
   let filledCount = 0;
-  
+
   textareas.forEach(textarea => {
     const value = (textarea as HTMLTextAreaElement).value;
     if (value.trim()) {
@@ -333,7 +356,7 @@ const collectUserAnswers = (blockId: string): {
       filledCount++;
     }
   });
-  
+
   return { answers, filledCount };
 };
 ```
@@ -341,9 +364,11 @@ const collectUserAnswers = (blockId: string): {
 ---
 
 ### 9. 📝 Добавить типизацию для ValidationResults
+
 **Файл:** `src/types/index.ts` или новый файл `src/types/exercises.ts`
 
 **Добавить:**
+
 ```typescript
 export interface ValidationResult {
   isCorrect: boolean;
@@ -361,6 +386,7 @@ export interface BlockValidationResults {
 ```
 
 **Использовать в store:**
+
 ```typescript
 validationResults: BlockValidationResults;
 ```
@@ -370,11 +396,13 @@ validationResults: BlockValidationResults;
 ## Тестирование / Testing
 
 ### 10. 🧪 Добавить unit-тесты для parseExerciseContent
+
 **Файл:** `src/components/TextWithInputs.tsx`
 
 **Создать:** `src/components/__tests__/TextWithInputs.test.tsx`
 
 **Тесты:**
+
 ```typescript
 describe('parseExerciseContent', () => {
   it('should parse bold format correctly', () => {
@@ -402,25 +430,27 @@ describe('parseExerciseContent', () => {
 ---
 
 ### 11. 🧪 Добавить E2E тесты для проверки ответов
+
 **Создать:** `e2e/exercises.spec.ts` (если используется Playwright/Cypress)
 
 **Тесты:**
+
 ```typescript
 test('should validate filled exercises correctly', async ({ page }) => {
   await page.goto('/exercises/Past_Simple');
-  
+
   // Генерация упражнений
   await page.click('button:has-text("Создать упражнения")');
   await page.waitForSelector('.exercise-block-compact');
-  
+
   // Заполнение упражнения
   const textarea = page.locator('textarea').first();
   await textarea.fill('They visited many countries last summer.');
-  
+
   // Проверка
   await page.click('button:has-text("Проверить блок")');
   await page.waitForSelector('.exercise-input-correct, .exercise-input-incorrect');
-  
+
   // Проверка результата
   const inputClass = await textarea.getAttribute('class');
   expect(inputClass).toContain('exercise-input-correct');
@@ -432,14 +462,16 @@ test('should validate filled exercises correctly', async ({ page }) => {
 ## Улучшение UX / UX Improvements
 
 ### 12. 💡 Добавить индикацию сохранения в историю
+
 **Файл:** `src/services/generateTextService.ts`
 
 **Улучшение:**
+
 ```typescript
 if (result.length > 0) {
   try {
     const sentencesToSave = result.map(/* ... */);
-    
+
     if (sentencesToSave.length > 0) {
       await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
       showAlert.success(`Сохранено ${sentencesToSave.length} предложений в историю`);
@@ -454,9 +486,11 @@ if (result.length > 0) {
 ---
 
 ### 13. 💡 Добавить автосохранение черновиков ответов
+
 **Файл:** `src/components/TextWithInputs.tsx`
 
 **Улучшение:**
+
 ```typescript
 useEffect(() => {
   // Автосохранение в localStorage каждые 5 секунд
@@ -488,16 +522,18 @@ useEffect(() => {
 ---
 
 ### 14. 💡 Добавить кнопку "Очистить все ответы" в блоке
+
 **Файл:** `src/app/(main)/exercises/[path]/ExerciseBlock.tsx`
 
 **Добавить:**
+
 ```typescript
 const handleClearAnswers = () => {
   const textareas = document.querySelectorAll(`textarea[id^="textarea_${block.id}_"]`);
   textareas.forEach(textarea => {
     (textarea as HTMLTextAreaElement).value = '';
   });
-  
+
   // Очистить результаты проверки для этого блока
   set(state => ({
     validationResults: {
@@ -505,7 +541,7 @@ const handleClearAnswers = () => {
       [block.id]: {}
     }
   }));
-  
+
   showAlert.info('Ответы очищены');
 };
 
@@ -527,12 +563,14 @@ const handleClearAnswers = () => {
 ## Производительность / Performance
 
 ### 15. ⚡ Оптимизировать поиск textarea через querySelector
+
 **Файл:** `src/app/(main)/exercises/[path]/ExerciseBlock.tsx`
 
 **Проблема:**
 Повторный querySelector при каждом вызове `handleCheckAnswers`.
 
 **Оптимизация:**
+
 ```typescript
 const textareasRef = useRef<HTMLTextAreaElement[]>([]);
 
@@ -559,9 +597,11 @@ const handleCheckAnswers = () => {
 ## Обработка ошибок / Error Handling
 
 ### 16. 🛡️ Улучшить обработку ошибок AI
+
 **Файл:** `src/store/appStore.ts` → `handleCheckAnswers()`
 
 **Добавить:**
+
 ```typescript
 try {
   const data = await ApiService.checkAnswers({
@@ -569,17 +609,17 @@ try {
     answersText: answersText,
     languageName: languageName
   });
-  
+
   // Валидация ответа AI
   if (!data || !Array.isArray(data)) {
     throw new Error('Invalid response format from AI');
   }
-  
+
   if (data.length === 0) {
     showAlert.warning('AI не вернул результаты проверки');
     return;
   }
-  
+
   // ... обработка результатов
 } catch (err) {
   if (err instanceof Error) {
@@ -593,7 +633,7 @@ try {
       showAlert.error(`Ошибка при проверке: ${err.message}`);
     }
   }
-  
+
   set({ error: `Ошибка при проверке ответов: ${errorMessage}` });
 }
 ```
@@ -603,17 +643,19 @@ try {
 ## Документация кода / Code Documentation
 
 ### 17. 📖 Добавить JSDoc комментарии к функциям
+
 **Файлы:** `src/services/generateTextService.ts`, `src/services/checkAnswersService.ts`, `src/store/appStore.ts`
 
 **Пример:**
+
 ```typescript
 /**
  * Генерирует упражнения на основе темы, языка, уровня и слов
- * 
+ *
  * @param rawBody - Объект с параметрами генерации
  * @param userId - ID пользователя для выбора AI модели
  * @returns Объект с статусом и массивом сгенерированных предложений
- * 
+ *
  * @example
  * const result = await processGenerateTextRequest({
  *   mode: 'student',
@@ -636,6 +678,7 @@ export async function processGenerateTextRequest(
 ## Приоритизация задач / Task Prioritization
 
 ### Высокий приоритет (исправить сначала):
+
 1. ❌ Задача #1: Исправить обработку textarea в проверке ответов
 2. ❌ Задача #2: Исправить сохранение результатов проверки
 3. ❌ Задача #3: Использовать правильный API endpoint для проверки
@@ -643,6 +686,7 @@ export async function processGenerateTextRequest(
 5. ⚠️ Задача #7: Передать languageId в handleCheckAnswers
 
 ### Средний приоритет (можно отложить):
+
 6. ⚠️ Задача #5: Улучшить промпт для проверки ответов
 7. ⚠️ Задача #6: Добавить счетчик заполненных упражнений
 8. 📝 Задача #8: Выделить логику сбора ответов в отдельную функцию
@@ -650,6 +694,7 @@ export async function processGenerateTextRequest(
 10. 🛡️ Задача #16: Улучшить обработку ошибок AI
 
 ### Низкий приоритет (nice to have):
+
 11. 🧪 Задача #10: Добавить unit-тесты
 12. 🧪 Задача #11: Добавить E2E тесты
 13. 💡 Задача #12: Индикация сохранения в историю

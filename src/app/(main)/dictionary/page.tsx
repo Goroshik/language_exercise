@@ -86,7 +86,7 @@ const DictionaryPage: React.FC = () => {
         setWords(data.words);
         setCurrentPage(1); // Reset to first page when data changes
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert.error('Failed to load words');
     }
   };

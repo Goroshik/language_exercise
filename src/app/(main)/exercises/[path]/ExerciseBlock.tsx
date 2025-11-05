@@ -1,14 +1,14 @@
 import { Button, CircularProgress } from '@mui/material';
 import React from 'react';
 import {
-  CheckButtonBox,
-  ExerciseBlockCaption,
-  ExerciseBlockContainer,
-  ExerciseBlockInner,
-  ExerciseBlockTitle,
-  ExerciseContent,
-  ExerciseIndex,
-  ExerciseRow
+    CheckButtonBox,
+    ExerciseBlockCaption,
+    ExerciseBlockContainer,
+    ExerciseBlockInner,
+    ExerciseBlockTitle,
+    ExerciseContent,
+    ExerciseIndex,
+    ExerciseRow
 } from './ExerciseBlock.styled';
 
 import TextWithInputs from 'src/components/TextWithInputs';
@@ -19,6 +19,7 @@ interface Exercise {
   sentence: string;
   correctAnswers: string[];
   sentenceId?: string;
+  hasAnswer?: boolean;
 }
 
 interface ExerciseBlockProps {
@@ -76,6 +77,7 @@ const ExerciseBlock: React.FC<ExerciseBlockProps> = ({
                   text={exercise.sentence}
                   exerciseIndex={`${block.id}_${exerciseIndex}`}
                   sentenceId={exercise.sentenceId}
+                  hasAnswer={exercise.hasAnswer}
                   validationResults={validationResults}
                 />
               )}

@@ -39,6 +39,8 @@ const Page: React.FC = () => {
   const [selectedLevel, setSelectedLevel] = useState<string>('A1');
   const [selectedWords, setSelectedWords] = useState<DictionaryWord[]>([]);
   const [selectedLanguageId, setSelectedLanguageId] = useState<string>('');
+  const [historyAvailable, setHistoryAvailable] = useState<boolean>(false);
+  const [historyCount, setHistoryCount] = useState<number>(0);
 
   // Get learning language from settings
   const { settings, loadSettings } = useSettingsStore();
@@ -95,9 +97,51 @@ const Page: React.FC = () => {
     validationResults,
     handleTopicSelect,
     generateMoreExercises,
+    loadTrainingExercises,
     handleCheckAnswers,
     setIsNavigating
   } = useAppStore();
+
+  // Check history availability when topic, level, language, or exerciseBlocks changes
+  useEffect(() => {
+    const checkHistory = async () => {
+      if (!selectedLanguageId || !selectedTopic) {
+        setHistoryAvailable(false);
+        setHistoryCount(0);
+        return;
+      }
+
+      try {
+        const topicForApi = selectedTopic.toLowerCase();
+        
+        // Собираем ID предложений, которые уже отображаются на странице
+        const currentSentenceIds = exerciseBlocks
+          .flatMap(block => block.exercises)
+          .map(ex => ex.sentenceId)
+          .filter((id): id is string => id !== undefined);
+        
+        const result = await fetch('/api/ai/check-history-availability', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            topic: topicForApi,
+            languageId: selectedLanguageId,
+            level: selectedLevel,
+            currentSentenceIds
+          })
+        });
+        const json = await result.json();
+        setHistoryAvailable(json.available || false);
+        setHistoryCount(json.count || 0);
+      } catch (err) {
+        console.error('Failed to check history availability:', err);
+        setHistoryAvailable(false);
+        setHistoryCount(0);
+      }
+    };
+
+    checkHistory();
+  }, [selectedTopic, selectedLevel, selectedLanguageId, exerciseBlocks]);
 
   // Update the store's selectedTopic when the component mounts
   useEffect(() => {
@@ -138,6 +182,15 @@ const Page: React.FC = () => {
       level: selectedLevel,
       selectedWords,
       mode: selectedMode
+    });
+  };
+
+  const handleTrainFromHistory = () => {
+    loadTrainingExercises({
+      languageId: selectedLanguageId,
+      level: selectedLevel,
+      mode: selectedMode,
+      limit: 5
     });
   };
 
@@ -258,8 +311,9 @@ const Page: React.FC = () => {
               >
                 Упражнения для темы &#34;{selectedTopic}&#34; будут загружены здесь.
               </Typography>
-              <Button
-                variant="contained"
+              <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
+                <Button
+                  variant="contained"
                 size={isMobile ? 'medium' : 'large'}
                 onClick={handleGenerateInitial}
                 disabled={isLoading}
@@ -268,9 +322,26 @@ const Page: React.FC = () => {
                   fontSize: { xs: '0.95rem', sm: '1.1rem' },
                   padding: { xs: '10px 24px', sm: '12px 32px' }
                 }}
-              >
-                {isLoading ? 'Генерируем...' : 'Создать упражнения'}
-              </Button>
+                >
+                  {isLoading ? 'Генерируем...' : 'Создать упражнения'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  onClick={handleTrainFromHistory}
+                  disabled={!historyAvailable || isLoading}
+                  className="train-from-history-button"
+                  title={
+                    historyAvailable
+                      ? `Доступно ${historyCount} упражнений из истории`
+                      : 'Нет сохранённых упражнений для этой темы и уровня'
+                  }
+                >
+                  {isLoading
+                    ? 'Загружаем...'
+                    : `Тренировка из истории${historyAvailable ? ` (${historyCount})` : ''}`}
+                </Button>
+              </Box>
             </Box>
           ) : (
             <>
@@ -285,7 +356,16 @@ const Page: React.FC = () => {
                 />
               ))}
 
-              <Box sx={{ textAlign: 'center', mt: 4 }}>
+              <Box
+                sx={{
+                  textAlign: 'center',
+                  mt: 4,
+                  display: 'flex',
+                  gap: 2,
+                  justifyContent: 'center',
+                  flexWrap: 'wrap'
+                }}
+              >
                 <Button
                   variant="outlined"
                   size={isMobile ? 'medium' : 'large'}
@@ -298,6 +378,22 @@ const Page: React.FC = () => {
                   }}
                 >
                   {isLoading ? 'Генерируем...' : 'Добавить ещё упражнения'}
+                </Button>
+                <Button
+                  variant="outlined"
+                  size="large"
+                  onClick={handleTrainFromHistory}
+                  disabled={!historyAvailable || isLoading}
+                  className="train-from-history-button"
+                  title={
+                    historyAvailable
+                      ? `Доступно ${historyCount} упражнений из истории`
+                      : 'Нет сохранённых упражнений для этой темы и уровня'
+                  }
+                >
+                  {isLoading
+                    ? 'Загружаем...'
+                    : `Тренировка из истории${historyAvailable ? ` (${historyCount})` : ''}`}
                 </Button>
               </Box>
             </>
