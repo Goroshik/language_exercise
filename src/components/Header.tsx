@@ -2,6 +2,7 @@
 
 import BookIcon from '@mui/icons-material/Book';
 import HistoryIcon from '@mui/icons-material/History';
+import LanguageIcon from '@mui/icons-material/Language';
 import MenuIcon from '@mui/icons-material/Menu';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
@@ -277,6 +278,21 @@ const Header: React.FC = () => {
         }}
       >
         <List>
+          {/* Language Selector for Mobile */}
+          <ListItem sx={{ py: 2, px: 2, flexDirection: 'column', alignItems: 'flex-start' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', width: '100%', mb: 1 }}>
+              <ListItemIcon sx={{ minWidth: 40 }}>
+                <LanguageIcon color="primary" />
+              </ListItemIcon>
+              <Typography variant="body2" color="text.secondary">
+                Язык изучения
+              </Typography>
+            </Box>
+            <Box sx={{ width: '100%', pl: 5 }}>
+              <LanguageSelector />
+            </Box>
+          </ListItem>
+          
           <ListItem disablePadding>
             <ListItemButton
               onClick={() => {
