@@ -2,7 +2,10 @@ import HistoryIcon from '@mui/icons-material/History';
 import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import React, { useEffect, useMemo, useState } from 'react';
 
+import { useTextSelection } from 'src/hooks/useTextSelection';
 import { useAlertStore } from 'src/store/alertStore';
+import type { TranslationPanelState } from 'src/types/translation';
+import TextSelectionPopover from './TextSelectionPopover';
 import WordTranslationPanel from './WordTranslationPanel';
 
 interface TextWithInputsProps {
@@ -145,11 +148,18 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   validationResults = {}
 }) => {
   const [textareaValue, setTextareaValue] = useState('');
+  const [doubleClickTranslationPanel, setDoubleClickTranslationPanel] =
+    useState<TranslationPanelState | null>(null);
+
+  // Use the text selection hook for multiword translation
+  const {
+    selectionPopover,
+    translationPanel: selectionTranslationPanel,
+    handleSelectionPopoverTranslate,
+    closeSelectionPopover,
+    closeTranslationPanel: closeSelectionTranslationPanel
+  } = useTextSelection();
   const [isLoadingPreviousAnswer, setIsLoadingPreviousAnswer] = useState(false);
-  const [translationPanel, setTranslationPanel] = useState<{
-    word: string;
-    position: { x: number; y: number };
-  } | null>(null);
 
   const { addAlert } = useAlertStore();
 
@@ -255,15 +265,15 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
         y: event.clientY + 10
       };
 
-      setTranslationPanel({
+      setDoubleClickTranslationPanel({
         word: cleanWord.toLowerCase(),
         position
       });
     }
   };
 
-  const handleCloseTranslationPanel = () => {
-    setTranslationPanel(null);
+  const handleCloseDoubleClickTranslationPanel = () => {
+    setDoubleClickTranslationPanel(null);
   };
 
   const validationResult = validationResults[textareaId];
@@ -414,12 +424,32 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
         )}
       </Stack>
 
-      {translationPanel && (
+      {/* Text selection popover - shows "Translate" button for selected text */}
+      {selectionPopover && (
+        <TextSelectionPopover
+          position={selectionPopover.position}
+          onTranslate={handleSelectionPopoverTranslate}
+          onClose={closeSelectionPopover}
+        />
+      )}
+
+      {/* Translation panel from text selection */}
+      {selectionTranslationPanel && (
         <WordTranslationPanel
-          key={translationPanel.word}
-          word={translationPanel.word}
-          position={translationPanel.position}
-          onClose={handleCloseTranslationPanel}
+          key={selectionTranslationPanel.word}
+          word={selectionTranslationPanel.word}
+          position={selectionTranslationPanel.position}
+          onClose={closeSelectionTranslationPanel}
+        />
+      )}
+
+      {/* Translation panel from double-click */}
+      {doubleClickTranslationPanel && (
+        <WordTranslationPanel
+          key={doubleClickTranslationPanel.word}
+          word={doubleClickTranslationPanel.word}
+          position={doubleClickTranslationPanel.position}
+          onClose={handleCloseDoubleClickTranslationPanel}
         />
       )}
     </>
