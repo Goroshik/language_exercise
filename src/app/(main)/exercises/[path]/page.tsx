@@ -45,11 +45,11 @@ const Page: React.FC = () => {
   // Get learning language from settings
   const { settings, loadSettings } = useSettingsStore();
 
-  // Decode the topic name from URL - convert underscores to spaces and capitalize first letter
+  // Decode the topic name from URL - convert underscores to spaces and capitalize first letter of first word only
   const selectedTopic = path
     ? decodeURIComponent(path)
         .replace(/_/g, ' ')
-        .replace(/\b\w/g, char => char.toUpperCase())
+        .replace(/^./, char => char.toUpperCase())
     : '';
 
   // Load settings on mount
