@@ -8,6 +8,7 @@ export interface UserSettings {
   translationLang: string;
   learningLanguage: string;
   lastSelectedTopic?: string;
+  lastSelectedLevel?: string;
 }
 
 interface SettingsStore {
