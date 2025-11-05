@@ -195,11 +195,31 @@ const EssayPage: React.FC = () => {
       return;
     }
 
-    if (!currentEssayId) {
-      await saveEssay(false); // Save first if not saved
-      if (!currentEssayId) {
+    let essayIdToCheck = currentEssayId;
+
+    // Save first if not saved
+    if (!essayIdToCheck) {
+      setSaving(true);
+      try {
+        const response = await fetch('/api/essays', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, content, languageCode })
+        });
+        const data = await response.json();
+        if (data.success && data.data) {
+          essayIdToCheck = data.data.id;
+          setCurrentEssayId(data.data.id);
+        } else {
+          showAlert.error('Не удалось сохранить сочинение');
+          return;
+        }
+      } catch (error) {
+        console.error('Failed to save essay:', error);
         showAlert.error('Не удалось сохранить сочинение');
         return;
+      } finally {
+        setSaving(false);
       }
     }
 
@@ -209,7 +229,7 @@ const EssayPage: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          essayId: currentEssayId,
+          essayId: essayIdToCheck,
           content,
           languageCode
         })
@@ -259,38 +279,65 @@ const EssayPage: React.FC = () => {
       return <Typography sx={{ whiteSpace: 'pre-wrap' }}>{content}</Typography>;
     }
 
+    // Create a map of error positions to avoid conflicts
+    const errorPositions: Array<{ start: number; end: number; index: number }> = [];
+    
+    aiResponse.errors.forEach((error, index) => {
+      let searchStart = 0;
+      let errorIndex = content.indexOf(error.text, searchStart);
+      
+      // Find the first occurrence that doesn't overlap with existing errors
+      while (errorIndex !== -1) {
+        const errorEnd = errorIndex + error.text.length;
+        const hasOverlap = errorPositions.some(
+          pos => 
+            (errorIndex >= pos.start && errorIndex < pos.end) || 
+            (errorEnd > pos.start && errorEnd <= pos.end) ||
+            (errorIndex <= pos.start && errorEnd >= pos.end)
+        );
+        
+        if (!hasOverlap) {
+          errorPositions.push({ start: errorIndex, end: errorEnd, index });
+          break;
+        }
+        
+        searchStart = errorIndex + 1;
+        errorIndex = content.indexOf(error.text, searchStart);
+      }
+    });
+
+    // Sort by position
+    errorPositions.sort((a, b) => a.start - b.start);
+
     let lastIndex = 0;
     const elements: React.ReactNode[] = [];
 
-    aiResponse.errors.forEach((error, index) => {
-      const errorIndex = content.indexOf(error.text, lastIndex);
-      if (errorIndex !== -1) {
-        // Add text before error
-        if (errorIndex > lastIndex) {
-          elements.push(
-            <span key={`text-${index}`}>{content.substring(lastIndex, errorIndex)}</span>
-          );
-        }
-
-        // Add highlighted error
+    errorPositions.forEach(({ start, end, index }) => {
+      // Add text before error
+      if (start > lastIndex) {
         elements.push(
-          <span
-            key={`error-${index}`}
-            style={{
-              backgroundColor: error.color,
-              cursor: 'pointer',
-              borderBottom: hoveredErrorIndex === index ? '2px solid #000' : 'none',
-              fontWeight: hoveredErrorIndex === index ? 'bold' : 'normal'
-            }}
-            onMouseEnter={() => setHoveredErrorIndex(index)}
-            onMouseLeave={() => setHoveredErrorIndex(null)}
-          >
-            {error.text}
-          </span>
+          <span key={`text-${index}`}>{content.substring(lastIndex, start)}</span>
         );
-
-        lastIndex = errorIndex + error.text.length;
       }
+
+      // Add highlighted error
+      elements.push(
+        <span
+          key={`error-${index}`}
+          style={{
+            backgroundColor: aiResponse.errors[index].color,
+            cursor: 'pointer',
+            borderBottom: hoveredErrorIndex === index ? '2px solid #000' : 'none',
+            fontWeight: hoveredErrorIndex === index ? 'bold' : 'normal'
+          }}
+          onMouseEnter={() => setHoveredErrorIndex(index)}
+          onMouseLeave={() => setHoveredErrorIndex(null)}
+        >
+          {content.substring(start, end)}
+        </span>
+      );
+
+      lastIndex = end;
     });
 
     // Add remaining text

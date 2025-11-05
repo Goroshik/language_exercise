@@ -88,11 +88,20 @@ export class EssayRepository {
    * Delete an essay
    */
   async delete(id: string, userId: string): Promise<Essay> {
-    return this.prisma.essay.delete({
+    // First verify the essay exists and belongs to user
+    const essay = await this.prisma.essay.findFirst({
       where: {
         id,
         userId
       }
+    });
+
+    if (!essay) {
+      throw new Error('Essay not found or access denied');
+    }
+
+    return this.prisma.essay.delete({
+      where: { id }
     });
   }
 

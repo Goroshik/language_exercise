@@ -63,8 +63,7 @@ export async function checkEssayService(
     }
 
     // Get language name
-    const languages = await languageRepository.findAll();
-    const language = languages.find(l => l.code === languageCode);
+    const language = await languageRepository.findByCode(languageCode);
     if (!language) {
       return { status: 400, body: { error: 'Invalid language code' } };
     }
@@ -96,7 +95,7 @@ export async function checkEssayService(
     let aiResponse: EssayCheckResponse;
     try {
       // Try to extract JSON from potential markdown code blocks
-      const jsonMatch = text.match(/```json\s*([\s\S]*?)\s*```/) || text.match(/```\s*([\s\S]*?)\s*```/);
+      const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       const jsonText = jsonMatch ? jsonMatch[1] : text;
       aiResponse = JSON.parse(jsonText.trim());
     } catch (_parseErr) {
