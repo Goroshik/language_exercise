@@ -44,6 +44,102 @@ export const useTextSelection = (): UseTextSelectionResult => {
     isPanelOpenRef.current = translationPanel !== null;
   }, [translationPanel]);
 
+  /**
+   * Expands partial word selection to include full words
+   * If first or last word is partially selected, expands to full word boundaries
+   */
+  const expandToFullWords = useCallback((selection: globalThis.Selection): string => {
+    if (!selection || selection.rangeCount === 0) {
+      return '';
+    }
+
+    const range = selection.getRangeAt(0);
+    const selectedText = selection.toString();
+    
+    // Get surrounding text context to expand partial words
+    const startContainer = range.startContainer;
+    const endContainer = range.endContainer;
+    
+    // If selection spans multiple nodes, use a different approach
+    if (startContainer !== endContainer) {
+      // For multi-node selection, work with the text of start and end containers
+      return expandMultiNodeSelection(range, selectedText);
+    }
+
+    // Work with single text node
+    const textNode = startContainer.nodeType === globalThis.Node.TEXT_NODE 
+      ? startContainer 
+      : null;
+    
+    if (!textNode || !textNode.textContent) {
+      return selectedText.trim();
+    }
+
+    const fullText = textNode.textContent;
+    const startOffset = range.startOffset;
+    const endOffset = range.endOffset;
+
+    // Find word boundary at start (look backwards)
+    let expandedStart = startOffset;
+    while (expandedStart > 0 && /\S/.test(fullText[expandedStart - 1])) {
+      expandedStart--;
+    }
+
+    // Find word boundary at end (look forwards)
+    let expandedEnd = endOffset;
+    while (expandedEnd < fullText.length && /\S/.test(fullText[expandedEnd])) {
+      expandedEnd++;
+    }
+
+    // Extract the expanded text
+    const expandedText = fullText.substring(expandedStart, expandedEnd).trim();
+    return expandedText;
+  }, []);
+
+  /**
+   * Helper function to expand selection that spans multiple text nodes
+   */
+  const expandMultiNodeSelection = (range: globalThis.Range, selectedText: string): string => {
+    const startContainer = range.startContainer;
+    const endContainer = range.endContainer;
+    
+    let result = selectedText;
+    
+    // Expand start word
+    if (startContainer.nodeType === globalThis.Node.TEXT_NODE && startContainer.textContent) {
+      const startText = startContainer.textContent;
+      const startOffset = range.startOffset;
+      
+      let expandedStart = startOffset;
+      while (expandedStart > 0 && /\S/.test(startText[expandedStart - 1])) {
+        expandedStart--;
+      }
+      
+      const startPrefix = startText.substring(expandedStart, startOffset);
+      if (startPrefix) {
+        result = startPrefix + result;
+      }
+    }
+    
+    // Expand end word
+    if (endContainer.nodeType === globalThis.Node.TEXT_NODE && endContainer.textContent) {
+      const endText = endContainer.textContent;
+      const endOffset = range.endOffset;
+      
+      let expandedEnd = endOffset;
+      while (expandedEnd < endText.length && /\S/.test(endText[expandedEnd])) {
+        expandedEnd++;
+      }
+      
+      const endSuffix = endText.substring(endOffset, expandedEnd);
+      if (endSuffix) {
+        result = result + endSuffix;
+      }
+    }
+    
+    return result.trim();
+  };
+
   const handleTextSelection = useCallback(() => {
     if (typeof window === 'undefined') return;
 
@@ -66,10 +162,11 @@ export const useTextSelection = (): UseTextSelectionResult => {
         return;
       }
 
-      const selectedText = selection.toString().trim();
+      // Expand partial word selection to full words
+      const expandedText = expandToFullWords(selection);
       
       // Check minimum text length to avoid single character selections
-      if (!selectedText || selectedText.length < MIN_TEXT_LENGTH) {
+      if (!expandedText || expandedText.length < MIN_TEXT_LENGTH) {
         setSelectionPopover(null);
         return;
       }
@@ -90,8 +187,8 @@ export const useTextSelection = (): UseTextSelectionResult => {
         }
       }
 
-      // Count words in selection
-      const wordCount = selectedText.split(/\s+/).filter(Boolean).length;
+      // Count words in expanded selection
+      const wordCount = expandedText.split(/\s+/).filter(Boolean).length;
       if (wordCount < MIN_WORD_COUNT || wordCount > MAX_WORD_COUNT) {
         setSelectionPopover(null);
         return;
@@ -105,11 +202,11 @@ export const useTextSelection = (): UseTextSelectionResult => {
       };
 
       setSelectionPopover({
-        text: selectedText,
+        text: expandedText,
         position
       });
     }, SELECTION_DEBOUNCE_DELAY);
-  }, []);
+  }, [expandToFullWords]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
