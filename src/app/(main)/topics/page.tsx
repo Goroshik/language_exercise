@@ -53,24 +53,80 @@ const Page: React.FC = () => {
 
   return (
     <Box>
-      <Typography variant="h6">
+      <Typography
+        variant="h6"
+        sx={{
+          fontSize: { xs: '1rem', sm: '1.25rem' },
+          mb: { xs: 1, sm: 2 }
+        }}
+      >
         {settings?.learningLanguage === 'pl'
           ? 'Wybierz temat gramatyki polskiej do nauki:'
           : 'Выберите тему английской грамматики для изучения:'}
       </Typography>
       <Stack direction="column" alignItems="center">
-        <List sx={{ width: '1000px', alignItems: 'center' }}>
+        <List
+          sx={{
+            width: { xs: '100%', sm: '100%', md: '1000px' },
+            alignItems: 'center',
+            padding: { xs: 0, sm: 1 }
+          }}
+        >
           {topics &&
             Object.entries(topics).map(([topicTitle, topicItems]) => (
-              <ListItem key={topicTitle} disablePadding sx={{ alignItems: 'flex-start' }}>
-                <ListItemText sx={{ flex: 1 }}>
-                  <Typography variant="h5">{topicTitle}</Typography>
+              <ListItem
+                key={topicTitle}
+                disablePadding
+                sx={{
+                  alignItems: 'flex-start',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  mb: { xs: 2, sm: 0 }
+                }}
+              >
+                <ListItemText
+                  sx={{
+                    flex: { xs: 'auto', sm: 1 },
+                    mb: { xs: 1, sm: 0 }
+                  }}
+                >
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      fontSize: { xs: '1.125rem', sm: '1.5rem' },
+                      fontWeight: { xs: 600, sm: 'inherit' }
+                    }}
+                  >
+                    {topicTitle}
+                  </Typography>
                 </ListItemText>
-                <List sx={{ pl: 2, flex: 3 }}>
+                <List
+                  sx={{
+                    pl: { xs: 0, sm: 2 },
+                    flex: { xs: 'auto', sm: 3 },
+                    width: { xs: '100%', sm: 'auto' }
+                  }}
+                >
                   {Object.entries(topicItems).map(([topicKey, topicValue]) => (
                     <ListItem key={topicKey} disablePadding>
-                      <ListItemButton onClick={() => handleTopicSelect(topicValue)}>
-                        <ListItemText primary={topicValue} />
+                      <ListItemButton
+                        onClick={() => handleTopicSelect(topicValue)}
+                        sx={{
+                          borderRadius: { xs: 1, sm: 0 },
+                          mb: { xs: 0.5, sm: 0 },
+                          '&:hover': {
+                            backgroundColor: {
+                              xs: 'rgba(0, 0, 0, 0.08)',
+                              sm: 'rgba(0, 0, 0, 0.04)'
+                            }
+                          }
+                        }}
+                      >
+                        <ListItemText
+                          primary={topicValue}
+                          primaryTypographyProps={{
+                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                          }}
+                        />
                       </ListItemButton>
                     </ListItem>
                   ))}

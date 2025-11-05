@@ -1,27 +1,29 @@
 'use client';
 
 import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Typography
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    Typography,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import {
-  AIModel,
-  PROVIDER_LABELS,
-  getModelsByProvider,
-  getProviderFromModel
+    AIModel,
+    PROVIDER_LABELS,
+    getModelsByProvider,
+    getProviderFromModel
 } from 'src/constants/aiModels';
 import { showAlert } from 'src/utils/alert';
 
@@ -42,6 +44,8 @@ interface FormData {
 }
 
 const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [success, setSuccess] = useState<string>('');
@@ -176,36 +180,75 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
   const isModelDisabled = !selectedProvider || getFilteredModels().length === 0;
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
-      <DialogTitle>Выбор AI модели</DialogTitle>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="sm" 
+      fullWidth 
+      fullScreen={isMobile}
+      PaperProps={{
+        sx: {
+          ...(isMobile ? {
+            margin: 0,
+            maxHeight: '100vh',
+            height: '100vh',
+            borderRadius: 0,
+            display: 'flex',
+            flexDirection: 'column'
+          } : {
+            maxHeight: '90vh'
+          })
+        }
+      }}
+    >
+      <DialogTitle sx={{ 
+        pb: isMobile ? 1 : 2, 
+        px: isMobile ? 2 : 3, 
+        fontSize: isMobile ? '1.1rem' : '1.25rem',
+        flexShrink: 0
+      }}>
+        Выбор AI модели
+      </DialogTitle>
 
-      <DialogContent>
+      <DialogContent sx={{ 
+        px: isMobile ? 2 : 3, 
+        pt: isMobile ? 1 : 2,
+        pb: isMobile ? 2 : 2,
+        flex: 1,
+        overflowY: 'auto',
+        overflowX: 'hidden'
+      }}>
         {loading ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
+            <CircularProgress size={isMobile ? 32 : 40} />
           </Box>
         ) : (
           <>
             {!availableData.hasTokens ? (
-              <Alert severity="warning" sx={{ mb: 2 }}>
+              <Alert severity="warning" sx={{ mb: 2, fontSize: isMobile ? '0.875rem' : '1rem' }}>
                 У вас нет добавленных токенов. Пожалуйста, добавьте токен в настройках, чтобы
                 использовать AI модели.
               </Alert>
             ) : (
               <form onSubmit={handleSubmit(onSubmit)}>
-                <Typography variant="body2" color="textSecondary" paragraph>
+                <Typography 
+                  variant="body2" 
+                  color="textSecondary" 
+                  paragraph
+                  sx={{ fontSize: isMobile ? '0.875rem' : '0.875rem' }}
+                >
                   Выберите AI модель для генерации текста. Доступны только модели, для которых
                   добавлен токен.
                 </Typography>
 
                 {error && (
-                  <Alert severity="error" sx={{ mb: 2 }}>
+                  <Alert severity="error" sx={{ mb: 2, fontSize: isMobile ? '0.875rem' : '1rem' }}>
                     {error}
                   </Alert>
                 )}
 
                 {success && (
-                  <Alert severity="success" sx={{ mb: 2 }}>
+                  <Alert severity="success" sx={{ mb: 2, fontSize: isMobile ? '0.875rem' : '1rem' }}>
                     {success}
                   </Alert>
                 )}
@@ -214,15 +257,24 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
                   name="provider"
                   control={control}
                   render={({ field }) => (
-                    <FormControl fullWidth margin="normal">
+                    <FormControl fullWidth margin="normal" size={isMobile ? 'small' : 'medium'}>
                       <InputLabel>Провайдер</InputLabel>
                       <Select
                         {...field}
                         disabled={isProviderDisabled || isSubmitting}
                         label="Провайдер"
+                        sx={{
+                          '& .MuiSelect-select': {
+                            fontSize: isMobile ? '0.875rem' : '1rem'
+                          }
+                        }}
                       >
                         {availableData.providers.map(provider => (
-                          <MenuItem key={provider} value={provider}>
+                          <MenuItem 
+                            key={provider} 
+                            value={provider}
+                            sx={{ fontSize: isMobile ? '0.875rem' : '1rem' }}
+                          >
                             {PROVIDER_LABELS[provider]}
                           </MenuItem>
                         ))}
@@ -235,11 +287,24 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
                   name="model"
                   control={control}
                   render={({ field }) => (
-                    <FormControl fullWidth margin="normal">
+                    <FormControl fullWidth margin="normal" size={isMobile ? 'small' : 'medium'}>
                       <InputLabel>Модель</InputLabel>
-                      <Select {...field} disabled={isModelDisabled || isSubmitting} label="Модель">
+                      <Select 
+                        {...field} 
+                        disabled={isModelDisabled || isSubmitting} 
+                        label="Модель"
+                        sx={{
+                          '& .MuiSelect-select': {
+                            fontSize: isMobile ? '0.875rem' : '1rem'
+                          }
+                        }}
+                      >
                         {getFilteredModels().map(model => (
-                          <MenuItem key={model.value} value={model.value}>
+                          <MenuItem 
+                            key={model.value} 
+                            value={model.value}
+                            sx={{ fontSize: isMobile ? '0.875rem' : '1rem' }}
+                          >
                             {model.label}
                           </MenuItem>
                         ))}
@@ -249,11 +314,25 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
                 />
 
                 {currentModel && (
-                  <Box sx={{ mt: 2, p: 2, bgcolor: 'background.default', borderRadius: 1 }}>
-                    <Typography variant="caption" color="textSecondary">
+                  <Box 
+                    sx={{ 
+                      mt: 2, 
+                      p: isMobile ? 1.5 : 2, 
+                      bgcolor: 'background.default', 
+                      borderRadius: 1 
+                    }}
+                  >
+                    <Typography 
+                      variant="caption" 
+                      color="textSecondary"
+                      sx={{ fontSize: isMobile ? '0.75rem' : '0.75rem' }}
+                    >
                       Текущая модель:
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography 
+                      variant="body2"
+                      sx={{ fontSize: isMobile ? '0.875rem' : '0.875rem' }}
+                    >
                       {availableData.models.find(m => m.value === currentModel)?.label ||
                         currentModel}
                     </Typography>
@@ -265,8 +344,12 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
         )}
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} disabled={isSubmitting}>
+      <DialogActions sx={{ px: isMobile ? 2 : 3, pb: isMobile ? 2 : 2, flexShrink: 0 }}>
+        <Button 
+          onClick={onClose} 
+          disabled={isSubmitting}
+          size={isMobile ? 'small' : 'medium'}
+        >
           Отмена
         </Button>
         {availableData.hasTokens && (
@@ -274,7 +357,8 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
             onClick={handleSubmit(onSubmit)}
             variant="contained"
             disabled={loading || isSubmitting || !selectedModel || selectedModel === currentModel}
-            startIcon={isSubmitting ? <CircularProgress size={20} /> : null}
+            size={isMobile ? 'small' : 'medium'}
+            startIcon={isSubmitting ? <CircularProgress size={isMobile ? 16 : 20} /> : null}
           >
             {isSubmitting ? 'Сохранение...' : 'Сохранить'}
           </Button>
