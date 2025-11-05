@@ -1,19 +1,19 @@
 'use client';
 
 import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Link,
-  TextField,
-  Typography,
-  useMediaQuery,
-  useTheme
+    Alert,
+    Box,
+    Button,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    Link,
+    TextField,
+    Typography,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { showAlert } from 'src/utils/alert';
@@ -106,10 +106,41 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth fullScreen={isMobile}>
-      <DialogTitle>API Tokens</DialogTitle>
+    <Dialog 
+      open={open} 
+      onClose={onClose} 
+      maxWidth="md" 
+      fullWidth 
+      fullScreen={isMobile}
+      PaperProps={{
+        sx: {
+          ...(isMobile ? {
+            margin: 0,
+            maxHeight: '100vh',
+            height: '100vh',
+            borderRadius: 0,
+            display: 'flex',
+            flexDirection: 'column'
+          } : {
+            maxHeight: '90vh'
+          })
+        }
+      }}
+    >
+      <DialogTitle sx={{ pb: isMobile ? 1 : 2, px: isMobile ? 2 : 3, flexShrink: 0 }}>
+        API Tokens
+      </DialogTitle>
 
-      <DialogContent>
+      <DialogContent 
+        sx={{ 
+          px: isMobile ? 2 : 3, 
+          pt: isMobile ? 1 : 2,
+          pb: isMobile ? 2 : 2,
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden'
+        }}
+      >
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
@@ -123,10 +154,15 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
         )}
 
         <Box>
-          <Typography variant="h6" gutterBottom>
+          <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1rem' : '1.25rem' }}>
             API Tokens
           </Typography>
-          <Typography variant="body2" color="textSecondary" paragraph>
+          <Typography 
+            variant="body2" 
+            color="textSecondary" 
+            paragraph
+            sx={{ fontSize: isMobile ? '0.875rem' : '0.875rem' }}
+          >
             Enter your API tokens for different services. These will be encrypted and stored
             securely.
           </Typography>
@@ -140,6 +176,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
             value={tokens.gemini}
             onChange={e => handleTokenChange('gemini', e.target.value)}
             placeholder="Enter your Gemini API token"
+            size={isMobile ? 'small' : 'medium'}
             helperText={
               <>
                 Get your token from{' '}
@@ -152,6 +189,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                 </Link>
               </>
             }
+            sx={{
+              '& .MuiInputBase-root': {
+                fontSize: isMobile ? '0.875rem' : '1rem'
+              },
+              '& .MuiFormHelperText-root': {
+                fontSize: isMobile ? '0.75rem' : '0.75rem'
+              }
+            }}
           />
 
           <TextField
@@ -163,6 +208,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
             value={tokens.openai}
             onChange={e => handleTokenChange('openai', e.target.value)}
             placeholder="Enter your OpenAI API token"
+            size={isMobile ? 'small' : 'medium'}
             helperText={
               <>
                 Get your token from{' '}
@@ -175,6 +221,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                 </Link>
               </>
             }
+            sx={{
+              '& .MuiInputBase-root': {
+                fontSize: isMobile ? '0.875rem' : '1rem'
+              },
+              '& .MuiFormHelperText-root': {
+                fontSize: isMobile ? '0.75rem' : '0.75rem'
+              }
+            }}
           />
 
           <TextField
@@ -186,6 +240,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
             value={tokens.anthropic}
             onChange={e => handleTokenChange('anthropic', e.target.value)}
             placeholder="Enter your Anthropic API token"
+            size={isMobile ? 'small' : 'medium'}
             helperText={
               <>
                 Get your token from{' '}
@@ -198,6 +253,14 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                 </Link>
               </>
             }
+            sx={{
+              '& .MuiInputBase-root': {
+                fontSize: isMobile ? '0.875rem' : '1rem'
+              },
+              '& .MuiFormHelperText-root': {
+                fontSize: isMobile ? '0.75rem' : '0.75rem'
+              }
+            }}
           />
 
           <TextField
@@ -209,6 +272,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
             value={tokens.deepl}
             onChange={e => handleTokenChange('deepl', e.target.value)}
             placeholder="Enter your DeepL API token"
+            size={isMobile ? 'small' : 'medium'}
             helperText={
               <>
                 Get your token from{' '}
@@ -221,18 +285,31 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
                 </Link>
               </>
             }
+            sx={{
+              '& .MuiInputBase-root': {
+                fontSize: isMobile ? '0.875rem' : '1rem'
+              },
+              '& .MuiFormHelperText-root': {
+                fontSize: isMobile ? '0.75rem' : '0.75rem'
+              }
+            }}
           />
         </Box>
       </DialogContent>
 
-      <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+      <DialogActions sx={{ px: isMobile ? 2 : 3, pb: isMobile ? 2 : 2, flexShrink: 0 }}>
+        <Button 
+          onClick={onClose} 
+          disabled={loading}
+          size={isMobile ? 'small' : 'medium'}
+        >
           Cancel
         </Button>
         <Button
           onClick={saveTokens}
           variant="contained"
           disabled={loading}
+          size={isMobile ? 'small' : 'medium'}
           startIcon={loading ? <CircularProgress size={20} /> : null}
         >
           {loading ? 'Saving...' : 'Save'}

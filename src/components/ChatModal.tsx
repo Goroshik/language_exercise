@@ -4,14 +4,16 @@ import CloseIcon from '@mui/icons-material/Close';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SendIcon from '@mui/icons-material/Send';
 import {
-  Box,
-  CircularProgress,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  TextField,
-  Typography
+    Box,
+    CircularProgress,
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    TextField,
+    Typography,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 import { useChatStore } from 'src/store/chatStore';
@@ -20,6 +22,8 @@ import ConfirmDialog from './ConfirmDialog';
 import MarkdownMessage from './MarkdownMessage';
 
 const ChatModal: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const {
     messages,
     isOpen,
@@ -90,35 +94,63 @@ const ChatModal: React.FC = () => {
         onClose={() => setIsOpen(false)}
         maxWidth="lg"
         fullWidth
+        fullScreen={isMobile}
         PaperProps={{
           sx: {
-            height: '80vh',
-            maxHeight: '800px',
-            display: 'flex',
-            flexDirection: 'column'
+            ...(isMobile ? {
+              margin: 0,
+              maxHeight: '100vh',
+              height: '100vh',
+              borderRadius: 0,
+              display: 'flex',
+              flexDirection: 'column'
+            } : {
+              height: '80vh',
+              maxHeight: '800px',
+              display: 'flex',
+              flexDirection: 'column'
+            })
           }
         }}
       >
-        <DialogTitle>
+        <DialogTitle sx={{ pb: isMobile ? 1 : 2, px: isMobile ? 2 : 3, flexShrink: 0 }}>
           <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6">AI Помощник</Typography>
+            <Typography variant="h6" sx={{ fontSize: isMobile ? '1rem' : '1.25rem' }}>
+              AI Помощник
+            </Typography>
             <Box>
-              <IconButton onClick={handleRefresh} size="small" sx={{ mr: 1 }}>
-                <RefreshIcon />
+              <IconButton 
+                onClick={handleRefresh} 
+                size="small" 
+                sx={{ mr: 0.5 }}
+              >
+                <RefreshIcon fontSize={isMobile ? 'small' : 'medium'} />
               </IconButton>
-              <IconButton onClick={() => setIsOpen(false)} size="small">
-                <CloseIcon />
+              <IconButton 
+                onClick={() => setIsOpen(false)} 
+                size="small"
+              >
+                <CloseIcon fontSize={isMobile ? 'small' : 'medium'} />
               </IconButton>
             </Box>
           </Box>
         </DialogTitle>
-        <DialogContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', p: 0 }}>
+        <DialogContent 
+          sx={{ 
+            flex: 1, 
+            display: 'flex', 
+            flexDirection: 'column', 
+            p: 0,
+            overflow: 'hidden'
+          }}
+        >
           <Box
             sx={{
               flex: 1,
               display: 'flex',
               flexDirection: 'column',
-              p: 2
+              p: isMobile ? 1.5 : 2,
+              overflow: 'hidden'
             }}
           >
             {/* Messages area */}
@@ -126,8 +158,8 @@ const ChatModal: React.FC = () => {
               sx={{
                 flex: 1,
                 overflowY: 'auto',
-                mb: 2,
-                p: 2,
+                mb: isMobile ? 1.5 : 2,
+                p: isMobile ? 1.5 : 2,
                 backgroundColor: '#f5f5f5',
                 borderRadius: 1,
                 display: 'flex',
@@ -143,7 +175,12 @@ const ChatModal: React.FC = () => {
                     height: '100%'
                   }}
                 >
-                  <Typography color="text.secondary">Начните диалог с AI помощником</Typography>
+                  <Typography 
+                    color="text.secondary"
+                    sx={{ fontSize: isMobile ? '0.875rem' : '1rem' }}
+                  >
+                    Начните диалог с AI помощником
+                  </Typography>
                 </Box>
               )}
 
@@ -153,8 +190,12 @@ const ChatModal: React.FC = () => {
 
               {isLoading && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-                  <CircularProgress size={20} />
-                  <Typography variant="body2" color="text.secondary">
+                  <CircularProgress size={isMobile ? 16 : 20} />
+                  <Typography 
+                    variant="body2" 
+                    color="text.secondary"
+                    sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}
+                  >
                     AI думает...
                   </Typography>
                 </Box>
@@ -164,31 +205,38 @@ const ChatModal: React.FC = () => {
             </Box>
 
             {/* Input area */}
-            <Box sx={{ display: 'flex', gap: 1 }}>
+            <Box sx={{ display: 'flex', gap: isMobile ? 0.5 : 1 }}>
               <TextField
                 fullWidth
                 multiline
-                maxRows={3}
+                maxRows={isMobile ? 2 : 3}
                 value={inputMessage}
                 onChange={e => setInputMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
                 placeholder="Введите ваш вопрос..."
                 disabled={isLoading}
                 variant="outlined"
-                size="small"
+                size={isMobile ? 'small' : 'small'}
+                sx={{
+                  '& .MuiInputBase-root': {
+                    fontSize: isMobile ? '0.875rem' : '1rem'
+                  }
+                }}
               />
               <IconButton
                 color="primary"
                 onClick={handleSendMessage}
                 disabled={!inputMessage.trim() || isLoading}
+                size={isMobile ? 'small' : 'medium'}
                 sx={{
                   backgroundColor: 'primary.main',
                   color: 'white',
                   '&:hover': { backgroundColor: 'primary.dark' },
-                  '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                  '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' },
+                  flexShrink: 0
                 }}
               >
-                <SendIcon />
+                <SendIcon fontSize={isMobile ? 'small' : 'medium'} />
               </IconButton>
             </Box>
           </Box>

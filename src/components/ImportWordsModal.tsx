@@ -1,26 +1,26 @@
 'use client';
 
 import {
-  Close as CloseIcon,
-  Delete as DeleteIcon,
-  Language as LanguageIcon
+    Close as CloseIcon,
+    Delete as DeleteIcon,
+    Language as LanguageIcon
 } from '@mui/icons-material';
 import {
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  List,
-  ListItem,
-  TextField,
-  Typography,
-  useMediaQuery,
-  useTheme
+    Box,
+    Button,
+    Chip,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    List,
+    ListItem,
+    TextField,
+    Typography,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { useSettingsStore } from 'src/store/settingsStore';
@@ -213,12 +213,30 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
       fullScreen={isMobile}
       PaperProps={{
         sx: {
-          height: isMobile ? '100%' : '80vh',
-          maxHeight: isMobile ? '100%' : '80vh'
+          ...(isMobile ? {
+            margin: 0,
+            maxHeight: '100vh',
+            height: '100vh',
+            borderRadius: 0,
+            display: 'flex',
+            flexDirection: 'column'
+          } : {
+            height: '80vh',
+            maxHeight: '80vh',
+            display: 'flex',
+            flexDirection: 'column'
+          })
         }
       }}
     >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <DialogTitle sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        flexShrink: 0,
+        px: isMobile ? 2 : 3,
+        pb: isMobile ? 1 : 2
+      }}>
         <Box display="flex" alignItems="center" gap={2}>
           <Typography variant="h6">
             {step === 'input' && 'Импорт слов из текста'}
@@ -237,7 +255,14 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ display: 'flex', gap: 2, p: 2 }}>
+      <DialogContent sx={{ 
+        display: 'flex', 
+        gap: 2, 
+        p: isMobile ? 1.5 : 2,
+        flex: 1,
+        overflowY: 'auto',
+        overflowX: 'hidden'
+      }}>
         {/* Main content area */}
         <Box flex="1" sx={{ pr: 2 }}>
           {step === 'input' && (
@@ -342,7 +367,11 @@ cat - кот"
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 2, gap: 1 }}>
+      <DialogActions sx={{ 
+        p: isMobile ? 1.5 : 2, 
+        gap: 1,
+        flexShrink: 0
+      }}>
         {step === 'input' && (
           <>
             <Button onClick={handleClose}>Отмена</Button>
