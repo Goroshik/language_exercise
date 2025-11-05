@@ -68,7 +68,7 @@ export const useSettingsStore = create<SettingsStore>()(
       set({ isLoading: true, error: null });
       try {
         const response = await fetch('/api/settings', {
-          method: 'PATCH',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
@@ -104,7 +104,7 @@ export const useSettingsStore = create<SettingsStore>()(
       set({ isLoading: true, error: null });
       try {
         const response = await fetch('/api/settings', {
-          method: 'PATCH',
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },

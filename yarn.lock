@@ -4088,14 +4088,14 @@ ohash@^2.0.11:
   integrity sha512-RdR9FQrFwNBNXAr4GixM8YaRZRJ5PUWbKYbE5eOsrwAjJW0q2REGcf79oYPsLyskQCZG1PLN+S/K1V00joZAoQ==
 
 oidc-token-hash@^5.0.3:
-  version "5.1.1"
-  resolved "https://registry.npmjs.org/oidc-token-hash/-/oidc-token-hash-5.1.1.tgz#d35e31ca26d3a26678f5e9bda100b095ab58011f"
-  integrity sha512-D7EmwxJV6DsEB6vOFLrBM2OzsVgQzgPWyHlV2OOAVj772n+WTXpudC9e9u5BVKQnYwaD30Ivhi9b+4UeBcGu9g==
+  version "5.2.0"
+  resolved "https://registry.npmjs.org/oidc-token-hash/-/oidc-token-hash-5.2.0.tgz#be8a8885c7e2478d21a674e15afa31f1bcc4a61f"
+  integrity sha512-6gj2m8cJZ+iSW8bm0FXdGF0YhIQbKrfP4yWTNzxc31U6MOjfEmB1rHvlYvxI1B7t7BCi1F2vYTT6YhtQRG4hxw==
 
 openai@^6.3.0:
-  version "6.8.0"
-  resolved "https://registry.npmjs.org/openai/-/openai-6.8.0.tgz#94bf60ec638b87b18fd4b8e30a522f916c406a4e"
-  integrity sha512-GQUpzb9FoNkh1wqJuDIQ8e/Sq8dW+T3GakG6wJTXBE8Lufx1GaUcgZd087vhm8f/MiOzsTEkfRamYxzJ/jOoiw==
+  version "6.8.1"
+  resolved "https://registry.npmjs.org/openai/-/openai-6.8.1.tgz#72610890aa6f67b3473c7be2e2d6ff25ebb9846a"
+  integrity sha512-ACifslrVgf+maMz9vqwMP4+v9qvx5Yzssydizks8n+YUJ6YwUoxj51sKRQ8HYMfR6wgKLSIlaI108ZwCk+8yig==
 
 openid-client@^5.4.0:
   version "5.7.1"
@@ -5141,9 +5141,9 @@ through@2, "through@>=2.2.7 <3":
   integrity sha512-w89qg7PI8wAdvX60bMDP+bFoD5Dvhm9oLheFp5O4a2QF0cSBGsBX4qZmadPMvVqlLJBBci+WqGGOAPvcDeNSVg==
 
 tinyexec@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.npmjs.org/tinyexec/-/tinyexec-1.0.1.tgz#70c31ab7abbb4aea0a24f55d120e5990bfa1e0b1"
-  integrity sha512-5uC6DDlmeqiOwCPmK9jMSdOuZTh8bU39Ys6yidB+UTt5hfZUPGAypSgFRiEp+jbi9qH40BLDvy85jIU88wKSqw==
+  version "1.0.2"
+  resolved "https://registry.npmjs.org/tinyexec/-/tinyexec-1.0.2.tgz#bdd2737fe2ba40bd6f918ae26642f264b99ca251"
+  integrity sha512-W/KYk+NFhkmsYpuHq5JykngiOCnxeVL8v8dFnqxSD8qEEdRfXk1SDM6JzNqcERbcGYj9tMrDQBYV9cjgnunFIg==
 
 tinyglobby@^0.2.13:
   version "0.2.15"

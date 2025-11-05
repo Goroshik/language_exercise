@@ -34,10 +34,18 @@ export class UserSettingsRepository {
       learningLanguage?: string;
     }
   ) {
-    return this.client.update({
-      where: { userId },
-      data
-    });
+    console.log('UserSettingsRepository.update - userId:', userId, 'data:', data);
+    try {
+      const result = await this.client.update({
+        where: { userId },
+        data
+      });
+      console.log('UserSettingsRepository.update - success:', result);
+      return result;
+    } catch (error) {
+      console.error('UserSettingsRepository.update - error:', error);
+      throw error;
+    }
   }
 
   async upsert(
