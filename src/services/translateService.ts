@@ -1,20 +1,28 @@
 import { userTokenRepository, wordRepository } from 'src/repository/client';
 
 export async function translateWordService(userId: string, word: string) {
-  if (!word || typeof word !== 'string' || word.trim().split(/\s+/).length > 1) {
-    throw new Error('Можно переводить только одно слово');
+  if (!word || typeof word !== 'string') {
+    throw new Error('Некорректный текст для перевода');
   }
 
   const cleanWord = word.trim().toLowerCase();
+  const wordCount = cleanWord.split(/\s+/).filter(Boolean).length;
 
-  // Check if word already exists in user's dictionary
-  const existingWord = await wordRepository.findByWord(userId, cleanWord);
-  if (existingWord) {
-    return {
-      text: existingWord.translate,
-      exists: true,
-      wordId: existingWord.id
-    };
+  // Allow translation of phrases up to 5 words
+  if (wordCount === 0 || wordCount > 5) {
+    throw new Error('Можно переводить от 1 до 5 слов');
+  }
+
+  // Check if word already exists in user's dictionary (only for single words)
+  if (wordCount === 1) {
+    const existingWord = await wordRepository.findByWord(userId, cleanWord);
+    if (existingWord) {
+      return {
+        text: existingWord.translate,
+        exists: true,
+        wordId: existingWord.id
+      };
+    }
   }
 
   const tokens = await userTokenRepository.findByUser(userId);
