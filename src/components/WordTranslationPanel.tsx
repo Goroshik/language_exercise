@@ -19,6 +19,19 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
   const [wordExists, setWordExists] = useState(false);
   const panelRef = useRef<globalThis.HTMLDivElement | null>(null);
 
+  // Check if it's a single word or a phrase
+  const isSingleWord = word.trim().split(/\s+/).filter(Boolean).length === 1;
+
+  // Clear text selection when panel opens to prevent popover from reappearing
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const selection = window.getSelection();
+      if (selection) {
+        selection.removeAllRanges();
+      }
+    }
+  }, []); // Run only once on mount
+
   // NOTE: Handle clicks outside the panel to close it
   useEffect(() => {
     if (!isPanelVisible) {
@@ -143,7 +156,7 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
                 <Typography variant="body1" sx={{ fontStyle: 'italic' }}>
                   {translation}
                 </Typography>
-                {wordExists && (
+                {wordExists && isSingleWord && (
                   <Typography
                     variant="caption"
                     sx={{ color: 'success.main', mt: 0.5, display: 'block' }}
