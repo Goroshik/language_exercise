@@ -59,6 +59,25 @@ const Page: React.FC = () => {
     }
   }, [settings, loadSettings]);
 
+  // Load last selected level from settings for current language
+  useEffect(() => {
+    const loadLevelForLanguage = async () => {
+      if (settings?.learningLanguage) {
+        try {
+          const response = await fetch(`/api/settings/level?language=${settings.learningLanguage}`);
+          const data = await response.json();
+          if (data.level) {
+            setSelectedLevel(data.level);
+          }
+        } catch (error) {
+          console.error('Failed to load level for language:', error);
+        }
+      }
+    };
+    
+    loadLevelForLanguage();
+  }, [settings?.learningLanguage]);
+
   // Fetch languages on mount and sync with user's learning language
   useEffect(() => {
     const fetchLanguages = async () => {
@@ -101,6 +120,12 @@ const Page: React.FC = () => {
     handleCheckAnswers,
     setIsNavigating
   } = useAppStore();
+
+  // Clear exercises when topic path changes
+  useEffect(() => {
+    // Clear exercises when changing to a different topic
+    useAppStore.setState({ exerciseBlocks: [], validationResults: {}, savedAnswers: {} });
+  }, [path]);
 
   // Check history availability when topic, level, language, or exerciseBlocks changes
   useEffect(() => {
@@ -151,13 +176,27 @@ const Page: React.FC = () => {
     const topicPath = path ? decodeURIComponent(path) : '';
     useAppStore.setState({ selectedTopic, lastSelectedTopicPath: topicPath });
 
-    // Save to localStorage (client-side only)
+    // Save to localStorage and database
     if (topicPath && typeof window !== 'undefined') {
       localStorage.setItem('lastSelectedTopicPath', topicPath);
+      
+      // Save topic for current learning language
+      if (settings?.learningLanguage) {
+        fetch('/api/settings/topic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            language: settings.learningLanguage, 
+            topic: topicPath 
+          })
+        }).catch(error => {
+          console.error('Failed to save topic for language:', error);
+        });
+      }
     }
 
     setState('topics-loaded');
-  }, [selectedTopic, path, setIsNavigating, setState]);
+  }, [selectedTopic, path, setIsNavigating, setState, settings]);
 
   // Check if AI request is in progress
   const isLoading = state === 'loading-exercises';
@@ -192,6 +231,26 @@ const Page: React.FC = () => {
       mode: selectedMode,
       limit: 5
     });
+  };
+
+  const handleLevelChange = async (level: string) => {
+    setSelectedLevel(level);
+    
+    // Save level for current learning language
+    if (settings?.learningLanguage) {
+      try {
+        await fetch('/api/settings/level', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            language: settings.learningLanguage, 
+            level 
+          })
+        });
+      } catch (error) {
+        console.error('Failed to save level for language:', error);
+      }
+    }
   };
 
   return (
@@ -276,7 +335,7 @@ const Page: React.FC = () => {
             <Button
               key={level}
               variant={selectedLevel === level ? 'contained' : 'outlined'}
-              onClick={() => setSelectedLevel(level)}
+              onClick={() => handleLevelChange(level)}
               sx={{
                 textTransform: 'none',
                 minWidth: { xs: 'auto', sm: '45px' },

@@ -96,7 +96,10 @@ model UserSettings {
   language          String?  @default("en") // interface language
   translationLang   String?  @default("RU") // target translation language
   learningLanguage  String?  @default("en") // language being studied (en, pl)
-  lastSelectedTopic String? // last selected topic for exercises
+  lastSelectedTopic String? // last selected topic for exercises (deprecated, use topicsByLanguage)
+  lastSelectedLevel String? // last selected level for exercises (deprecated, use levelsByLanguage)
+  topicsByLanguage  Json?   // { "en": "topic_name", "pl": "another_topic" } - topics per language
+  levelsByLanguage  Json?   // { "en": "A2", "pl": "B1" } - levels per language
   chatIdsByLanguage Json?   // { "en": "chatId1", "pl": "chatId2" } - chat IDs per language
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt

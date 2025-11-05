@@ -1,29 +1,29 @@
 'use client';
 
 import BookIcon from '@mui/icons-material/Book';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import HistoryIcon from '@mui/icons-material/History';
 import LanguageIcon from '@mui/icons-material/Language';
 import MenuIcon from '@mui/icons-material/Menu';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
-import TopicIcon from '@mui/icons-material/Topic';
 import {
-  AppBar,
-  Box,
-  Drawer,
-  IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Toolbar,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-  useTheme
+    AppBar,
+    Box,
+    Drawer,
+    IconButton,
+    List,
+    ListItem,
+    ListItemButton,
+    ListItemIcon,
+    ListItemText,
+    Toolbar,
+    Tooltip,
+    Typography,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from 'src/store/appStore';
 import { useSettingsStore } from 'src/store/settingsStore';
@@ -33,12 +33,15 @@ import SettingsModal from './SettingsModal';
 
 const Header: React.FC = () => {
   const route = useRouter();
+  const pathname = usePathname();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiModelOpen, setAiModelOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [lastTopicForLanguage, setLastTopicForLanguage] = useState<string | null>(null);
+  const [previousLanguage, setPreviousLanguage] = useState<string | null>(null);
   const { selectedTopic, loadLastSelectedTopic, state, isNavigating, setIsNavigating } =
     useAppStore();
   const { loadSettings, settings } = useSettingsStore();
@@ -63,6 +66,55 @@ const Header: React.FC = () => {
     loadLastSelectedTopic();
     loadSettings();
   }, [loadLastSelectedTopic, loadSettings]);
+
+  // Load last topic for current learning language and redirect if on exercises page
+  useEffect(() => {
+    const loadTopicForLanguage = async () => {
+      if (settings?.learningLanguage) {
+        try {
+          const response = await fetch(`/api/settings/topic?language=${settings.learningLanguage}`);
+          const data = await response.json();
+          const newTopic = data.topic || null;
+          setLastTopicForLanguage(newTopic);
+          
+          // Check if language actually changed (not initial load)
+          const languageChanged = previousLanguage !== null && previousLanguage !== settings.learningLanguage;
+          
+          if (languageChanged) {
+            // If we're on an exercises page, redirect to the topic for new language
+            if (pathname && pathname.startsWith('/exercises/')) {
+              const currentPath = pathname.split('/').pop();
+              
+              // Don't redirect from history page
+              if (currentPath === 'generated-history') {
+                return;
+              }
+              
+              if (newTopic) {
+                const newPath = newTopic.toLowerCase().replace(/ /g, '_');
+                
+                // Only redirect if the topic is different
+                if (currentPath !== newPath) {
+                  route.push(`/exercises/${newPath}`);
+                }
+              } else {
+                // If there's no saved topic for this language, redirect to topics page
+                route.push('/topics');
+              }
+            }
+          }
+          
+          // Update previous language
+          setPreviousLanguage(settings.learningLanguage);
+        } catch (error) {
+          console.error('Failed to load topic for language:', error);
+          setLastTopicForLanguage(null);
+        }
+      }
+    };
+    
+    loadTopicForLanguage();
+  }, [settings?.learningLanguage, pathname, route, previousLanguage]);
 
   const handleSettingsOpen = () => {
     setSettingsOpen(true);
@@ -164,11 +216,17 @@ const Header: React.FC = () => {
             ) : (
               // Desktop: Show all buttons
               <>
-                <Tooltip title="Темы">
+                <Tooltip title="Тренировка">
                   <span>
                     <IconButton
                       color="inherit"
-                      onClick={() => handleNavigation('/topics')}
+                      onClick={() => {
+                        if (lastTopicForLanguage) {
+                          handleNavigation(`/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}`);
+                        } else {
+                          handleNavigation('/topics');
+                        }
+                      }}
                       disabled={isLoading}
                       size="medium"
                       sx={{
@@ -177,9 +235,9 @@ const Header: React.FC = () => {
                         '&:hover': { backgroundColor: '#f5f5f5' },
                         '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
                       }}
-                      aria-label="topics"
+                      aria-label="training"
                     >
-                      <TopicIcon />
+                      <FitnessCenterIcon />
                     </IconButton>
                   </span>
                 </Tooltip>
@@ -296,15 +354,19 @@ const Header: React.FC = () => {
           <ListItem disablePadding>
             <ListItemButton
               onClick={() => {
-                handleNavigation('/topics');
+                if (lastTopicForLanguage) {
+                  handleNavigation(`/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}`);
+                } else {
+                  handleNavigation('/topics');
+                }
                 setMobileMenuOpen(false);
               }}
               disabled={isLoading}
             >
               <ListItemIcon>
-                <TopicIcon color="primary" />
+                <FitnessCenterIcon color="primary" />
               </ListItemIcon>
-              <ListItemText primary="Темы" />
+              <ListItemText primary="Тренировка" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>

@@ -8,7 +8,9 @@ export async function getUserSettingsService(userId: string) {
       aiModel: 'gemini-2.5-flash',
       language: 'en',
       translationLang: 'RU',
-      learningLanguage: 'en'
+      learningLanguage: 'en',
+      lastSelectedTopic: undefined,
+      lastSelectedLevel: undefined
     };
   }
   return userSettings;
