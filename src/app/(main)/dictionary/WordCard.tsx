@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import {
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  MoreVert as MoreVertIcon
+} from '@mui/icons-material';
 import {
   Box,
   Button,
   Card,
   CardContent,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -14,11 +19,7 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import {
-  Delete as DeleteIcon,
-  Edit as EditIcon,
-  MoreVert as MoreVertIcon
-} from '@mui/icons-material';
+import React, { useState } from 'react';
 import { DictionaryWord } from 'src/types';
 import { showAlert } from 'src/utils/alert';
 
@@ -86,7 +87,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
       try {
         await removeWord(word.id);
         onWordDelete?.();
-      } catch (error) {
+      } catch (_error) {
         showAlert.error('Failed to delete word');
         // NOTE: Check if alert is available (client-side only)
         if (typeof window !== 'undefined') {
@@ -106,7 +107,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
         await updateWord(word.id, editWord, editTranslate);
         setEditDialogOpen(false);
         onWordUpdate?.();
-      } catch (error) {
+      } catch (_error) {
         showAlert.error('Failed to update word');
         alert('Не удалось обновить слово. Попробуйте еще раз.');
       } finally {
@@ -121,15 +122,39 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
     setEditDialogOpen(false);
   };
 
+  // Get language display name for the word
+  const getLanguageDisplayName = (code?: string) => {
+    if (!code) return '';
+    const languageNames: Record<string, string> = {
+      en: 'EN',
+      pl: 'PL',
+      de: 'DE',
+      fr: 'FR',
+      es: 'ES',
+      it: 'IT'
+    };
+    return languageNames[code] || code.toUpperCase();
+  };
+
   return (
     <>
       <Card sx={{ mb: 2, position: 'relative' }}>
         <CardContent>
           <Box display="flex" justifyContent="space-between" alignItems="flex-start">
             <Box flexGrow={1}>
-              <Typography variant="h6" component="h3" gutterBottom>
-                {word.word}
-              </Typography>
+              <Box display="flex" alignItems="center" gap={1} mb={1}>
+                <Typography variant="h6" component="h3">
+                  {word.word}
+                </Typography>
+                {word.languageCode && (
+                  <Chip
+                    label={getLanguageDisplayName(word.languageCode)}
+                    size="small"
+                    color="primary"
+                    variant="outlined"
+                  />
+                )}
+              </Box>
               <Typography variant="body1" color="text.secondary" paragraph>
                 {word.translate}
               </Typography>
@@ -168,7 +193,7 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
         <DialogContent>
           <TextField
             fullWidth
-            label="Слово на английском"
+            label="Слово"
             value={editWord}
             onChange={e => setEditWord(e.target.value)}
             margin="normal"

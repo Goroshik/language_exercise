@@ -1,21 +1,29 @@
 'use client';
 
-import { Close as CloseIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import {
-  Box,
-  Button,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  List,
-  ListItem,
-  TextField,
-  Typography
+    Close as CloseIcon,
+    Delete as DeleteIcon,
+    Language as LanguageIcon
+} from '@mui/icons-material';
+import {
+    Box,
+    Button,
+    Chip,
+    CircularProgress,
+    Dialog,
+    DialogActions,
+    DialogContent,
+    DialogTitle,
+    IconButton,
+    List,
+    ListItem,
+    TextField,
+    Typography,
+    useMediaQuery,
+    useTheme
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { useSettingsStore } from 'src/store/settingsStore';
 import { showAlert } from 'src/utils/alert';
 
 interface ImportWordsModalProps {
@@ -37,10 +45,27 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
   preFilledWord,
   preFilledTranslate
 }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [step, setStep] = useState<'input' | 'parsing' | 'review'>('input');
   const [inputText, setInputText] = useState('');
   const [parsedWords, setParsedWords] = useState<ParsedWord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { settings } = useSettingsStore();
+
+  // Get display name for the learning language
+  const getLanguageDisplayName = () => {
+    const languageCode = settings?.learningLanguage || 'en';
+    const languageNames: Record<string, string> = {
+      en: 'Английский',
+      pl: 'Польский',
+      de: 'Немецкий',
+      fr: 'Французский',
+      es: 'Испанский',
+      it: 'Итальянский'
+    };
+    return languageNames[languageCode] || languageCode.toUpperCase();
+  };
 
   const addWords = async (words: ParsedWord[]) => {
     const response = await fetch('/api/dictionary/words', {
@@ -185,25 +210,59 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
       onClose={handleClose}
       maxWidth="md"
       fullWidth
+      fullScreen={isMobile}
       PaperProps={{
         sx: {
-          height: '80vh',
-          maxHeight: '80vh'
+          ...(isMobile ? {
+            margin: 0,
+            maxHeight: '100vh',
+            height: '100vh',
+            borderRadius: 0,
+            display: 'flex',
+            flexDirection: 'column'
+          } : {
+            height: '80vh',
+            maxHeight: '80vh',
+            display: 'flex',
+            flexDirection: 'column'
+          })
         }
       }}
     >
-      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h6">
-          {step === 'input' && 'Импорт слов из текста'}
-          {step === 'parsing' && 'Обработка текста...'}
-          {step === 'review' && 'Проверка и редактирование'}
-        </Typography>
+      <DialogTitle sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        flexShrink: 0,
+        px: isMobile ? 2 : 3,
+        pb: isMobile ? 1 : 2
+      }}>
+        <Box display="flex" alignItems="center" gap={2}>
+          <Typography variant="h6">
+            {step === 'input' && 'Импорт слов из текста'}
+            {step === 'parsing' && 'Обработка текста...'}
+            {step === 'review' && 'Проверка и редактирование'}
+          </Typography>
+          <Chip
+            icon={<LanguageIcon />}
+            label={getLanguageDisplayName()}
+            color="primary"
+            size="small"
+          />
+        </Box>
         <IconButton onClick={handleClose}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ display: 'flex', gap: 2, p: 2 }}>
+      <DialogContent sx={{ 
+        display: 'flex', 
+        gap: 2, 
+        p: isMobile ? 1.5 : 2,
+        flex: 1,
+        overflowY: 'auto',
+        overflowX: 'hidden'
+      }}>
         {/* Main content area */}
         <Box flex="1" sx={{ pr: 2 }}>
           {step === 'input' && (
@@ -308,7 +367,11 @@ cat - кот"
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 2, gap: 1 }}>
+      <DialogActions sx={{ 
+        p: isMobile ? 1.5 : 2, 
+        gap: 1,
+        flexShrink: 0
+      }}>
         {step === 'input' && (
           <>
             <Button onClick={handleClose}>Отмена</Button>

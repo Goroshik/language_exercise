@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import {
   Box,
   Checkbox,
@@ -9,6 +8,7 @@ import {
   TextField,
   Typography
 } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 import { DictionaryWord } from 'src/types';
 import { showAlert } from 'src/utils/alert';
 
@@ -47,7 +47,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
         setAllTags(Array.from(tagSet).sort());
         setIsInitialized(true);
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert.error('Failed to load words');
       setIsInitialized(true);
     }

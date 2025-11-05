@@ -16,6 +16,7 @@ The Dictionary page (`/dictionary`) is a central feature of the language learnin
 ### 1. Search Functionality
 
 **User Experience:**
+
 - Located at the top of the page below the action buttons
 - Search field with a magnifying glass icon
 - Placeholder text: "Поиск по слову или переводу..." (Search by word or translation...)
@@ -23,6 +24,7 @@ The Dictionary page (`/dictionary`) is a central feature of the language learnin
 - Searches both the word and its translation
 
 **Technical Implementation:**
+
 ```typescript
 // Case-insensitive search query
 const handleSearchChange = (query: string) => {
@@ -34,6 +36,7 @@ const url = `/api/dictionary/words${searchQuery ? `?query=${encodeURIComponent(s
 ```
 
 **Backend Implementation:**
+
 ```typescript
 // In WordRepository.ts
 async searchWords(userId: string, query: string) {
@@ -53,6 +56,7 @@ async searchWords(userId: string, query: string) {
 ```
 
 **Key Points:**
+
 - Search is **case-insensitive** using MongoDB's `mode: 'insensitive'`
 - Searches both word and translation fields simultaneously (OR condition)
 - Results update immediately as the user types
@@ -62,6 +66,7 @@ async searchWords(userId: string, query: string) {
 ### 2. Pagination
 
 **User Experience:**
+
 - 12 words displayed per page
 - Pagination controls at the bottom of the word list
 - Shows current page and total pages
@@ -69,6 +74,7 @@ async searchWords(userId: string, query: string) {
 - Page numbers for direct access
 
 **Technical Implementation:**
+
 ```typescript
 const WORDS_PER_PAGE = 12;
 
@@ -80,6 +86,7 @@ const paginatedWords = words.slice(startIndex, endIndex);
 ```
 
 **Key Points:**
+
 - Client-side pagination (all filtered results are fetched, then sliced)
 - Resets to page 1 when search query changes
 - Pagination controls only show when there's more than 1 page
@@ -88,12 +95,14 @@ const paginatedWords = words.slice(startIndex, endIndex);
 ### 3. Word Display
 
 **Layout:**
+
 - Cards displayed in a responsive grid
 - 3 columns on desktop (33.333% width each)
 - Automatic wrapping on smaller screens
 - Minimum card width: 250px
 
 **Word Card Features:**
+
 - Word in the target language (prominent)
 - Translation (secondary text)
 - Edit button (pencil icon)
@@ -103,6 +112,7 @@ const paginatedWords = words.slice(startIndex, endIndex);
 ### 4. Add Word
 
 **User Experience:**
+
 - "Добавить слово" (Add word) button in the top-right
 - Opens a modal dialog
 - Fields: Word, Translation
@@ -110,6 +120,7 @@ const paginatedWords = words.slice(startIndex, endIndex);
 - Success notification on add
 
 **Technical Flow:**
+
 1. User clicks "Добавить слово" button
 2. Modal opens (`AddWordModal`)
 3. User enters word and translation
@@ -121,12 +132,14 @@ const paginatedWords = words.slice(startIndex, endIndex);
 ### 5. Import Words
 
 **User Experience:**
+
 - "Импорт слов" (Import words) button in the top-right
 - Opens import modal
 - Bulk import functionality
 - Parses text with AI assistance
 
 **Use Case:**
+
 - Copy-paste a list of words from external sources
 - AI extracts word-translation pairs
 - Batch insert into database
@@ -134,6 +147,7 @@ const paginatedWords = words.slice(startIndex, endIndex);
 ### 6. Edit Word
 
 **User Experience:**
+
 - Click edit icon on word card
 - Modal opens with pre-filled fields
 - Modify word or translation
@@ -144,6 +158,7 @@ const paginatedWords = words.slice(startIndex, endIndex);
 ### 7. Delete Word
 
 **User Experience:**
+
 - Click delete icon on word card
 - Confirmation prompt (prevent accidental deletion)
 - Word removed from list
@@ -171,9 +186,11 @@ Response → Update UI
 ### GET `/api/dictionary/words`
 
 **Query Parameters:**
+
 - `query` (optional): Search string for filtering
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -193,6 +210,7 @@ Response → Update UI
 ### POST `/api/dictionary/words`
 
 **Request Body:**
+
 ```json
 {
   "words": [
@@ -205,10 +223,13 @@ Response → Update UI
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
-  "word": { /* created word object */ }
+  "word": {
+    /* created word object */
+  }
 }
 ```
 
@@ -259,6 +280,7 @@ model Word {
 ## Future Improvements
 
 See `TODO.md` for planned enhancements including:
+
 - Tags/categories for words
 - Export functionality
 - Advanced filtering
@@ -317,6 +339,7 @@ See `TODO.md` for planned enhancements including:
 ## Internationalization
 
 Currently in Russian (UI text), but designed for easy i18n:
+
 - Word/translation fields support any Unicode characters
 - UI strings can be extracted to translation files
 - RTL language support may need CSS adjustments

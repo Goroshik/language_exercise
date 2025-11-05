@@ -23,11 +23,13 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 ## Project Documentation
 
 ### Features
+
 - [Exercise History](./EXERCISE_HISTORY.md) - Comprehensive documentation for the generated sentences history feature
 - [Exercise History AI Guide](./EXERCISE_HISTORY_AI_PROMPT.md) - Quick reference for AI assistants working with exercise history
 - [Exercise History TODO](./EXERCISE_HISTORY_TODO.md) - Future improvements and AI-ready implementation prompts
 
 ### Other Documentation
+
 - [Alert System](./ALERT_SYSTEM.md) - Alert and notification system documentation
 - [AI Model Selector](./AI_MODEL_SELECTOR_TESTING.md) - AI model selection feature testing guide
 - [Implementation Summary](./IMPLEMENTATION_SUMMARY.md) - Summary of key implementations
@@ -52,12 +54,14 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 For comprehensive deployment instructions including environment setup, database configuration, and deployment to various platforms (Vercel, Railway, Render, DigitalOcean, Docker), see [DEPLOYMENT.md](./DEPLOYMENT.md).
 
 ### Quick Start
+
 1. Copy `.env.example` to `.env` and configure environment variables
 2. Set up MongoDB database (MongoDB Atlas recommended)
 3. Choose your deployment platform and follow the guide
 4. Deploy and enjoy!
 
 ### Key Requirements
+
 - Node.js 20+
 - MongoDB with replica set support (required for Prisma transactions)
 - Environment variables properly configured

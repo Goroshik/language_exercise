@@ -155,12 +155,14 @@ Dual translation support: DeepL (preferred) and Google Translate (fallback). Ser
 2. **AI-powered import**: Text input → AI parsing (`POST /api/ai/parse-words`) → Review/edit → Save multiple words
 
 **Critical Implementation Details**:
+
 - **API endpoint**: `POST /api/dictionary/words` always expects `{ words: [...] }` array, even for single word
 - **Repository method**: `wordRepository.addManyWord(userId, words)` uses `createMany` for batch insert
 - **AI parsing**: Factory pattern selects provider (Gemini/OpenAI/Claude) based on user settings
 - **Response format**: Parse endpoint returns `{ words: [...] }` NOT `{ success: true, data: [...] }` (see TODO_WORDS.md bug #1.1)
 
 **Component flow**:
+
 ```typescript
 ImportWordsModal (input step)
   → POST /api/ai/parse-words { text }
@@ -172,6 +174,7 @@ ImportWordsModal (input step)
 ```
 
 **Key files**:
+
 - `src/components/ImportWordsModal.tsx` - Main UI component with 3 steps (input/parsing/review)
 - `src/services/parseWordsFromTextService.ts` - AI text parsing orchestration
 - `src/services/wordsService.ts` - Word operations (addManyWordService)

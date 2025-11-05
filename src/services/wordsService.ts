@@ -1,10 +1,12 @@
 import { wordRepository } from 'src/repository/client';
 
-export async function searchWordsService(userId: string, query: string) {
-  return wordRepository.searchWords(userId, query);
+export async function searchWordsService(userId: string, query: string, languageCode?: string) {
+  return wordRepository.searchWords(userId, query, languageCode);
 }
 
-// TODO: need to fix any type
-export async function addManyWordService(userId: string, words: any[]) {
+export async function addManyWordService(
+  userId: string,
+  words: Array<{ word: string; translate: string; languageCode?: string }>
+) {
   return wordRepository.addManyWord(userId, words);
 }

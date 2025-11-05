@@ -1,42 +1,80 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
 import {
   Add as AddIcon,
   FileUpload as ImportIcon,
+  Language as LanguageIcon,
   Search as SearchIcon
 } from '@mui/icons-material';
 import {
   Box,
   Button,
+  Chip,
   Container,
+  InputAdornment,
+  Pagination,
   Paper,
   Stack,
-  Typography,
-  Pagination,
   TextField,
-  InputAdornment
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
+import React, { useEffect, useState } from 'react';
 
-import { DictionaryWord } from 'src/types';
 import ImportWordsModal from 'src/components/ImportWordsModal';
+import { useSettingsStore } from 'src/store/settingsStore';
+import { DictionaryWord } from 'src/types';
 import { showAlert } from 'src/utils/alert';
 
-import WordCard from './WordCard';
 import AddWordModal from './AddWordModal';
+import WordCard from './WordCard';
 
 const WORDS_PER_PAGE = 12;
 
 const DictionaryPage: React.FC = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [words, setWords] = useState<DictionaryWord[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const { settings, loadSettings } = useSettingsStore();
+
+  // Get display name for the learning language
+  const getLanguageDisplayName = () => {
+    const languageCode = settings?.learningLanguage || 'en';
+    const languageNames: Record<string, string> = {
+      en: 'Английский',
+      pl: 'Польский',
+      de: 'Немецкий',
+      fr: 'Французский',
+      es: 'Испанский',
+      it: 'Итальянский'
+    };
+    return languageNames[languageCode] || languageCode.toUpperCase();
+  };
+
+  useEffect(() => {
+    loadSettings();
+  }, [loadSettings]);
 
   useEffect(() => {
     loadWords();
-  }, [searchQuery]);
+  }, [searchQuery, settings?.learningLanguage]); // Reload when language changes
+
+  // Listen for language changes from header
+  useEffect(() => {
+    const handleLanguageChange = () => {
+      loadWords();
+    };
+
+    window.addEventListener('learningLanguageChanged', handleLanguageChange);
+    return () => {
+      window.removeEventListener('learningLanguageChanged', handleLanguageChange);
+    };
+  }, []);
 
   const loadWords = async () => {
     try {
@@ -48,7 +86,7 @@ const DictionaryPage: React.FC = () => {
         setWords(data.words);
         setCurrentPage(1); // Reset to first page when data changes
       }
-    } catch (error) {
+    } catch (_error) {
       showAlert.error('Failed to load words');
     }
   };
@@ -68,25 +106,72 @@ const DictionaryPage: React.FC = () => {
   const paginatedWords = words.slice(startIndex, endIndex);
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1">
-          Словарь
-        </Typography>
-        <Box display="flex" gap={2}>
+    <Container
+      maxWidth="lg"
+      sx={{
+        mt: { xs: 2, sm: 4 },
+        mb: { xs: 2, sm: 4 },
+        px: { xs: 1, sm: 2 }
+      }}
+    >
+      <Box
+        display="flex"
+        flexDirection={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ xs: 'stretch', sm: 'center' }}
+        mb={3}
+        gap={{ xs: 2, sm: 0 }}
+      >
+        <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 2 }} flexWrap="wrap">
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{
+              fontSize: { xs: '1.5rem', sm: '2.125rem' }
+            }}
+          >
+            Словарь
+          </Typography>
+          <Chip
+            icon={<LanguageIcon />}
+            label={getLanguageDisplayName()}
+            color="primary"
+            variant="outlined"
+            size={isMobile ? 'small' : 'medium'}
+          />
+          <Chip
+            label={`${words.length} ${words.length === 1 ? 'слово' : words.length < 5 ? 'слова' : 'слов'}`}
+            size={isMobile ? 'small' : 'medium'}
+            sx={{ fontWeight: 500 }}
+          />
+        </Box>
+        <Box
+          display="flex"
+          gap={{ xs: 1, sm: 2 }}
+          flexDirection={{ xs: 'column', sm: 'row' }}
+          width={{ xs: '100%', sm: 'auto' }}
+        >
           <Button
             variant="outlined"
-            startIcon={<ImportIcon />}
+            startIcon={!isMobile && <ImportIcon />}
             onClick={() => setIsImportModalOpen(true)}
-            size="large"
+            size={isMobile ? 'medium' : 'large'}
+            fullWidth={isMobile}
+            sx={{
+              fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+            }}
           >
             Импорт слов
           </Button>
           <Button
             variant="contained"
-            startIcon={<AddIcon />}
+            startIcon={!isMobile && <AddIcon />}
             onClick={() => setIsAddModalOpen(true)}
-            size="large"
+            size={isMobile ? 'medium' : 'large'}
+            fullWidth={isMobile}
+            sx={{
+              fontSize: { xs: '0.875rem', sm: '0.9375rem' }
+            }}
           >
             Добавить слово
           </Button>
@@ -99,6 +184,7 @@ const DictionaryPage: React.FC = () => {
           placeholder="Поиск по слову или переводу..."
           value={searchQuery}
           onChange={e => handleSearchChange(e.target.value)}
+          size={isMobile ? 'small' : 'medium'}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -110,9 +196,30 @@ const DictionaryPage: React.FC = () => {
       </Box>
 
       {words.length === 0 ? (
-        <Paper sx={{ p: 4, textAlign: 'center' }}>
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            Слова не найдены
+        <Paper sx={{ p: { xs: 2, sm: 4 }, textAlign: 'center' }}>
+          <LanguageIcon sx={{ fontSize: { xs: 36, sm: 48 }, color: 'text.secondary', mb: 2 }} />
+          <Typography
+            variant="h6"
+            color="text.secondary"
+            gutterBottom
+            sx={{
+              fontSize: { xs: '1rem', sm: '1.25rem' }
+            }}
+          >
+            {searchQuery
+              ? 'Слова не найдены'
+              : `Словарь для ${getLanguageDisplayName().toLowerCase()} языка пуст`}
+          </Typography>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              fontSize: { xs: '0.8rem', sm: '0.875rem' }
+            }}
+          >
+            {searchQuery
+              ? 'Попробуйте изменить поисковый запрос'
+              : 'Добавьте слова через кнопку "Добавить слово" или "Импорт слов"'}
           </Typography>
         </Paper>
       ) : (
@@ -120,12 +227,20 @@ const DictionaryPage: React.FC = () => {
           <Stack
             direction="row"
             flexWrap="wrap"
-            gap={2}
+            gap={{ xs: 1, sm: 2 }}
             sx={{
               '& > *': {
-                minWidth: 250,
-                flex: '1 1 calc(33.333% - 16px)',
-                maxWidth: 'calc(33.333% - 16px)'
+                minWidth: { xs: '100%', sm: 250 },
+                flex: {
+                  xs: '1 1 100%',
+                  sm: '1 1 calc(50% - 8px)',
+                  md: '1 1 calc(33.333% - 16px)'
+                },
+                maxWidth: {
+                  xs: '100%',
+                  sm: 'calc(50% - 8px)',
+                  md: 'calc(33.333% - 16px)'
+                }
               }
             }}
           >

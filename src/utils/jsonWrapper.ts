@@ -1,10 +1,11 @@
 // Wrapper for request.json() that throws NextResponseError on failure
-import { NextResponseError } from './NextResponseError';
+import { NextRequest } from 'next/server';
+import { NextResponseError, } from './NextResponseError';
 
-export async function safeJson(request: any) {
+export async function safeJson(request: NextRequest) {
   try {
     return await request.json();
-  } catch (e) {
+  } catch (_e) {
     throw new NextResponseError('Invalid JSON body', 400);
   }
 }

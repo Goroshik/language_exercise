@@ -5,12 +5,12 @@ export const LearnModeTextTypography = styled(Typography)(({ theme }) => ({
   marginBottom: theme.spacing(1)
 }));
 
-export const LearnModeTextBold = styled('strong')(({ theme }) => ({
+export const LearnModeTextBold = styled('strong')(() => ({
   fontWeight: 'bold',
   color: '#1976d2',
   cursor: 'text'
 }));
 
-export const LearnModeTextSpan = styled('span')(({ theme }) => ({
+export const LearnModeTextSpan = styled('span')(() => ({
   cursor: 'text'
 }));

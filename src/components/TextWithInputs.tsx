@@ -1,11 +1,18 @@
+import HistoryIcon from '@mui/icons-material/History';
 import { Box, Button, Stack, TextField, Typography } from '@mui/material';
 import React, { useEffect, useMemo, useState } from 'react';
 
+import { useTextSelection } from 'src/hooks/useTextSelection';
+import { useAlertStore } from 'src/store/alertStore';
+import type { TranslationPanelState } from 'src/types/translation';
+import TextSelectionPopover from './TextSelectionPopover';
 import WordTranslationPanel from './WordTranslationPanel';
 
 interface TextWithInputsProps {
   text: string;
   exerciseIndex?: string | number;
+  sentenceId?: string;
+  hasAnswer?: boolean; // флаг наличия предыдущего ответа
   validationResults?: {
     [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] };
   };
@@ -20,7 +27,8 @@ interface ParsedExerciseContent {
 }
 
 const PLACEHOLDER_REGEX = /\{\{input\}\}/gi;
-const BOLD_WORD_REGEX = /\*\*(.*?)\*\*/g;
+// Pattern for bold markdown format (e.g., **word**)
+const BOLD_PATTERN = '\\*\\*(.*?)\\*\\*';
 
 const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
   displaySentence: '',
@@ -31,7 +39,7 @@ const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
 };
 
 const stripTranslationLabel = (value: string) =>
-  value.replace(/^(?:перевод|translation)\s*[:\-]?\s*/i, '').trim();
+  value.replace(/^(?:перевод|translation)\s*[:−-]?\s*/i, '').trim();
 
 const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
   if (!rawText) {
@@ -43,7 +51,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     return EMPTY_PARSED_CONTENT;
   }
 
-  const withoutNumbering = normalized.replace(/^[\d)\-\*\.\s]+/, '').trim();
+  const withoutNumbering = normalized.replace(/^[\d).*\s-]+/, '').trim();
   const lines = withoutNumbering
     .split('\n')
     .map(line => line.trim())
@@ -62,13 +70,14 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     mainLine = dashMatch[1].trim();
     translation = stripTranslationLabel(dashMatch[2]);
   }
-  const hasBoldFormat = BOLD_WORD_REGEX.test(mainLine);
+  // Create a new regex instance to avoid state persistence issues with global regex
+  const hasBoldFormat = new RegExp(BOLD_PATTERN).test(mainLine);
   let hints: string[] = [];
 
   if (hasBoldFormat) {
     const boldWords: string[] = [];
     let match;
-    const boldRegex = /\*\*(.*?)\*\*/g;
+    const boldRegex = new RegExp(BOLD_PATTERN, 'g');
     while ((match = boldRegex.exec(mainLine)) !== null) {
       boldWords.push(match[1]);
     }
@@ -83,7 +92,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
       mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
     }
 
-    const displaySentence = mainLine.replace(/\*\*(.*?)\*\*/g, '_____');
+    const displaySentence = mainLine.replace(new RegExp(BOLD_PATTERN, 'g'), '_____');
     const prefillSentence = displaySentence;
 
     return {
@@ -134,22 +143,38 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
 const TextWithInputs: React.FC<TextWithInputsProps> = ({
   text,
   exerciseIndex = 0,
+  sentenceId,
+  hasAnswer = false,
   validationResults = {}
 }) => {
   const [textareaValue, setTextareaValue] = useState('');
-  const [translationPanel, setTranslationPanel] = useState<{
-    word: string;
-    position: { x: number; y: number };
-  } | null>(null);
+  const [doubleClickTranslationPanel, setDoubleClickTranslationPanel] =
+    useState<TranslationPanelState | null>(null);
+
+  // Use the text selection hook for multiword translation
+  const {
+    selectionPopover,
+    translationPanel: selectionTranslationPanel,
+    handleSelectionPopoverTranslate,
+    closeSelectionPopover,
+    closeTranslationPanel: closeSelectionTranslationPanel
+  } = useTextSelection();
+  const [isLoadingPreviousAnswer, setIsLoadingPreviousAnswer] = useState(false);
+
+  const { addAlert } = useAlertStore();
 
   const textareaId = `textarea_${exerciseIndex}`;
 
   const parsedContent = useMemo(() => parseExerciseContent(text), [text]);
   const { displaySentence, prefillSentence, hints, translation, additionalNotes } = parsedContent;
 
+  // Remove auto-loading of saved answers
   useEffect(() => {
-    setTextareaValue('');
-  }, [text]);
+    // Reset when text changes (new exercise)
+    if (!sentenceId) {
+      setTextareaValue('');
+    }
+  }, [text, sentenceId]);
 
   const handlePrefillClick = () => {
     if (textareaValue.trim().length > 0 || !prefillSentence) {
@@ -158,8 +183,51 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
     setTextareaValue(prefillSentence);
   };
 
+  const handleLoadPreviousAnswer = async () => {
+    if (!sentenceId || isLoadingPreviousAnswer) {
+      return;
+    }
+
+    try {
+      setIsLoadingPreviousAnswer(true);
+
+      const response = await fetch(`/api/user-answers?sentenceIds=${sentenceId}`);
+      const result = await response.json();
+
+      if (result.success && result.data && result.data.length > 0) {
+        const previousAnswer = result.data[0].answer;
+        setTextareaValue(previousAnswer);
+        addAlert('Предыдущий ответ загружен', 'success');
+      } else {
+        // No previous answer found
+        addAlert('Предыдущий ответ не найден', 'warning');
+      }
+    } catch (error) {
+      console.error('Error loading previous answer:', error);
+      addAlert('Ошибка при загрузке предыдущего ответа', 'error');
+    } finally {
+      setIsLoadingPreviousAnswer(false);
+    }
+  };
+
   const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setTextareaValue(event.target.value);
+    const newValue = event.target.value;
+    setTextareaValue(newValue);
+  };
+
+  const handleTextareaBlur = () => {
+    // Save answer to store when textarea loses focus
+    if (sentenceId && textareaValue.trim() && typeof window !== 'undefined') {
+      // TODO: Fix types - properly type window.__appStore instead of using any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const store = (window as any).__appStore;
+      if (store?.getState) {
+        const { saveAnswer } = store.getState();
+        if (saveAnswer) {
+          saveAnswer(sentenceId, textareaValue);
+        }
+      }
+    }
   };
 
   const handleTextDoubleClick = (event: React.MouseEvent) => {
@@ -197,15 +265,15 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
         y: event.clientY + 10
       };
 
-      setTranslationPanel({
+      setDoubleClickTranslationPanel({
         word: cleanWord.toLowerCase(),
         position
       });
     }
   };
 
-  const handleCloseTranslationPanel = () => {
-    setTranslationPanel(null);
+  const handleCloseDoubleClickTranslationPanel = () => {
+    setDoubleClickTranslationPanel(null);
   };
 
   const validationResult = validationResults[textareaId];
@@ -267,30 +335,55 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
             variant="outlined"
             value={textareaValue}
             onChange={handleTextareaChange}
+            onBlur={handleTextareaBlur}
             placeholder="Введите ваш ответ здесь..."
             className={`exercise-input ${
               isValidated ? (isCorrect ? 'exercise-input-correct' : 'exercise-input-incorrect') : ''
             }`}
-            sx={{ paddingRight: '120px' }}
+            sx={{ paddingRight: '140px' }}
           />
 
-          <Button
-            variant="outlined"
-            size="small"
-            onClick={handlePrefillClick}
-            disabled={isPrefillDisabled}
+          <Stack
+            direction="column"
+            spacing={1}
             sx={{
               position: 'absolute',
               top: 8,
               right: 8,
-              textTransform: 'none',
-              whiteSpace: 'nowrap',
-              minWidth: 'auto',
               zIndex: 10
             }}
           >
-            Предзаполнить
-          </Button>
+            {sentenceId && hasAnswer && (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={handleLoadPreviousAnswer}
+                disabled={isLoadingPreviousAnswer}
+                startIcon={<HistoryIcon />}
+                sx={{
+                  textTransform: 'none',
+                  whiteSpace: 'nowrap',
+                  minWidth: 'auto'
+                }}
+              >
+                {isLoadingPreviousAnswer ? 'Загрузка...' : 'Пред. ответ'}
+              </Button>
+            )}
+
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={handlePrefillClick}
+              disabled={isPrefillDisabled}
+              sx={{
+                textTransform: 'none',
+                whiteSpace: 'nowrap',
+                minWidth: 'auto'
+              }}
+            >
+              Предзаполнить
+            </Button>
+          </Stack>
         </Box>
 
         {isValidated && !isCorrect && errorMessage && (
@@ -331,12 +424,32 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
         )}
       </Stack>
 
-      {translationPanel && (
+      {/* Text selection popover - shows "Translate" button for selected text */}
+      {selectionPopover && (
+        <TextSelectionPopover
+          position={selectionPopover.position}
+          onTranslate={handleSelectionPopoverTranslate}
+          onClose={closeSelectionPopover}
+        />
+      )}
+
+      {/* Translation panel from text selection */}
+      {selectionTranslationPanel && (
         <WordTranslationPanel
-          key={translationPanel.word}
-          word={translationPanel.word}
-          position={translationPanel.position}
-          onClose={handleCloseTranslationPanel}
+          key={selectionTranslationPanel.word}
+          word={selectionTranslationPanel.word}
+          position={selectionTranslationPanel.position}
+          onClose={closeSelectionTranslationPanel}
+        />
+      )}
+
+      {/* Translation panel from double-click */}
+      {doubleClickTranslationPanel && (
+        <WordTranslationPanel
+          key={doubleClickTranslationPanel.word}
+          word={doubleClickTranslationPanel.word}
+          position={doubleClickTranslationPanel.position}
+          onClose={handleCloseDoubleClickTranslationPanel}
         />
       )}
     </>

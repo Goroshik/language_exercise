@@ -1,6 +1,8 @@
 export interface Exercise {
   sentence: string;
   correctAnswers: string[];
+  sentenceId?: string; // ID from SentenceHistory table
+  hasAnswer?: boolean; // флаг наличия предыдущего ответа
 }
 
 export interface ExerciseBlock {
@@ -44,6 +46,7 @@ export interface DictionaryWord {
   id: string;
   word: string;
   translate: string;
+  languageCode?: string;
   createdAt: Date;
 }
 
@@ -59,6 +62,7 @@ export interface AppStore {
   error: string;
   validationResults: ValidationResults;
   isNavigating: boolean;
+  savedAnswers: { [sentenceId: string]: string };
   setIsNavigating: (isNavigating: boolean) => void;
   setState: (state: AppState) => void;
   lastSelectedTopicPath: string;
@@ -75,8 +79,16 @@ export interface AppStore {
     selectedWords?: DictionaryWord[];
     mode?: 'student' | 'teacher';
   }) => Promise<void>;
+  loadTrainingExercises: (data: {
+    languageId?: string;
+    level?: string;
+    mode?: 'student' | 'teacher';
+    limit?: number;
+  }) => Promise<void>;
   handleCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => Promise<void>;
   clearError: () => void;
+  loadSavedAnswers: (sentenceIds: string[]) => Promise<void>;
+  saveAnswer: (sentenceId: string, answer: string) => Promise<void>;
 }
 
 export interface DictionaryStore extends DictionaryState {

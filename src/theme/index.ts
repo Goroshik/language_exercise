@@ -2,6 +2,15 @@
 import { createTheme } from '@mui/material/styles';
 
 export default createTheme({
+  breakpoints: {
+    values: {
+      xs: 0, // Mobile (portrait)
+      sm: 600, // Mobile (landscape) / Small tablets
+      md: 900, // Tablets
+      lg: 1200, // Desktop
+      xl: 1536 // Large desktop
+    }
+  },
   typography: {
     h1: {
       fontWeight: 700,

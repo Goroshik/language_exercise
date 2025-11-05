@@ -1,6 +1,7 @@
 # Документация по функционалу упражнений / Exercise Functionality Documentation
 
 ## Оглавление / Table of Contents
+
 1. [Обзор](#обзор--overview)
 2. [Генерация упражнений](#генерация-упражнений--exercise-generation)
 3. [Режим преподавателя](#режим-преподавателя--teacher-mode)
@@ -20,6 +21,7 @@
 **The application provides functionality for generating and completing grammar exercises in foreign languages using AI models (Gemini, OpenAI, Claude).**
 
 ### Основные возможности / Key Features:
+
 - Два режима работы: для преподавателя и студента / Two modes: teacher and student
 - AI-генерация упражнений на основе темы, языка, уровня и слов / AI-powered exercise generation based on topic, language, level, and words
 - Сохранение истории сгенерированных предложений / Saving history of generated sentences
@@ -82,6 +84,7 @@ I **have been studying** English for two years. (study)
 ```
 
 **Формат:**
+
 - Одно предложение на строку
 - Ключевое слово выделено двойными звездочками: `**word**`
 - Опциональная подсказка в скобках в конце предложения: `(hint)`
@@ -92,11 +95,13 @@ I **have been studying** English for two years. (study)
 ## Режим преподавателя / Teacher Mode
 
 ### Назначение / Purpose:
+
 Режим для изучения правильных примеров использования грамматики.
 
 **Mode for learning correct grammar examples.**
 
 ### Генерация / Generation:
+
 - AI генерирует **10 предложений** с правильными ответами
 - Используется промпт `GRAMMAR_PROMPTS.generateTeacherExamples()`
 - Предложения содержат выделенное ключевое слово в **правильной форме**
@@ -112,6 +117,7 @@ I **have been studying** English for two years. (study)
 ```
 
 **Функционал:**
+
 1. Предложение отображается полностью с выделенным словом (жирным шрифтом)
 2. Двойной клик по любому слову открывает панель перевода `WordTranslationPanel`
 3. Панель показывает перевод слова и кнопку "Добавить в словарь"
@@ -127,6 +133,7 @@ They visited many countries last summer.
 ### Генерация дополнительных примеров / Generating More Examples:
 
 Кнопка **"Добавить ещё упражнения"** выполняет тот же процесс:
+
 1. Отправляет запрос к AI с теми же параметрами
 2. AI возвращает новые 10 предложений
 3. Предложения сохраняются в историю по отдельности
@@ -138,11 +145,13 @@ They visited many countries last summer.
 ## Режим студента / Student Mode
 
 ### Назначение / Purpose:
+
 Режим для тренировки и закрепления грамматики с проверкой ответов.
 
 **Mode for practicing and reinforcing grammar with answer validation.**
 
 ### Генерация / Generation:
+
 - AI генерирует **5 предложений** для заполнения
 - Используется промпт `GRAMMAR_PROMPTS.generateStudentExercises()`
 - Предложения содержат выделенное ключевое слово и подсказки
@@ -164,6 +173,7 @@ They visited many countries last summer.
 **Функционал:**
 
 #### 1. Отображение предложения / Sentence Display:
+
 - Выделенное слово `**word**` заменяется на пропуски: `_____`
 - Подсказка отображается под предложением: "Подсказка: visit, visited"
 - Опциональный перевод предложения (если есть в истории)
@@ -176,11 +186,13 @@ They visited many countries last summer.
 ```
 
 #### 2. Поле для ответа / Answer Field:
+
 - Многострочный текстовый инпут (textarea)
 - Кнопка **"Предзаполнить"** в правом верхнем углу инпута
 - При клике на "Предзаполнить" вставляется предложение с пропусками (без подсказки)
 
 **Поведение предзаполнения / Pre-fill Behavior:**
+
 ```typescript
 // Кнопка активна только если поле пустое
 // Button is active only if field is empty
@@ -188,7 +200,9 @@ const isPrefillDisabled = textareaValue.trim().length > 0 || !prefillSentence;
 ```
 
 #### 3. Заполнение ответа / Filling the Answer:
+
 Пользователь может:
+
 - Вставить предложение кнопкой "Предзаполнить"
 - Заполнить пропуск правильным словом
 - Опционально добавить перевод предложения
@@ -202,6 +216,7 @@ They visited many countries last summer.
 ```
 
 #### 4. Двойной клик для перевода / Double-click for Translation:
+
 - Двойной клик по любому слову в отображаемом предложении
 - Открывается `WordTranslationPanel` с переводом слова
 - Возможность добавить слово в словарь
@@ -218,6 +233,7 @@ They visited many countries last summer.
 4. Результаты отображаются под каждым упражнением
 
 **Состояния проверки / Validation States:**
+
 - **Загрузка:** показывается `CircularProgress` на кнопке
 - **Успех:** зеленая рамка вокруг инпута
 - **Ошибка:** красная рамка + сообщение об ошибке под инпутом
@@ -258,6 +274,7 @@ AI возвращает результаты проверки в следующ�
 ```
 
 **Типы ответов / Response Types:**
+
 - `CORRECT` - предложение правильное
 - `ERROR: [объяснение]` - грамматическая ошибка
 - `TRANSLATION_ERRORS: word1 - перевод1, word2 - перевод2` - ошибки в переводе
@@ -297,16 +314,20 @@ AI возвращает результаты проверки в следующ�
 **Two sentence formats exist (app supports both):**
 
 #### 1. Формат с bold (новый, основной) / Bold Format (new, primary):
+
 ```
 They **visited** many countries last summer. (visit)
 ```
+
 - `**word**` - выделенное слово в правильной форме
 - `(hint)` - опциональная подсказка в скобках
 
 #### 2. Формат с placeholder (legacy) / Placeholder Format (legacy):
+
 ```
 They {{input}} many countries (visit, visited)
 ```
+
 - `{{input}}` - место для вставки слова
 - `(hint1, hint2)` - подсказки в скобках
 
@@ -380,10 +401,10 @@ src/services/
 export const GRAMMAR_PROMPTS = {
   // Генерация упражнений для студента (5 предложений)
   generateStudentExercises: (topic, languageName, selectedWords?) => string;
-  
+
   // Генерация примеров для преподавателя (10 предложений)
   generateTeacherExamples: (topic, level, languageName, selectedWords?) => string;
-  
+
   // Проверка ответов студента
   validateAnswers: (topic, answersText, languageName?) => string;
 };
@@ -396,8 +417,9 @@ export const GRAMMAR_PROMPTS = {
 interface AppStore {
   state: 'loading-topics' | 'loading-exercises' | 'exercises' | 'topic-selection';
   selectedTopic: string;
-  exerciseBlocks: ExerciseBlock[];        // Массив блоков упражнений
-  validationResults: {                     // Результаты проверки по блокам
+  exerciseBlocks: ExerciseBlock[]; // Массив блоков упражнений
+  validationResults: {
+    // Результаты проверки по блокам
     [blockId: string]: {
       [inputId: string]: {
         isCorrect: boolean;
@@ -406,7 +428,7 @@ interface AppStore {
       };
     };
   };
-  
+
   // Actions
   handleTopicSelect: (params) => Promise<void>;
   generateMoreExercises: (params) => Promise<void>;
@@ -513,9 +535,11 @@ Response:
 ### 🐛 Найденные проблемы / Issues Found:
 
 #### 1. ❌ Неправильная обработка textarea в проверке ответов / Incorrect Textarea Handling in Answer Validation
+
 **Местоположение / Location:** `src/store/appStore.ts` → `handleCheckAnswers()`
 
 **Проблема / Issue:**
+
 ```typescript
 // Текущая реализация пытается обработать {{input}} placeholders
 // Current implementation tries to handle {{input}} placeholders
@@ -533,11 +557,13 @@ const answersText = block.exercises
 ```
 
 **Проблема:**
+
 - В режиме студента предложения используют формат `**word**`, а не `{{input}}`
 - `userAnswers` содержит полные предложения из textarea с ID вида `textarea_${blockId}_${index}`
 - Код пытается найти несуществующие `input_${blockId}_${index}_${counter}` вместо `textarea_${blockId}_${index}`
 
 **Правильная реализация / Correct Implementation:**
+
 ```typescript
 const answersText = block.exercises
   .map((exercise, index) => {
@@ -554,6 +580,7 @@ const answersText = block.exercises
 #### 2. ❌ Неправильное сохранение результатов проверки / Incorrect Validation Results Storage
 
 **Проблема / Issue:**
+
 ```typescript
 // Текущий код пытается создать results для несуществующих input_* ID
 // Current code tries to create results for non-existent input_* IDs
@@ -575,6 +602,7 @@ data.forEach((line: string, index: number) => {
 ```
 
 **Правильная реализация / Correct Implementation:**
+
 ```typescript
 data.forEach((line: string, index: number) => {
   const textareaId = `textarea_${blockId}_${index}`;
@@ -587,7 +615,7 @@ data.forEach((line: string, index: number) => {
       const errorPart = line.split('|')[0];
       errorMessage = errorPart.replace(/^\d+\.\s*ERROR:\s*/, '').trim();
     }
-    
+
     if (line.includes('TRANSLATION_ERRORS:')) {
       const translationPart = line.split('TRANSLATION_ERRORS:')[1];
       incorrectTranslations = translationPart
@@ -609,6 +637,7 @@ data.forEach((line: string, index: number) => {
 **Button "Check" should send only filled sentences, but current implementation sends all including empty ones.**
 
 **Решение / Solution:**
+
 ```typescript
 const handleCheckAnswers = () => {
   const textareas = document.querySelectorAll(`textarea[id^="textarea_${block.id}_"]`);
@@ -616,19 +645,20 @@ const handleCheckAnswers = () => {
   const hasAnyFilledAnswer = Array.from(textareas).some(
     textarea => (textarea as HTMLTextAreaElement).value.trim().length > 0
   );
-  
+
   if (!hasAnyFilledAnswer) {
     showAlert.warning('Заполните хотя бы одно упражнение');
     return;
   }
-  
+
   textareas.forEach(textarea => {
     const value = (textarea as HTMLTextAreaElement).value;
-    if (value.trim()) {  // Только заполненные
+    if (value.trim()) {
+      // Только заполненные
       userAnswers[textarea.id] = value;
     }
   });
-  
+
   onCheckAnswers(block.id, userAnswers);
 };
 ```
@@ -642,6 +672,7 @@ const handleCheckAnswers = () => {
 
 **Решение / Solution:**
 Обновить промпт `validateAnswers` для явного указания, что переводы могут быть в формате:
+
 ```
 They visited many countries last summer.
 Перевод: Они посетили много стран прошлым летом.
@@ -650,6 +681,7 @@ They visited many countries last summer.
 #### 5. ℹ️ Не используется API `/api/ai/check-answers` / API `/api/ai/check-answers` Not Used
 
 **Проблема / Issue:**
+
 ```typescript
 // В appStore.ts используется прямой generateText вместо checkAnswers API
 // In appStore.ts, direct generateText is used instead of checkAnswers API
@@ -658,6 +690,7 @@ const data = await ApiService.generateText({ prompt: validatePrompt });
 ```
 
 **Правильно / Correct:**
+
 ```typescript
 const data = await ApiService.checkAnswers({
   topic: selectedTopic,
@@ -754,7 +787,7 @@ handleGenerateInitial();
   1. They _____ many countries last summer.
      Подсказка: visit
      [Textarea с кнопкой "Предзаполнить"]
-  
+
   2. We _____ across Europe by train.
      Подсказка: travel
      [Textarea с кнопкой "Предзаполнить"]
@@ -811,7 +844,7 @@ selectedLevel = 'C1';
 - Блок примеров #1
   1. They visited many countries last summer.
          ↑ (жирный, кликабельно для перевода)
-  
+
   2. We have been studying English for five years.
         ↑ (жирный, кликабельно для перевода)
   ...

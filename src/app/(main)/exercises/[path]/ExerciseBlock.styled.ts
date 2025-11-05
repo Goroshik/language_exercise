@@ -1,6 +1,6 @@
 import { Box, Stack, styled, Typography } from '@mui/material';
 
-export const ExerciseBlockContainer = styled(Stack)(({ theme }) => ({
+export const ExerciseBlockContainer = styled(Stack)(() => ({
   marginBottom: 16,
   padding: 0,
   border: 'none',
@@ -24,13 +24,19 @@ export const ExerciseBlockInner = styled(Box)(({ theme }) => ({
   backgroundColor: 'white',
   borderRadius: 8,
   border: '1px solid #e0e0e0',
-  boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+  boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+  [theme.breakpoints.down('sm')]: {
+    padding: theme.spacing(0.75)
+  }
 }));
 
 export const ExerciseRow = styled(Box)(({ theme }) => ({
   display: 'flex',
   alignItems: 'flex-start',
-  gap: theme.spacing(2)
+  gap: theme.spacing(2),
+  [theme.breakpoints.down('sm')]: {
+    gap: theme.spacing(1)
+  }
 }));
 
 export const ExerciseIndex = styled(Typography)(({ theme }) => ({
@@ -39,7 +45,7 @@ export const ExerciseIndex = styled(Typography)(({ theme }) => ({
   color: theme.palette.text.secondary
 }));
 
-export const ExerciseContent = styled(Box)(({ theme }) => ({
+export const ExerciseContent = styled(Box)(() => ({
   flex: 1
 }));
 

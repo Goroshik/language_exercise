@@ -31,12 +31,13 @@ model Tag {
 }
 
 model Word {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  word      String
-  translate String
-  createdAt DateTime @default(now())
-  ownerId   String?  @db.ObjectId
-  shared    Boolean  @default(false)
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  word         String
+  translate    String
+  languageCode String   @default("en") // Language of the word being learned
+  createdAt    DateTime @default(now())
+  ownerId      String?  @db.ObjectId
+  shared       Boolean  @default(false)
 
   // NOTE: Many-to-many relation with tags
 
@@ -67,6 +68,8 @@ model User {
   tokens          UserToken[]
   settings        UserSettings?
   sentenceHistory SentenceHistory[]
+  userAnswers     UserAnswer[]
+  chatMessages    ChatMessage[]
 
   @@map("users")
 }
@@ -86,16 +89,20 @@ model UserToken {
 }
 
 model UserSettings {
-  id              String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId          String   @unique @db.ObjectId
-  theme           String?  @default("light") // 'light', 'dark'
-  aiModel         String?  @default("gemini-2.5-flash") // selected AI model
-  language        String?  @default("en") // interface language
-  translationLang String?  @default("RU") // target translation language
-  lastSelectedTopic String? // last selected topic for exercises
-  customSettings  Json? // for additional flexible settings storage
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String   @unique @db.ObjectId
+  theme             String?  @default("light") // 'light', 'dark'
+  aiModel           String?  @default("gemini-2.5-flash") // selected AI model
+  language          String?  @default("en") // interface language
+  translationLang   String?  @default("RU") // target translation language
+  learningLanguage  String?  @default("en") // language being studied (en, pl)
+  lastSelectedTopic String? // last selected topic for exercises (deprecated, use topicsByLanguage)
+  lastSelectedLevel String? // last selected level for exercises (deprecated, use levelsByLanguage)
+  topicsByLanguage  Json?   // { "en": "topic_name", "pl": "another_topic" } - topics per language
+  levelsByLanguage  Json?   // { "en": "A2", "pl": "B1" } - levels per language
+  chatIdsByLanguage Json?   // { "en": "chatId1", "pl": "chatId2" } - chat IDs per language
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -122,13 +129,45 @@ model SentenceHistory {
   level       String
   mode        String   @default("exercise") // "learn" or "exercise" - режим для которого было сгенерировано предложение
   topic       String? // топик, под которым были сгенерированы предложения
+  hints       String[] @default([]) // подсказки для упражнения (например, формы глаголов)
   ownerId     String   @db.ObjectId
   owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   language    Language @relation(fields: [languageId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
 
+  userAnswers UserAnswer[]
+
   // Связь с Word (неявная, через usedWordIds)
   // Можно добавить ownerId, если нужна привязка к пользователю
   @@map("sentence_history")
+}
+
+model UserAnswer {
+  id               String          @id @default(auto()) @map("_id") @db.ObjectId
+  userId           String          @db.ObjectId
+  sentenceId       String          @db.ObjectId
+  answer           String
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sentence         SentenceHistory @relation(fields: [sentenceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sentenceId])
+  @@map("user_answers")
+}
+
+model ChatMessage {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId    String   @db.ObjectId
+  chatId    String   // ID of the chat session
+  role      String   // 'user' or 'assistant'
+  content   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, chatId])
+  @@map("chat_messages")
 }
