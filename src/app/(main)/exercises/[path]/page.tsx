@@ -61,6 +61,16 @@ const Page: React.FC = () => {
     }
   }, [settings, loadSettings]);
 
+  // Reset sentence count to default when mode changes
+  useEffect(() => {
+    // Only reset if user hasn't manually set a custom count
+    if (sentenceCount === undefined) {
+      return; // Already using default, no need to update
+    }
+    // Reset to undefined to show the mode-appropriate default
+    setSentenceCount(undefined);
+  }, [selectedMode, sentenceCount]);
+
   // Load last selected level from settings for current language
   useEffect(() => {
     const loadLevelForLanguage = async () => {
