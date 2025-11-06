@@ -20,6 +20,7 @@ import { showAlert } from 'src/utils/alert';
 import { DictionaryWord } from 'src/types';
 import ExerciseBlock from './ExerciseBlock';
 import WordSelector from './WordSelector';
+import ExerciseCarousel from 'src/components/ExerciseCarousel';
 
 interface Language {
   id: string;
@@ -41,6 +42,7 @@ const Page: React.FC = () => {
   const [selectedLanguageId, setSelectedLanguageId] = useState<string>('');
   const [historyAvailable, setHistoryAvailable] = useState<boolean>(false);
   const [historyCount, setHistoryCount] = useState<number>(0);
+  const [currentBlockIndex, setCurrentBlockIndex] = useState<number>(0);
 
   // Get learning language from settings
   const { settings, loadSettings } = useSettingsStore();
@@ -167,6 +169,13 @@ const Page: React.FC = () => {
 
     checkHistory();
   }, [selectedTopic, selectedLevel, selectedLanguageId, exerciseBlocks]);
+
+  // Auto-scroll to the last block when new blocks are added
+  useEffect(() => {
+    if (exerciseBlocks.length > 0) {
+      setCurrentBlockIndex(exerciseBlocks.length - 1);
+    }
+  }, [exerciseBlocks.length]);
 
   // Update the store's selectedTopic when the component mounts
   useEffect(() => {
@@ -404,16 +413,18 @@ const Page: React.FC = () => {
             </Box>
           ) : (
             <>
-              {exerciseBlocks.map((block, blockIndex) => (
-                <ExerciseBlock
-                  key={block.id}
-                  block={block}
-                  blockIndex={blockIndex}
-                  validationResults={validationResults[block.id] || {}}
-                  onCheckAnswers={handleCheckAnswers}
-                  mode={selectedMode}
-                />
-              ))}
+              <ExerciseCarousel currentIndex={currentBlockIndex} onIndexChange={setCurrentBlockIndex}>
+                {exerciseBlocks.map((block, blockIndex) => (
+                  <ExerciseBlock
+                    key={block.id}
+                    block={block}
+                    blockIndex={blockIndex}
+                    validationResults={validationResults[block.id] || {}}
+                    onCheckAnswers={handleCheckAnswers}
+                    mode={selectedMode}
+                  />
+                ))}
+              </ExerciseCarousel>
 
               <Box
                 sx={{
