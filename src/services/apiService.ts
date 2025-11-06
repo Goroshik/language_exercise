@@ -7,6 +7,8 @@ interface GenerateTextRequest {
   level?: string;
   selectedWords?: DictionaryWord[];
   prompt?: string;
+  customTheme?: string;
+  sentenceCount?: number;
 }
 
 interface AddWordRequest {

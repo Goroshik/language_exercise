@@ -41,6 +41,8 @@ const Page: React.FC = () => {
   const [selectedLanguageId, setSelectedLanguageId] = useState<string>('');
   const [historyAvailable, setHistoryAvailable] = useState<boolean>(false);
   const [historyCount, setHistoryCount] = useState<number>(0);
+  const [customTheme, setCustomTheme] = useState<string>('');
+  const [sentenceCount, setSentenceCount] = useState<number | undefined>(undefined);
 
   // Get learning language from settings
   const { settings, loadSettings } = useSettingsStore();
@@ -211,7 +213,9 @@ const Page: React.FC = () => {
       languageId: selectedLanguageId,
       level: selectedLevel,
       selectedWords,
-      mode: selectedMode
+      mode: selectedMode,
+      customTheme,
+      sentenceCount
     });
   };
 
@@ -220,7 +224,9 @@ const Page: React.FC = () => {
       languageId: selectedLanguageId,
       level: selectedLevel,
       selectedWords,
-      mode: selectedMode
+      mode: selectedMode,
+      customTheme,
+      sentenceCount
     });
   };
 
@@ -467,14 +473,30 @@ const Page: React.FC = () => {
               flexShrink: 0
             }}
           >
-            <WordSelector selectedWords={selectedWords} onWordsChange={setSelectedWords} />
+            <WordSelector 
+              selectedWords={selectedWords} 
+              onWordsChange={setSelectedWords}
+              customTheme={customTheme}
+              onThemeChange={setCustomTheme}
+              sentenceCount={sentenceCount}
+              onSentenceCountChange={setSentenceCount}
+              mode={selectedMode}
+            />
           </Box>
         )}
 
         {/* Word selector for mobile - collapsible or at bottom */}
         {isMobile && exerciseBlocks.length > 0 && (
           <Box sx={{ width: '100%', mt: 2 }}>
-            <WordSelector selectedWords={selectedWords} onWordsChange={setSelectedWords} />
+            <WordSelector 
+              selectedWords={selectedWords} 
+              onWordsChange={setSelectedWords}
+              customTheme={customTheme}
+              onThemeChange={setCustomTheme}
+              sentenceCount={sentenceCount}
+              onSentenceCountChange={setSentenceCount}
+              mode={selectedMode}
+            />
           </Box>
         )}
       </Box>

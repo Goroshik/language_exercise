@@ -72,12 +72,16 @@ export interface AppStore {
     level?: string;
     selectedWords?: DictionaryWord[];
     mode?: 'student' | 'teacher';
+    customTheme?: string;
+    sentenceCount?: number;
   }) => Promise<void>;
   generateMoreExercises: (data: {
     languageId?: string;
     level?: string;
     selectedWords?: DictionaryWord[];
     mode?: 'student' | 'teacher';
+    customTheme?: string;
+    sentenceCount?: number;
   }) => Promise<void>;
   loadTrainingExercises: (data: {
     languageId?: string;

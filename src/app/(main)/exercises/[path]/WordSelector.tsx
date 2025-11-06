@@ -16,12 +16,22 @@ interface WordSelectorProps {
   selectedWords: DictionaryWord[];
   onWordsChange: (words: DictionaryWord[]) => void;
   maxWords?: number;
+  customTheme?: string;
+  onThemeChange?: (theme: string) => void;
+  sentenceCount?: number;
+  onSentenceCountChange?: (count: number) => void;
+  mode?: 'student' | 'teacher';
 }
 
 const WordSelector: React.FC<WordSelectorProps> = ({
   selectedWords,
   onWordsChange,
-  maxWords = 5
+  maxWords = 5,
+  customTheme = '',
+  onThemeChange,
+  sentenceCount,
+  onSentenceCountChange,
+  mode = 'student'
 }) => {
   const [filterText, setFilterText] = useState('');
   const [words, setWords] = useState<DictionaryWord[]>([]);
@@ -121,9 +131,9 @@ const WordSelector: React.FC<WordSelectorProps> = ({
     <Paper
       sx={{
         p: 3,
-        maxHeight: '400px',
+        maxHeight: { xs: 'none', md: '600px' },
         overflowY: 'auto',
-        width: '450px',
+        width: { xs: '100%', md: '450px' },
         backgroundColor: '#fafafa'
       }}
     >
@@ -346,6 +356,42 @@ const WordSelector: React.FC<WordSelectorProps> = ({
           {words.length === 0 ? 'Словарь пуст' : 'Слова не найдены'}
         </Typography>
       )}
+
+      {/* NOTE: Custom theme and sentence count section */}
+      <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
+        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
+          Дополнительные настройки
+        </Typography>
+
+        <TextField
+          fullWidth
+          size="small"
+          label="Тема для генерации (необязательно)"
+          placeholder="Например: о путешествиях, на работе, в ресторане..."
+          value={customTheme}
+          onChange={e => onThemeChange?.(e.target.value)}
+          multiline
+          rows={2}
+          sx={{ mb: 2 }}
+          helperText="Опишите тему или контекст для генерации предложений"
+        />
+
+        <TextField
+          fullWidth
+          size="small"
+          type="number"
+          label="Количество предложений"
+          value={sentenceCount ?? (mode === 'student' ? 5 : 10)}
+          onChange={e => {
+            const value = parseInt(e.target.value, 10);
+            if (!isNaN(value) && value >= 1 && value <= 20) {
+              onSentenceCountChange?.(value);
+            }
+          }}
+          inputProps={{ min: 1, max: 20 }}
+          helperText="От 1 до 20 предложений"
+        />
+      </Box>
     </Paper>
   );
 };
