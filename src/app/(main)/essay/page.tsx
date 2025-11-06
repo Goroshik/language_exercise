@@ -5,14 +5,14 @@ import {
   Autocomplete,
   Box,
   Button,
+  CircularProgress,
   IconButton,
+  Paper,
   TextField,
   Tooltip,
-  Typography,
-  CircularProgress,
-  Paper
+  Typography
 } from '@mui/material';
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSettingsStore } from 'src/store/settingsStore';
 import { showAlert } from 'src/utils/alert';
 
@@ -20,9 +20,9 @@ interface Essay {
   id: string;
   title: string;
   content: string;
-  aiResponse?: string;
+  aiResponse: string | null;
   languageCode: string;
-  level?: string;
+  level: string | null;
   updatedAt: string;
 }
 
@@ -55,8 +55,8 @@ const EssayPage: React.FC = () => {
   const languageCode = settings?.learningLanguage || 'en';
 
   // Word and character count
-  const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
-  const charCount = content.length;
+  const wordCount = content?.trim() ? content.trim().split(/\s+/).length : 0;
+  const charCount = content?.length || 0;
 
   // Load default topics
   useEffect(() => {

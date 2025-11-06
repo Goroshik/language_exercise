@@ -1,4 +1,4 @@
-import { PrismaClient, Essay } from '../generated/prisma';
+import { Essay, PrismaClient } from '../generated/prisma';
 
 export class EssayRepository {
   constructor(private prisma: PrismaClient) {}
@@ -67,7 +67,7 @@ export class EssayRepository {
   async findByUser(
     userId: string,
     languageCode?: string
-  ): Promise<Array<{ id: string; title: string; languageCode: string; updatedAt: Date }>> {
+  ): Promise<Array<{ id: string; title: string; content: string; aiResponse: string | null; languageCode: string; level: string | null; updatedAt: Date }>> {
     const where = languageCode ? { userId, languageCode } : { userId };
     
     return this.prisma.essay.findMany({
@@ -75,6 +75,9 @@ export class EssayRepository {
       select: {
         id: true,
         title: true,
+        content: true,
+        aiResponse: true,
+        level: true,
         languageCode: true,
         updatedAt: true
       },
