@@ -91,10 +91,10 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
             backgroundColor: 'white',
             boxShadow: 2,
             '&:hover': {
-              backgroundColor: '#f5f5f5'
+              backgroundColor: theme.palette.grey[100]
             },
             '&.Mui-disabled': {
-              backgroundColor: '#f5f5f5',
+              backgroundColor: theme.palette.grey[100],
               opacity: 0.5
             }
           }}
@@ -115,10 +115,10 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
             backgroundColor: 'white',
             boxShadow: 2,
             '&:hover': {
-              backgroundColor: '#f5f5f5'
+              backgroundColor: theme.palette.grey[100]
             },
             '&.Mui-disabled': {
-              backgroundColor: '#f5f5f5',
+              backgroundColor: theme.palette.grey[100],
               opacity: 0.5
             }
           }}
