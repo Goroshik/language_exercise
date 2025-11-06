@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Box, IconButton, Typography, Stack } from '@mui/material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 
@@ -25,28 +25,42 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
     }
   }, [totalBlocks, externalIndex]);
 
-  const handlePrevious = () => {
+  const handlePrevious = useCallback(() => {
     const newIndex = Math.max(0, currentIndex - 1);
     if (externalIndex === undefined) {
       setInternalIndex(newIndex);
     }
     onIndexChange?.(newIndex);
-  };
+  }, [currentIndex, externalIndex, onIndexChange]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     const newIndex = Math.min(totalBlocks - 1, currentIndex + 1);
     if (externalIndex === undefined) {
       setInternalIndex(newIndex);
     }
     onIndexChange?.(newIndex);
-  };
+  }, [currentIndex, totalBlocks, externalIndex, onIndexChange]);
 
-  const goToBlock = (index: number) => {
+  // Add keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowLeft') {
+        handlePrevious();
+      } else if (event.key === 'ArrowRight') {
+        handleNext();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handlePrevious, handleNext]);
+
+  const goToBlock = useCallback((index: number) => {
     if (externalIndex === undefined) {
       setInternalIndex(index);
     }
     onIndexChange?.(index);
-  };
+  }, [externalIndex, onIndexChange]);
 
   if (totalBlocks === 0) {
     return null;
@@ -117,7 +131,10 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
           justifyContent: 'center',
           alignItems: 'center',
           mt: 3,
-          mb: 2
+          mb: 2,
+          flexWrap: 'wrap',
+          maxWidth: '100%',
+          gap: 1
         }}
       >
         {children.map((_, index) => (
