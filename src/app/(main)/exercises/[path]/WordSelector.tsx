@@ -19,7 +19,7 @@ interface WordSelectorProps {
   customTheme?: string;
   onThemeChange?: (theme: string) => void;
   sentenceCount?: number;
-  onSentenceCountChange?: (count: number) => void;
+  onSentenceCountChange?: (count: number | undefined) => void;
   mode?: 'student' | 'teacher';
 }
 
@@ -383,7 +383,13 @@ const WordSelector: React.FC<WordSelectorProps> = ({
           label="Количество предложений"
           value={sentenceCount ?? (mode === 'student' ? 5 : 10)}
           onChange={e => {
-            const value = parseInt(e.target.value, 10);
+            const inputValue = e.target.value;
+            if (inputValue === '') {
+              // Reset to default when cleared
+              onSentenceCountChange?.(undefined);
+              return;
+            }
+            const value = parseInt(inputValue, 10);
             if (!isNaN(value) && value >= 1 && value <= 20) {
               onSentenceCountChange?.(value);
             }
