@@ -1,0 +1,155 @@
+import React, { useState, useEffect } from 'react';
+import { Box, IconButton, Typography, Stack } from '@mui/material';
+import { ChevronLeft, ChevronRight } from '@mui/icons-material';
+
+interface ExerciseCarouselProps {
+  children: React.ReactElement[];
+  currentIndex?: number;
+  onIndexChange?: (index: number) => void;
+}
+
+const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
+  children,
+  currentIndex: externalIndex,
+  onIndexChange
+}) => {
+  const [internalIndex, setInternalIndex] = useState(0);
+  const currentIndex = externalIndex !== undefined ? externalIndex : internalIndex;
+
+  const totalBlocks = children.length;
+
+  useEffect(() => {
+    // Auto-scroll to the last block when new blocks are added
+    if (externalIndex === undefined) {
+      setInternalIndex(totalBlocks - 1);
+    }
+  }, [totalBlocks, externalIndex]);
+
+  const handlePrevious = () => {
+    const newIndex = Math.max(0, currentIndex - 1);
+    if (externalIndex === undefined) {
+      setInternalIndex(newIndex);
+    }
+    onIndexChange?.(newIndex);
+  };
+
+  const handleNext = () => {
+    const newIndex = Math.min(totalBlocks - 1, currentIndex + 1);
+    if (externalIndex === undefined) {
+      setInternalIndex(newIndex);
+    }
+    onIndexChange?.(newIndex);
+  };
+
+  const goToBlock = (index: number) => {
+    if (externalIndex === undefined) {
+      setInternalIndex(index);
+    }
+    onIndexChange?.(index);
+  };
+
+  if (totalBlocks === 0) {
+    return null;
+  }
+
+  return (
+    <Box>
+      {/* Carousel Container */}
+      <Box sx={{ position: 'relative', minHeight: '300px' }}>
+        {/* Navigation Buttons */}
+        <IconButton
+          onClick={handlePrevious}
+          disabled={currentIndex === 0}
+          sx={{
+            position: 'absolute',
+            left: { xs: -10, sm: -20 },
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 1,
+            backgroundColor: 'white',
+            boxShadow: 2,
+            '&:hover': {
+              backgroundColor: '#f5f5f5'
+            },
+            '&.Mui-disabled': {
+              backgroundColor: '#f5f5f5',
+              opacity: 0.5
+            }
+          }}
+        >
+          <ChevronLeft />
+        </IconButton>
+
+        <IconButton
+          onClick={handleNext}
+          disabled={currentIndex === totalBlocks - 1}
+          sx={{
+            position: 'absolute',
+            right: { xs: -10, sm: -20 },
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 1,
+            backgroundColor: 'white',
+            boxShadow: 2,
+            '&:hover': {
+              backgroundColor: '#f5f5f5'
+            },
+            '&.Mui-disabled': {
+              backgroundColor: '#f5f5f5',
+              opacity: 0.5
+            }
+          }}
+        >
+          <ChevronRight />
+        </IconButton>
+
+        {/* Current Block */}
+        <Box sx={{ padding: { xs: '0 20px', sm: '0 30px' } }}>
+          {children[currentIndex]}
+        </Box>
+      </Box>
+
+      {/* Pagination Indicators */}
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          justifyContent: 'center',
+          alignItems: 'center',
+          mt: 3,
+          mb: 2
+        }}
+      >
+        {children.map((_, index) => (
+          <Box
+            key={index}
+            onClick={() => goToBlock(index)}
+            sx={{
+              minWidth: { xs: '32px', sm: '40px' },
+              height: { xs: '32px', sm: '40px' },
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: '50%',
+              backgroundColor: index === currentIndex ? '#1976d2' : '#e0e0e0',
+              color: index === currentIndex ? 'white' : '#666',
+              fontWeight: index === currentIndex ? 'bold' : 'normal',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                backgroundColor: index === currentIndex ? '#1565c0' : '#d0d0d0',
+                transform: 'scale(1.1)'
+              }
+            }}
+          >
+            <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.875rem' } }}>
+              {index + 1}
+            </Typography>
+          </Box>
+        ))}
+      </Stack>
+    </Box>
+  );
+};
+
+export default ExerciseCarousel;
