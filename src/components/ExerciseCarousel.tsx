@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Box, IconButton, Typography, Stack } from '@mui/material';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Box, IconButton, Typography, Stack, useTheme } from '@mui/material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
 
 interface ExerciseCarouselProps {
@@ -15,6 +15,8 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
 }) => {
   const [internalIndex, setInternalIndex] = useState(0);
   const currentIndex = externalIndex !== undefined ? externalIndex : internalIndex;
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const theme = useTheme();
 
   const totalBlocks = children.length;
 
@@ -41,18 +43,23 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
     onIndexChange?.(newIndex);
   }, [currentIndex, totalBlocks, externalIndex, onIndexChange]);
 
-  // Add keyboard navigation
+  // Add keyboard navigation only when carousel is focused
   useEffect(() => {
+    const carouselElement = carouselRef.current;
+    if (!carouselElement) return;
+
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'ArrowLeft') {
+        event.preventDefault();
         handlePrevious();
       } else if (event.key === 'ArrowRight') {
+        event.preventDefault();
         handleNext();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    carouselElement.addEventListener('keydown', handleKeyDown);
+    return () => carouselElement.removeEventListener('keydown', handleKeyDown);
   }, [handlePrevious, handleNext]);
 
   const goToBlock = useCallback((index: number) => {
@@ -67,13 +74,14 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
   }
 
   return (
-    <Box>
+    <Box ref={carouselRef} tabIndex={0} sx={{ outline: 'none', '&:focus': { outline: 'none' } }}>
       {/* Carousel Container */}
       <Box sx={{ position: 'relative', minHeight: '300px' }}>
         {/* Navigation Buttons */}
         <IconButton
           onClick={handlePrevious}
           disabled={currentIndex === 0}
+          aria-label="Предыдущий блок"
           sx={{
             position: 'absolute',
             left: { xs: -10, sm: -20 },
@@ -97,6 +105,7 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
         <IconButton
           onClick={handleNext}
           disabled={currentIndex === totalBlocks - 1}
+          aria-label="Следующий блок"
           sx={{
             position: 'absolute',
             right: { xs: -10, sm: -20 },
@@ -141,6 +150,16 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
           <Box
             key={index}
             onClick={() => goToBlock(index)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                goToBlock(index);
+              }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={`Перейти к блоку ${index + 1}`}
+            aria-current={index === currentIndex ? 'true' : 'false'}
             sx={{
               minWidth: { xs: '32px', sm: '40px' },
               height: { xs: '32px', sm: '40px' },
@@ -148,14 +167,18 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: '50%',
-              backgroundColor: index === currentIndex ? '#1976d2' : '#e0e0e0',
-              color: index === currentIndex ? 'white' : '#666',
+              backgroundColor: index === currentIndex ? theme.palette.primary.main : theme.palette.grey[300],
+              color: index === currentIndex ? theme.palette.primary.contrastText : theme.palette.text.secondary,
               fontWeight: index === currentIndex ? 'bold' : 'normal',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               '&:hover': {
-                backgroundColor: index === currentIndex ? '#1565c0' : '#d0d0d0',
+                backgroundColor: index === currentIndex ? theme.palette.primary.dark : theme.palette.grey[400],
                 transform: 'scale(1.1)'
+              },
+              '&:focus': {
+                outline: `2px solid ${theme.palette.primary.main}`,
+                outlineOffset: '2px'
               }
             }}
           >
