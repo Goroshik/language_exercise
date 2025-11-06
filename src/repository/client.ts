@@ -9,6 +9,7 @@ import { UserRepository } from './UserRepository';
 import { UserSettingsRepository } from './UserSettingsRepository';
 import { UserTokenRepository } from './UserTokenRepository';
 import { WordRepository } from './WordRepository';
+import { EssayRepository } from './EssayRepository';
 
 // Singleton Prisma client instance
 const prisma = new PrismaClient();
@@ -24,5 +25,6 @@ export const sentenceHistoryRepository = new SentenceHistoryRepository(prisma);
 export const languageRepository = new LanguageRepository(prisma);
 export const userAnswerRepository = new UserAnswerRepository(prisma);
 export const chatMessageRepository = new ChatMessageRepository(prisma);
+export const essayRepository = new EssayRepository(prisma);
 // Export Prisma client instance for direct access if needed
 export { prisma };
