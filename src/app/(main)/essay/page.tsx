@@ -47,9 +47,11 @@ const EssayPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [currentEssayId, setCurrentEssayId] = useState<string | null>(null);
+  const [essays, setEssays] = useState<Essay[]>([]); // Store all essays
   const [essayTitles, setEssayTitles] = useState<string[]>([]);
   const [defaultTopics, setDefaultTopics] = useState<string[]>([]);
   const [hoveredErrorIndex, setHoveredErrorIndex] = useState<number | null>(null);
+  const [selectedErrorIndex, setSelectedErrorIndex] = useState<number | null>(null);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const languageCode = settings?.learningLanguage || 'en';
@@ -81,6 +83,7 @@ const EssayPage: React.FC = () => {
         const response = await fetch(`/api/essays?languageCode=${languageCode}`);
         const data = await response.json();
         if (data.success) {
+          setEssays(data.data); // Store all essays
           const titles = data.data.map((essay: Essay) => essay.title);
           setEssayTitles(titles);
         }
@@ -92,34 +95,31 @@ const EssayPage: React.FC = () => {
   }, [languageCode, currentEssayId]); // Reload when essay is saved
 
   // Load essay when title is selected
-  const loadEssayByTitle = useCallback(async (selectedTitle: string) => {
+  const loadEssayByTitle = useCallback((selectedTitle: string) => {
     if (!selectedTitle) return;
     
     try {
-      const response = await fetch(`/api/essays?languageCode=${languageCode}`);
-      const data = await response.json();
-      if (data.success) {
-        const essay = data.data.find((e: Essay) => e.title === selectedTitle);
-        if (essay) {
-          setCurrentEssayId(essay.id);
-          setTitle(essay.title);
-          setContent(essay.content);
-          if (essay.aiResponse) {
-            try {
-              setAiResponse(JSON.parse(essay.aiResponse));
-            } catch {
-              setAiResponse(null);
-            }
-          } else {
+      const essay = essays.find((e: Essay) => e.title === selectedTitle);
+      if (essay) {
+        setCurrentEssayId(essay.id);
+        setTitle(essay.title);
+        setContent(essay.content);
+        setSelectedErrorIndex(null); // Reset selected error when loading new essay
+        if (essay.aiResponse) {
+          try {
+            setAiResponse(JSON.parse(essay.aiResponse));
+          } catch {
             setAiResponse(null);
           }
+        } else {
+          setAiResponse(null);
         }
       }
     } catch (error) {
       console.error('Failed to load essay:', error);
       showAlert.error('Не удалось загрузить сочинение');
     }
-  }, [languageCode]);
+  }, [essays]);
 
   const saveEssay = useCallback(async (showSuccessAlert = true) => {
     if (!title.trim() || !content.trim()) {
@@ -224,6 +224,7 @@ const EssayPage: React.FC = () => {
     }
 
     setLoading(true);
+    setSelectedErrorIndex(null); // Reset selected error on new check
     try {
       const response = await fetch('/api/essays/check', {
         method: 'POST',
@@ -253,6 +254,7 @@ const EssayPage: React.FC = () => {
   const handleClear = () => {
     setContent('');
     setAiResponse(null);
+    setSelectedErrorIndex(null);
   };
 
   const handleTitleChange = (newValue: string | null) => {
@@ -266,6 +268,7 @@ const EssayPage: React.FC = () => {
         setCurrentEssayId(null);
         setContent('');
         setAiResponse(null);
+        setSelectedErrorIndex(null);
       }
     }
   };
@@ -276,7 +279,11 @@ const EssayPage: React.FC = () => {
   // Render highlighted text with errors
   const renderHighlightedText = () => {
     if (!aiResponse || aiResponse.errors.length === 0) {
-      return <Typography sx={{ whiteSpace: 'pre-wrap' }}>{content}</Typography>;
+      return (
+        <Typography sx={{ whiteSpace: 'pre-wrap', fontSize: '16px', lineHeight: 1.8 }}>
+          {content}
+        </Typography>
+      );
     }
 
     // Create a map of error positions to avoid conflicts
@@ -321,17 +328,22 @@ const EssayPage: React.FC = () => {
       }
 
       // Add highlighted error
+      const isActive = hoveredErrorIndex === index || selectedErrorIndex === index;
       elements.push(
         <span
           key={`error-${index}`}
           style={{
             backgroundColor: aiResponse.errors[index].color,
             cursor: 'pointer',
-            borderBottom: hoveredErrorIndex === index ? '2px solid #000' : 'none',
-            fontWeight: hoveredErrorIndex === index ? 'bold' : 'normal'
+            padding: '2px 4px',
+            borderRadius: '3px',
+            borderBottom: isActive ? '2px solid rgba(0,0,0,0.5)' : '1px solid rgba(0,0,0,0.15)',
+            fontWeight: isActive ? 'bold' : 'normal',
+            transition: 'all 0.2s'
           }}
           onMouseEnter={() => setHoveredErrorIndex(index)}
           onMouseLeave={() => setHoveredErrorIndex(null)}
+          onClick={() => setSelectedErrorIndex(selectedErrorIndex === index ? null : index)}
         >
           {content.substring(start, end)}
         </span>
@@ -345,7 +357,11 @@ const EssayPage: React.FC = () => {
       elements.push(<span key="text-end">{content.substring(lastIndex)}</span>);
     }
 
-    return <Typography sx={{ whiteSpace: 'pre-wrap' }}>{elements}</Typography>;
+    return (
+      <Typography sx={{ whiteSpace: 'pre-wrap', fontSize: '16px', lineHeight: 1.8 }}>
+        {elements}
+      </Typography>
+    );
   };
 
   return (
@@ -377,12 +393,13 @@ const EssayPage: React.FC = () => {
         </Tooltip>
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 2, flexDirection: { xs: 'column', md: 'row' } }}>
-        {/* Input block */}
+      {/* Two column layout: Input and Highlighted Text */}
+      <Box sx={{ display: 'flex', gap: 2, mb: 3, flexDirection: { xs: 'column', md: 'row' } }}>
+        {/* Left: Input block */}
         <Box sx={{ flex: 1 }}>
           <TextField
             multiline
-            rows={15}
+            rows={20}
             fullWidth
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -405,86 +422,177 @@ const EssayPage: React.FC = () => {
           </Box>
         </Box>
 
-        {/* Response block */}
+        {/* Right: Highlighted Text */}
         <Box sx={{ flex: 1 }}>
-          {aiResponse ? (
-            <Paper sx={{ p: 2, height: '100%' }}>
-              <Typography variant="h6" gutterBottom>
-                Результат проверки
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              minHeight: '400px',
+              backgroundColor: '#fafafa',
+              borderRadius: 2,
+              border: '1px solid #e0e0e0',
+              '& .MuiTypography-root': {
+                fontSize: '16px',
+                lineHeight: 1.8
+              }
+            }}
+          >
+            <Typography variant="subtitle2" sx={{ mb: 0.5, fontWeight: 'bold', color: 'text.secondary' }}>
+              Текст с отмеченными ошибками:
+            </Typography>
+            {aiResponse && aiResponse.errors.length > 0 && (
+              <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary', fontStyle: 'italic' }}>
+                💡 Нажмите на ошибку для выделения
               </Typography>
-              <Typography variant="body1" gutterBottom>
-                <strong>Уровень:</strong> {aiResponse.level}
+            )}
+            {aiResponse && aiResponse.errors.length > 0 ? (
+              renderHighlightedText()
+            ) : (
+              <Typography sx={{ color: 'text.secondary', fontStyle: 'italic' }}>
+                {content || 'Текст с отмеченными ошибками появится здесь после проверки'}
               </Typography>
-              
-              <Box sx={{ mb: 2, p: 2, backgroundColor: '#f5f5f5', borderRadius: 1 }}>
-                {renderHighlightedText()}
-              </Box>
+            )}
+          </Paper>
+        </Box>
+      </Box>
 
-              <Typography variant="h6" gutterBottom>
-                Ошибки:
-              </Typography>
-              {aiResponse.errors.length > 0 ? (
-                <Box component="ul" sx={{ pl: 2 }}>
-                  {aiResponse.errors.map((error, index) => (
+      {/* Bottom section: Results */}
+      {aiResponse && (
+        <Box>
+          {/* Level */}
+          <Paper sx={{ p: 2, mb: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Результат проверки
+            </Typography>
+            <Typography variant="body1">
+              <strong>Уровень:</strong> {aiResponse.level}
+            </Typography>
+          </Paper>
+
+          {/* Errors List */}
+          <Paper sx={{ p: 3, mb: 2 }}>
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{
+                mb: 2,
+                fontWeight: 600
+              }}
+            >
+              Найденные ошибки ({aiResponse.errors.length}):
+            </Typography>
+            {aiResponse.errors.length > 0 ? (
+              <Box component="ul" sx={{ pl: 0, listStyle: 'none', m: 0 }}>
+                {aiResponse.errors.map((error, index) => {
+                  const isActive = hoveredErrorIndex === index || selectedErrorIndex === index;
+                  return (
                     <Box
                       component="li"
                       key={index}
                       sx={{
-                        mb: 1,
+                        mb: 2,
+                        pb: 2,
+                        borderBottom: index < aiResponse.errors.length - 1 ? '1px solid #e0e0e0' : 'none',
                         cursor: 'pointer',
-                        fontWeight: hoveredErrorIndex === index ? 'bold' : 'normal'
+                        transition: 'background-color 0.2s',
+                        padding: '12px',
+                        borderRadius: 1,
+                        backgroundColor: isActive ? 'rgba(25, 118, 210, 0.08)' : 'transparent',
+                        '&:hover': {
+                          backgroundColor: 'rgba(0, 0, 0, 0.02)'
+                        },
+                        fontWeight: isActive ? 'bold' : 'normal',
+                        border: selectedErrorIndex === index ? '2px solid #1976d2' : '2px solid transparent'
                       }}
                       onMouseEnter={() => setHoveredErrorIndex(index)}
                       onMouseLeave={() => setHoveredErrorIndex(null)}
+                      onClick={() => setSelectedErrorIndex(selectedErrorIndex === index ? null : index)}
                     >
+                    <Box sx={{ display: 'flex', alignItems: 'flex-start', mb: 1 }}>
                       <Box
                         component="span"
                         sx={{
-                          display: 'inline-block',
-                          width: 24,
-                          height: 24,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          minWidth: 32,
+                          height: 32,
                           borderRadius: '50%',
                           backgroundColor: error.color,
-                          textAlign: 'center',
-                          lineHeight: '24px',
-                          mr: 1,
-                          fontWeight: 'bold'
+                          mr: 2,
+                          fontWeight: 'bold',
+                          fontSize: '16px',
+                          color: '#fff',
+                          flexShrink: 0
                         }}
                       >
                         {index + 1}
                       </Box>
-                      {error.explanation}
+                      <Box sx={{ flex: 1 }}>
+                        <Typography
+                          sx={{
+                            fontSize: '16px',
+                            fontWeight: 'bold',
+                            mb: 0.5,
+                            color: 'text.primary'
+                          }}
+                        >
+                          {error.text}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: '15px',
+                            lineHeight: 1.6,
+                            color: 'text.secondary'
+                          }}
+                        >
+                          {error.explanation}
+                        </Typography>
+                      </Box>
                     </Box>
-                  ))}
-                </Box>
-              ) : (
-                <Typography variant="body2" color="success.main">
-                  Ошибок не найдено! 🎉
-                </Typography>
-              )}
-
-              <Typography variant="body2" sx={{ mt: 2, fontStyle: 'italic' }}>
-                {aiResponse.summary}
+                  </Box>
+                );
+                })}
+              </Box>
+            ) : (
+              <Typography variant="body2" color="success.main">
+                Ошибок не найдено! 🎉
               </Typography>
-            </Paper>
-          ) : (
-            <Paper
+            )}
+          </Paper>
+
+          {/* Summary */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              backgroundColor: '#f5f5f5',
+              borderLeft: '4px solid #1976d2'
+            }}
+          >
+            <Typography
+              variant="subtitle2"
               sx={{
-                p: 2,
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: '#f9f9f9'
+                fontWeight: 'bold',
+                mb: 1,
+                color: '#1976d2'
               }}
             >
-              <Typography variant="body2" color="text.secondary" textAlign="center">
-                Нажмите &quot;Проверить&quot;, чтобы получить обратную связь от AI
-              </Typography>
-            </Paper>
-          )}
+              Общая оценка:
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: '15px',
+                lineHeight: 1.7,
+                color: 'text.primary'
+              }}
+            >
+              {aiResponse.summary}
+            </Typography>
+          </Paper>
         </Box>
-      </Box>
+      )}
     </Box>
   );
 };
