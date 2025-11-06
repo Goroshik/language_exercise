@@ -17,6 +17,8 @@ export interface GenerateTextRequest {
   languageId: string;
   level: string;
   selectedWords?: DictionaryWord[];
+  customTheme?: string;
+  sentenceCount?: number;
 }
 
 // TODO: Fix types - properly type ServiceResponse body instead of using any
@@ -35,7 +37,9 @@ const schema = Joi.object({
         word: Joi.string().allow('', null)
       })
     )
-    .optional()
+    .optional(),
+  customTheme: Joi.string().allow('', null).optional(),
+  sentenceCount: Joi.number().min(1).max(20).optional()
 });
 
 export function formatAIResponse(text: string): string[] {
@@ -62,7 +66,7 @@ export async function processGenerateTextRequest(
     }
 
     const body = value as GenerateTextRequest;
-    const { mode, topic, languageId, level, selectedWords = [] } = body;
+    const { mode, topic, languageId, level, selectedWords = [], customTheme, sentenceCount } = body;
 
     // Fetch language by ID
     const language = await languageRepository.findById(languageId);
@@ -73,8 +77,8 @@ export async function processGenerateTextRequest(
     const words = selectedWords.map(w => w.word || '');
     const prompt =
       mode === 'student'
-        ? GRAMMAR_PROMPTS.generateStudentExercises(topic, language.name, words)
-        : GRAMMAR_PROMPTS.generateTeacherExamples(topic, level, language.name, words);
+        ? GRAMMAR_PROMPTS.generateStudentExercises(topic, language.name, words, customTheme, sentenceCount)
+        : GRAMMAR_PROMPTS.generateTeacherExamples(topic, level, language.name, words, customTheme, sentenceCount);
 
     const aiService = await AIFactory.getAIService(userId);
     if (!aiService || typeof aiService.generateText !== 'function') {

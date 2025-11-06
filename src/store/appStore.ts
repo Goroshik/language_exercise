@@ -41,12 +41,16 @@ export const useAppStore = create<AppStore>()(
       languageId,
       level = 'A1',
       selectedWords = [],
-      mode = 'student'
+      mode = 'student',
+      customTheme,
+      sentenceCount
     }: {
       languageId?: string;
       level?: string;
       selectedWords?: DictionaryWord[];
       mode?: 'student' | 'teacher';
+      customTheme?: string;
+      sentenceCount?: number;
     } = {}) => {
       // Получаем topic из URL
       const urlPath = window.location.pathname;
@@ -66,7 +70,9 @@ export const useAppStore = create<AppStore>()(
           topic,
           languageId,
           level,
-          selectedWords
+          selectedWords,
+          customTheme,
+          sentenceCount
         });
 
         const data = response.data || [];
@@ -123,12 +129,16 @@ export const useAppStore = create<AppStore>()(
       languageId,
       level = 'A1',
       selectedWords = [],
-      mode = 'student'
+      mode = 'student',
+      customTheme,
+      sentenceCount
     }: {
       languageId?: string;
       level?: string;
       selectedWords?: DictionaryWord[];
       mode?: 'student' | 'teacher';
+      customTheme?: string;
+      sentenceCount?: number;
     } = {}) => {
       // Получаем topic из URL
       const urlPath = window.location.pathname;
@@ -141,7 +151,9 @@ export const useAppStore = create<AppStore>()(
           topic,
           languageId,
           level,
-          selectedWords
+          selectedWords,
+          customTheme,
+          sentenceCount
         });
 
         const data = response.data || [];
