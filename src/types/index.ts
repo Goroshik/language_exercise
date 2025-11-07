@@ -72,7 +72,7 @@ export interface AppStore {
     level?: string;
     selectedWords?: DictionaryWord[];
     mode?: 'student' | 'teacher';
-    customTheme?: string;
+    customTopic?: string;
     sentenceCount?: number;
   }) => Promise<void>;
   generateMoreExercises: (data: {
@@ -80,7 +80,7 @@ export interface AppStore {
     level?: string;
     selectedWords?: DictionaryWord[];
     mode?: 'student' | 'teacher';
-    customTheme?: string;
+    customTopic?: string;
     sentenceCount?: number;
   }) => Promise<void>;
   loadTrainingExercises: (data: {

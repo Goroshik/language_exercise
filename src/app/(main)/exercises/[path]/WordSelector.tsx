@@ -16,8 +16,8 @@ interface WordSelectorProps {
   selectedWords: DictionaryWord[];
   onWordsChange: (words: DictionaryWord[]) => void;
   maxWords?: number;
-  customTheme?: string;
-  onThemeChange?: (theme: string) => void;
+  customTopic?: string;
+  onTopicChange?: (topic: string) => void;
   sentenceCount?: number;
   onSentenceCountChange?: (count: number | undefined) => void;
   mode?: 'student' | 'teacher';
@@ -27,8 +27,8 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   selectedWords,
   onWordsChange,
   maxWords = 5,
-  customTheme = '',
-  onThemeChange,
+  customTopic = '',
+  onTopicChange,
   sentenceCount,
   onSentenceCountChange,
   mode = 'student'
@@ -357,7 +357,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
         </Typography>
       )}
 
-      {/* NOTE: Custom theme and sentence count section */}
+      {/* NOTE: Custom topic and sentence count section */}
       <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
         <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
           Дополнительные настройки
@@ -366,14 +366,14 @@ const WordSelector: React.FC<WordSelectorProps> = ({
         <TextField
           fullWidth
           size="small"
-          label="Тема для генерации (необязательно)"
-          placeholder="Например: о путешествиях, на работе, в ресторане..."
-          value={customTheme}
-          onChange={e => onThemeChange?.(e.target.value)}
+          label="Тема (необязательно)"
+          placeholder="Например: визит к доктору, поездка заграницу, в ресторане..."
+          value={customTopic}
+          onChange={e => onTopicChange?.(e.target.value)}
           multiline
           rows={2}
           sx={{ mb: 2 }}
-          helperText="Опишите тему или контекст для генерации предложений"
+          helperText="Опишите тему или ситуацию для генерации предложений"
         />
 
         <TextField

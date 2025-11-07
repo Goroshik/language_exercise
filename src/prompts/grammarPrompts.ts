@@ -4,15 +4,15 @@ export const GRAMMAR_PROMPTS = {
     topic: string,
     languageName: string,
     selectedWords?: string[],
-    customTheme?: string,
+    customTopic?: string,
     sentenceCount?: number
   ) => {
     const count = sentenceCount || 5;
-    const themeContext = customTheme ? `\n\nContext/Theme: ${customTheme}\nGenerate sentences related to this theme while practicing the grammar topic.` : '';
+    const topicContext = customTopic ? `\n\nAdditional Context: ${customTopic}\nGenerate sentences related to this context/situation while practicing the grammar topic.` : '';
     
     return `You are helping a Russian speaker learn ${languageName}. Generate ${count} ${languageName} sentences for practicing the topic: "${topic}".
 
-${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}${themeContext}
+${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}${topicContext}
 
 IMPORTANT REQUIREMENTS:
 1. Each sentence must be complete and grammatically correct
@@ -77,15 +77,15 @@ etc.`,
     level: string,
     languageName: string,
     selectedWords?: string[],
-    customTheme?: string,
+    customTopic?: string,
     sentenceCount?: number
   ) => {
     const count = sentenceCount || 10;
-    const themeContext = customTheme ? `\n\nContext/Theme: ${customTheme}\nGenerate sentences related to this theme while demonstrating the grammar topic.` : '';
+    const topicContext = customTopic ? `\n\nAdditional Context: ${customTopic}\nGenerate sentences related to this context/situation while demonstrating the grammar topic.` : '';
     
     return `You are helping create ${languageName} learning materials for Russian speakers. Generate ${count} complete ${languageName} sentences for students to learn the topic: "${topic}" at ${level} proficiency level.
 
-${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}${themeContext}
+${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}${topicContext}
 
 IMPORTANT REQUIREMENTS:
 1. All sentences must be grammatically CORRECT (students will learn from these examples)

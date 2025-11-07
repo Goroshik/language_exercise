@@ -17,7 +17,7 @@ export interface GenerateTextRequest {
   languageId: string;
   level: string;
   selectedWords?: DictionaryWord[];
-  customTheme?: string;
+  customTopic?: string;
   sentenceCount?: number;
 }
 
@@ -38,7 +38,7 @@ const schema = Joi.object({
       })
     )
     .optional(),
-  customTheme: Joi.string().allow('', null).optional(),
+  customTopic: Joi.string().allow('', null).optional(),
   sentenceCount: Joi.number().min(1).max(20).optional()
 });
 
@@ -66,7 +66,7 @@ export async function processGenerateTextRequest(
     }
 
     const body = value as GenerateTextRequest;
-    const { mode, topic, languageId, level, selectedWords = [], customTheme, sentenceCount } = body;
+    const { mode, topic, languageId, level, selectedWords = [], customTopic, sentenceCount } = body;
 
     // Fetch language by ID
     const language = await languageRepository.findById(languageId);
@@ -77,8 +77,8 @@ export async function processGenerateTextRequest(
     const words = selectedWords.map(w => w.word || '');
     const prompt =
       mode === 'student'
-        ? GRAMMAR_PROMPTS.generateStudentExercises(topic, language.name, words, customTheme, sentenceCount)
-        : GRAMMAR_PROMPTS.generateTeacherExamples(topic, level, language.name, words, customTheme, sentenceCount);
+        ? GRAMMAR_PROMPTS.generateStudentExercises(topic, language.name, words, customTopic, sentenceCount)
+        : GRAMMAR_PROMPTS.generateTeacherExamples(topic, level, language.name, words, customTopic, sentenceCount);
 
     const aiService = await AIFactory.getAIService(userId);
     if (!aiService || typeof aiService.generateText !== 'function') {
