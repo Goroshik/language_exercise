@@ -7,7 +7,7 @@ interface GenerateTextRequest {
   level?: string;
   selectedWords?: DictionaryWord[];
   prompt?: string;
-  customTheme?: string;
+  customTopic?: string;
   sentenceCount?: number;
 }
 

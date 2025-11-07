@@ -41,7 +41,7 @@ const Page: React.FC = () => {
   const [selectedLanguageId, setSelectedLanguageId] = useState<string>('');
   const [historyAvailable, setHistoryAvailable] = useState<boolean>(false);
   const [historyCount, setHistoryCount] = useState<number>(0);
-  const [customTheme, setCustomTheme] = useState<string>('');
+  const [customTopic, setCustomTopic] = useState<string>('');
   const [sentenceCount, setSentenceCount] = useState<number | undefined>(undefined);
 
   // Get learning language from settings
@@ -224,7 +224,7 @@ const Page: React.FC = () => {
       level: selectedLevel,
       selectedWords,
       mode: selectedMode,
-      customTheme,
+      customTopic,
       sentenceCount
     });
   };
@@ -235,7 +235,7 @@ const Page: React.FC = () => {
       level: selectedLevel,
       selectedWords,
       mode: selectedMode,
-      customTheme,
+      customTopic,
       sentenceCount
     });
   };
@@ -486,8 +486,8 @@ const Page: React.FC = () => {
             <WordSelector 
               selectedWords={selectedWords} 
               onWordsChange={setSelectedWords}
-              customTheme={customTheme}
-              onThemeChange={setCustomTheme}
+              customTopic={customTopic}
+              onTopicChange={setCustomTopic}
               sentenceCount={sentenceCount}
               onSentenceCountChange={setSentenceCount}
               mode={selectedMode}
@@ -501,8 +501,8 @@ const Page: React.FC = () => {
             <WordSelector 
               selectedWords={selectedWords} 
               onWordsChange={setSelectedWords}
-              customTheme={customTheme}
-              onThemeChange={setCustomTheme}
+              customTopic={customTopic}
+              onTopicChange={setCustomTopic}
               sentenceCount={sentenceCount}
               onSentenceCountChange={setSentenceCount}
               mode={selectedMode}
