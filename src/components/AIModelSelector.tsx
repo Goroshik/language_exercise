@@ -146,7 +146,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
 
     try {
       const response = await fetch('/api/settings', {
-        method: 'PATCH',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
