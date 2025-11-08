@@ -12,4 +12,11 @@ export class UserRepository {
       where: { email }
     });
   }
+
+  async updatePassword(userId: string, hashedPassword: string) {
+    return this.client.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    });
+  }
 }
