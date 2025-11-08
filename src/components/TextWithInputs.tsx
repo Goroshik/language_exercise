@@ -254,6 +254,9 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const handleTextDoubleClick = (event: React.MouseEvent) => {
     if (typeof window === 'undefined') return;
 
+    // Only handle actual double-click events, not single clicks
+    if (event.detail !== 2) return;
+
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 

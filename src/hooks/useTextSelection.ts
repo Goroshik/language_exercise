@@ -18,7 +18,7 @@ interface UseTextSelectionResult {
 const INPUT_ELEMENTS_SELECTOR = 'input, textarea, [contenteditable="true"]';
 
 // Word count limits for text selection
-const MIN_WORD_COUNT = 1;
+const MIN_WORD_COUNT = 2; // Changed from 1 to 2: only show for multiple words
 const MAX_WORD_COUNT = 5;
 
 // Minimum text length to consider as valid selection (prevents accidental single char selections)
@@ -38,6 +38,8 @@ export const useTextSelection = (): UseTextSelectionResult => {
   const [translationPanel, setTranslationPanel] = useState<TranslationPanelState | null>(null);
   const selectionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPanelOpenRef = useRef<boolean>(false);
+  const lastClickTimeRef = useRef<number>(0);
+  const lastClickCountRef = useRef<number>(0);
 
   // Track when translation panel is open
   useEffect(() => {
@@ -150,6 +152,13 @@ export const useTextSelection = (): UseTextSelectionResult => {
 
     // Debounce selection to avoid triggering on double-click
     selectionTimeoutRef.current = setTimeout(() => {
+      // Check if this was triggered shortly after a double-click
+      const timeSinceLastClick = Date.now() - lastClickTimeRef.current;
+      if (lastClickCountRef.current === 2 && timeSinceLastClick < 500) {
+        // Skip if double-click happened recently (within 500ms)
+        return;
+      }
+
       // Don't show popover if translation panel is open
       if (isPanelOpenRef.current) {
         return;
@@ -208,20 +217,29 @@ export const useTextSelection = (): UseTextSelectionResult => {
     }, SELECTION_DEBOUNCE_DELAY);
   }, [expandToFullWords]);
 
+  // Track click events to detect double-clicks
+  const handleClick = useCallback((event: MouseEvent) => {
+    lastClickTimeRef.current = Date.now();
+    lastClickCountRef.current = event.detail;
+  }, []);
+
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     // Use mouseup to detect when selection is complete
     document.addEventListener('mouseup', handleTextSelection);
+    // Track clicks to detect double-clicks
+    document.addEventListener('click', handleClick);
 
     return () => {
       document.removeEventListener('mouseup', handleTextSelection);
+      document.removeEventListener('click', handleClick);
       // Clear timeout on unmount
       if (selectionTimeoutRef.current) {
         clearTimeout(selectionTimeoutRef.current);
       }
     };
-  }, [handleTextSelection]);
+  }, [handleTextSelection, handleClick]);
 
   const handleSelectionPopoverTranslate = useCallback(() => {
     if (!selectionPopover) return;
