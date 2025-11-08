@@ -51,7 +51,7 @@ const TextSelectionPopover: React.FC<TextSelectionPopoverProps> = ({
   return (
     <Paper
       ref={popoverRef}
-      elevation={8}
+      elevation={0}
       sx={{
         position: 'fixed',
         left: position.x,
