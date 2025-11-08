@@ -47,7 +47,24 @@ export function formatAIResponse(text: string): string[] {
     .split(/\r?\n/)
     .map(line => line.trim())
     .filter(line => line.length > 0)
-    .map(line => line.replace(/^[\d).*\s-]+/, ''));
+    .map(line => {
+      // Remove numbering from start: "1. ", "2) ", "- ", "* " etc.
+      // But preserve ** for markdown bold formatting
+      return line.replace(/^(?:[\d]+[).\s]+|[-*]\s+)/, '');
+    })
+    .map(line => {
+      // Fix malformed bold formatting where word comes before closing **
+      // e.g., "Kto** przyszedł" -> "**Kto** przyszedł"
+      // Look for pattern: word** (without opening **)
+      return line.replace(/(\w+)\*\*/g, (match, word) => {
+        // Check if this word already has ** before it
+        const beforeWord = line.substring(0, line.indexOf(match));
+        if (beforeWord.endsWith('**')) {
+          return match; // Already correct format: **word**
+        }
+        return `**${word}**`; // Fix it: word** -> **word**
+      });
+    });
 }
 
 export async function processGenerateTextRequest(

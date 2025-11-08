@@ -18,7 +18,8 @@ IMPORTANT REQUIREMENTS:
 1. Each sentence must be complete and grammatically correct
 2. ONE key word should be highlighted with **word** - this word should be in the CORRECT grammatical form (NOT base form)
 3. The highlighted word demonstrates the grammar topic being practiced
-4. After the sentence, add a hint in parentheses ONLY if appropriate:
+4. The word MUST be wrapped like this: **word** (with asterisks on BOTH sides, not word**)
+5. After the sentence, add a hint in parentheses ONLY if appropriate:
    - DO NOT add hints for articles (a/the)
    - DO NOT add "to be" for continuous tenses (the student should know the form)
    - DO add hints for verb infinitives, base noun forms, or other helpful context
@@ -32,7 +33,12 @@ She **bought** a beautiful dress yesterday. (buy)
 
 Example output for topic "Articles":
 I need **a** new phone.
-**The** sun is shining brightly.`;
+**The** sun is shining brightly.
+
+Example output for questions (wh-words):
+**Kto** przyszedł wczoraj?
+**Co** czytasz?
+**Gdzie** mieszkasz?`;
   },
 
   validateAnswers: (

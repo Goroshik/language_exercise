@@ -29,7 +29,7 @@ interface ParsedExerciseContent {
 
 const PLACEHOLDER_REGEX = /\{\{input\}\}/gi;
 // Pattern for bold markdown format (e.g., **word**)
-const BOLD_PATTERN = '\\*\\*(.*?)\\*\\*';
+const BOLD_PATTERN = /\*\*(.*?)\*\*/g;
 
 const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
   displaySentence: '',
@@ -52,7 +52,9 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     return EMPTY_PARSED_CONTENT;
   }
 
-  const withoutNumbering = normalized.replace(/^[\d).*\s-]+/, '').trim();
+  // Remove numbering/bullets from start: "1. ", "2) ", "- ", "* " etc.
+  // But preserve ** for markdown bold formatting
+  const withoutNumbering = normalized.replace(/^(?:[\d]+[).\s]+|[-*]\s+)/, '').trim();
   const lines = withoutNumbering
     .split('\n')
     .map(line => line.trim())
@@ -71,15 +73,16 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     mainLine = dashMatch[1].trim();
     translation = stripTranslationLabel(dashMatch[2]);
   }
-  // Create a new regex instance to avoid state persistence issues with global regex
-  const hasBoldFormat = new RegExp(BOLD_PATTERN).test(mainLine);
+  
+  const hasBoldFormat = BOLD_PATTERN.test(mainLine);
   let hints: string[] = [];
 
   if (hasBoldFormat) {
     const boldWords: string[] = [];
     let match;
-    const boldRegex = new RegExp(BOLD_PATTERN, 'g');
-    while ((match = boldRegex.exec(mainLine)) !== null) {
+    // Reset regex lastIndex before use to avoid state issues
+    BOLD_PATTERN.lastIndex = 0;
+    while ((match = BOLD_PATTERN.exec(mainLine)) !== null) {
       boldWords.push(match[1]);
     }
 
@@ -93,7 +96,9 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
       mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
     }
 
-    const displaySentence = mainLine.replace(new RegExp(BOLD_PATTERN, 'g'), '_____');
+    // Reset regex lastIndex before use
+    BOLD_PATTERN.lastIndex = 0;
+    const displaySentence = mainLine.replace(BOLD_PATTERN, '_____');
     const prefillSentence = displaySentence;
 
     return {

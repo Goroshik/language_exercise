@@ -9,20 +9,20 @@ import MenuIcon from '@mui/icons-material/Menu';
 import SettingsIcon from '@mui/icons-material/Settings';
 import SmartToyIcon from '@mui/icons-material/SmartToy';
 import {
-    AppBar,
-    Box,
-    Drawer,
-    IconButton,
-    List,
-    ListItem,
-    ListItemButton,
-    ListItemIcon,
-    ListItemText,
-    Toolbar,
-    Tooltip,
-    Typography,
-    useMediaQuery,
-    useTheme
+  AppBar,
+  Box,
+  Drawer,
+  IconButton,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Toolbar,
+  Tooltip,
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
@@ -135,8 +135,22 @@ const Header: React.FC = () => {
 
   const handleNavigation = (path: string) => {
     if (isLoading) return;
+    
+    // Don't navigate if already on this page
+    if (pathname === path) {
+      return;
+    }
+    
     setIsNavigating(true);
     route.push(path);
+  };
+
+  // Helper to check if a path is active
+  const isActivePath = (path: string | string[]) => {
+    if (Array.isArray(path)) {
+      return path.some(p => pathname === p);
+    }
+    return pathname === path;
   };
 
   return (
@@ -228,7 +242,7 @@ const Header: React.FC = () => {
                           handleNavigation('/topics');
                         }
                       }}
-                      disabled={isLoading}
+                      disabled={isLoading || isActivePath(['/topics', lastTopicForLanguage ? `/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}` : ''])}
                       size="medium"
                       sx={{
                         backgroundColor: 'white',
@@ -247,7 +261,7 @@ const Header: React.FC = () => {
                     <IconButton
                       color="inherit"
                       onClick={() => handleNavigation('/essay')}
-                      disabled={isLoading}
+                      disabled={isLoading || isActivePath('/essay')}
                       size="medium"
                       sx={{
                         backgroundColor: 'white',
@@ -266,7 +280,7 @@ const Header: React.FC = () => {
                     <IconButton
                       color="inherit"
                       onClick={() => handleNavigation('/dictionary')}
-                      disabled={isLoading}
+                      disabled={isLoading || isActivePath('/dictionary')}
                       size="medium"
                       sx={{
                         backgroundColor: 'white',
@@ -285,7 +299,7 @@ const Header: React.FC = () => {
                     <IconButton
                       color="inherit"
                       onClick={() => handleNavigation('/exercises/generated-history')}
-                      disabled={isLoading}
+                      disabled={isLoading || isActivePath('/exercises/generated-history')}
                       size="medium"
                       sx={{
                         backgroundColor: 'white',
@@ -381,7 +395,7 @@ const Header: React.FC = () => {
                 }
                 setMobileMenuOpen(false);
               }}
-              disabled={isLoading}
+              disabled={isLoading || isActivePath(['/topics', lastTopicForLanguage ? `/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}` : ''])}
             >
               <ListItemIcon>
                 <FitnessCenterIcon color="primary" />
@@ -395,7 +409,7 @@ const Header: React.FC = () => {
                 handleNavigation('/essay');
                 setMobileMenuOpen(false);
               }}
-              disabled={isLoading}
+              disabled={isLoading || isActivePath('/essay')}
             >
               <ListItemIcon>
                 <EditNoteIcon color="primary" />
@@ -409,7 +423,7 @@ const Header: React.FC = () => {
                 handleNavigation('/dictionary');
                 setMobileMenuOpen(false);
               }}
-              disabled={isLoading}
+              disabled={isLoading || isActivePath('/dictionary')}
             >
               <ListItemIcon>
                 <BookIcon color="primary" />
@@ -423,7 +437,7 @@ const Header: React.FC = () => {
                 handleNavigation('/exercises/generated-history');
                 setMobileMenuOpen(false);
               }}
-              disabled={isLoading}
+              disabled={isLoading || isActivePath('/exercises/generated-history')}
             >
               <ListItemIcon>
                 <HistoryIcon color="primary" />
