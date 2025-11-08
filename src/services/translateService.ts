@@ -1,4 +1,4 @@
-import { userTokenRepository, wordRepository } from 'src/repository/client';
+import { userSettingsRepository, userTokenRepository, wordRepository } from 'src/repository/client';
 
 export async function translateWordService(userId: string, word: string) {
   if (!word || typeof word !== 'string') {
@@ -25,6 +25,11 @@ export async function translateWordService(userId: string, word: string) {
     }
   }
 
+  // Get user settings to determine source and target languages
+  const userSettings = await userSettingsRepository.findByUserId(userId);
+  const sourceLang = (userSettings?.learningLanguage || 'EN').toUpperCase();
+  const targetLang = (userSettings?.translationLang || 'RU').toUpperCase();
+
   const tokens = await userTokenRepository.findByUser(userId);
   const deeplTokenObj = tokens.find(t => t.service === 'deepl');
   if (!deeplTokenObj?.token) {
@@ -38,10 +43,16 @@ export async function translateWordService(userId: string, word: string) {
     },
     body: new URLSearchParams({
       text: cleanWord,
-      target_lang: 'RU',
-      source_lang: 'EN'
+      target_lang: targetLang,
+      source_lang: sourceLang
     }).toString()
   });
+  
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(`DeepL API error: ${response.status} - ${errorData.message || response.statusText}`);
+  }
+  
   const data = await response.json();
   if (data.translations && data.translations[0]?.text) {
     return { text: data.translations[0].text, exists: false };
