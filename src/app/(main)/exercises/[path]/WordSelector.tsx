@@ -130,9 +130,9 @@ const WordSelector: React.FC<WordSelectorProps> = ({
     <Paper
       sx={{
         p: 3,
-        maxHeight: { xs: 'none', md: '600px' },
+        maxHeight: { xs: 'none', md: 'calc(100vh - 200px)' },
         overflowY: 'auto',
-        width: { xs: '100%', md: '450px' },
+        width: '100%',
         backgroundColor: '#fafafa'
       }}
     >

@@ -484,7 +484,7 @@ const Page: React.FC = () => {
         {!isMobile && (
           <Box
             sx={{
-              width: { md: '300px' },
+              width: { md: '350px', lg: '400px' },
               flexShrink: 0
             }}
           >
