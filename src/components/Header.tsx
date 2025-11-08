@@ -2,6 +2,7 @@
 
 import BookIcon from '@mui/icons-material/Book';
 import EditNoteIcon from '@mui/icons-material/EditNote';
+import FeedbackIcon from '@mui/icons-material/Feedback';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import HistoryIcon from '@mui/icons-material/History';
 import LanguageIcon from '@mui/icons-material/Language';
@@ -29,6 +30,7 @@ import React, { useEffect, useState } from 'react';
 import { useAppStore } from 'src/store/appStore';
 import { useSettingsStore } from 'src/store/settingsStore';
 import AIModelSelector from './AIModelSelector';
+import FeedbackModal from './FeedbackModal';
 import LanguageSelector from './LanguageSelector';
 import SettingsModal from './SettingsModal';
 
@@ -40,6 +42,7 @@ const Header: React.FC = () => {
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'));
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aiModelOpen, setAiModelOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [lastTopicForLanguage, setLastTopicForLanguage] = useState<string | null>(null);
   const [previousLanguage, setPreviousLanguage] = useState<string | null>(null);
@@ -131,6 +134,14 @@ const Header: React.FC = () => {
 
   const handleAiModelClose = () => {
     setAiModelOpen(false);
+  };
+
+  const handleFeedbackOpen = () => {
+    setFeedbackOpen(true);
+  };
+
+  const handleFeedbackClose = () => {
+    setFeedbackOpen(false);
   };
 
   const handleNavigation = (path: string) => {
@@ -331,6 +342,25 @@ const Header: React.FC = () => {
                     </IconButton>
                   </span>
                 </Tooltip>
+                <Tooltip title="Обратная связь">
+                  <span>
+                    <IconButton
+                      color="inherit"
+                      onClick={handleFeedbackOpen}
+                      disabled={isLoading}
+                      size="medium"
+                      sx={{
+                        backgroundColor: 'white',
+                        color: 'primary.main',
+                        '&:hover': { backgroundColor: '#f5f5f5' },
+                        '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                      }}
+                      aria-label="feedback"
+                    >
+                      <FeedbackIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
                 <Tooltip title="Настройки">
                   <span>
                     <IconButton
@@ -359,6 +389,8 @@ const Header: React.FC = () => {
       <SettingsModal open={settingsOpen} onClose={handleSettingsClose} />
 
       <AIModelSelector open={aiModelOpen} onClose={handleAiModelClose} />
+
+      <FeedbackModal open={feedbackOpen} onClose={handleFeedbackClose} />
 
       {/* Mobile menu drawer */}
       <Drawer
@@ -457,6 +489,20 @@ const Header: React.FC = () => {
                 <SmartToyIcon color="primary" />
               </ListItemIcon>
               <ListItemText primary="AI модель" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={() => {
+                setFeedbackOpen(true);
+                setMobileMenuOpen(false);
+              }}
+              disabled={isLoading}
+            >
+              <ListItemIcon>
+                <FeedbackIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText primary="Обратная связь" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
