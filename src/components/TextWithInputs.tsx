@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 import { useTextSelection } from 'src/hooks/useTextSelection';
 import { useAlertStore } from 'src/store/alertStore';
+import { useAppStore } from 'src/store/appStore';
 import type { TranslationPanelState } from 'src/types/translation';
 import TextSelectionPopover from './TextSelectionPopover';
 import WordTranslationPanel from './WordTranslationPanel';
@@ -151,6 +152,9 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const [doubleClickTranslationPanel, setDoubleClickTranslationPanel] =
     useState<TranslationPanelState | null>(null);
 
+  // Get savedAnswers from store
+  const savedAnswers = useAppStore(state => state.savedAnswers);
+
   // Use the text selection hook for multiword translation
   const {
     selectionPopover,
@@ -168,13 +172,15 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const parsedContent = useMemo(() => parseExerciseContent(text), [text]);
   const { displaySentence, prefillSentence, hints, translation, additionalNotes } = parsedContent;
 
-  // Remove auto-loading of saved answers
+  // Load saved answer from store when component mounts or sentenceId changes
   useEffect(() => {
-    // Reset when text changes (new exercise)
-    if (!sentenceId) {
+    if (sentenceId && savedAnswers[sentenceId]) {
+      setTextareaValue(savedAnswers[sentenceId]);
+    } else if (!sentenceId) {
+      // Reset when there's no sentenceId (new exercise)
       setTextareaValue('');
     }
-  }, [text, sentenceId]);
+  }, [sentenceId, savedAnswers]);
 
   const handlePrefillClick = () => {
     if (textareaValue.trim().length > 0 || !prefillSentence) {
@@ -213,6 +219,16 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = event.target.value;
     setTextareaValue(newValue);
+    
+    // Update savedAnswers in store immediately for instant switching between blocks
+    if (sentenceId && typeof window !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const store = (window as any).__appStore;
+      if (store?.setState) {
+        const currentSavedAnswers = store.getState().savedAnswers;
+        store.setState({ savedAnswers: { ...currentSavedAnswers, [sentenceId]: newValue } });
+      }
+    }
   };
 
   const handleTextareaBlur = () => {
@@ -340,16 +356,15 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
             className={`exercise-input ${
               isValidated ? (isCorrect ? 'exercise-input-correct' : 'exercise-input-incorrect') : ''
             }`}
-            sx={{ paddingRight: '140px' }}
           />
 
           <Stack
-            direction="column"
+            direction="row"
             spacing={1}
             sx={{
               position: 'absolute',
-              top: 8,
-              right: 8,
+              bottom: 8,
+              left: 8,
               zIndex: 10
             }}
           >

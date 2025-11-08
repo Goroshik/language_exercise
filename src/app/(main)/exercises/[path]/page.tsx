@@ -17,6 +17,7 @@ import { useAppStore } from 'src/store/appStore';
 import { useSettingsStore } from 'src/store/settingsStore';
 import { showAlert } from 'src/utils/alert';
 
+import ExerciseCarousel from 'src/components/ExerciseCarousel';
 import { DictionaryWord } from 'src/types';
 import ExerciseBlock from './ExerciseBlock';
 import WordSelector from './WordSelector';
@@ -41,6 +42,9 @@ const Page: React.FC = () => {
   const [selectedLanguageId, setSelectedLanguageId] = useState<string>('');
   const [historyAvailable, setHistoryAvailable] = useState<boolean>(false);
   const [historyCount, setHistoryCount] = useState<number>(0);
+  const [currentBlockIndex, setCurrentBlockIndex] = useState<number>(0);
+  const [customTopic, setCustomTopic] = useState<string>('');
+  const [sentenceCount, setSentenceCount] = useState<number>(5);
 
   // Get learning language from settings
   const { settings, loadSettings } = useSettingsStore();
@@ -168,6 +172,13 @@ const Page: React.FC = () => {
     checkHistory();
   }, [selectedTopic, selectedLevel, selectedLanguageId, exerciseBlocks]);
 
+  // Auto-scroll to the last block when new blocks are added
+  useEffect(() => {
+    if (exerciseBlocks.length > 0) {
+      setCurrentBlockIndex(exerciseBlocks.length - 1);
+    }
+  }, [exerciseBlocks.length]);
+
   // Update the store's selectedTopic when the component mounts
   useEffect(() => {
     // Reset navigation state when this page loads
@@ -211,7 +222,9 @@ const Page: React.FC = () => {
       languageId: selectedLanguageId,
       level: selectedLevel,
       selectedWords,
-      mode: selectedMode
+      mode: selectedMode,
+      customTopic,
+      sentenceCount
     });
   };
 
@@ -220,7 +233,9 @@ const Page: React.FC = () => {
       languageId: selectedLanguageId,
       level: selectedLevel,
       selectedWords,
-      mode: selectedMode
+      mode: selectedMode,
+      customTopic,
+      sentenceCount
     });
   };
 
@@ -229,7 +244,7 @@ const Page: React.FC = () => {
       languageId: selectedLanguageId,
       level: selectedLevel,
       mode: selectedMode,
-      limit: 5
+      limit: sentenceCount
     });
   };
 
@@ -357,6 +372,21 @@ const Page: React.FC = () => {
           gap: { xs: 2, md: 3 }
         }}
       >
+        {/* Word selector for mobile - before exercises */}
+        {isMobile && (
+          <Box sx={{ width: '100%' }}>
+            <WordSelector 
+              selectedWords={selectedWords} 
+              onWordsChange={setSelectedWords}
+              customTopic={customTopic}
+              onTopicChange={setCustomTopic}
+              sentenceCount={sentenceCount}
+              onSentenceCountChange={setSentenceCount}
+              mode={selectedMode}
+            />
+          </Box>
+        )}
+
         {/* Main content - left side */}
         <Box sx={{ flex: 1, minWidth: 0 }}>
           {exerciseBlocks.length === 0 ? (
@@ -404,16 +434,18 @@ const Page: React.FC = () => {
             </Box>
           ) : (
             <>
-              {exerciseBlocks.map((block, blockIndex) => (
-                <ExerciseBlock
-                  key={block.id}
-                  block={block}
-                  blockIndex={blockIndex}
-                  validationResults={validationResults[block.id] || {}}
-                  onCheckAnswers={handleCheckAnswers}
-                  mode={selectedMode}
-                />
-              ))}
+              <ExerciseCarousel currentIndex={currentBlockIndex} onIndexChange={setCurrentBlockIndex}>
+                {exerciseBlocks.map((block, blockIndex) => (
+                  <ExerciseBlock
+                    key={block.id}
+                    block={block}
+                    blockIndex={blockIndex}
+                    validationResults={validationResults[block.id] || {}}
+                    onCheckAnswers={handleCheckAnswers}
+                    mode={selectedMode}
+                  />
+                ))}
+              </ExerciseCarousel>
 
               <Box
                 sx={{
@@ -459,22 +491,23 @@ const Page: React.FC = () => {
           )}
         </Box>
 
-        {/* Word selector - right side / bottom on mobile */}
+        {/* Word selector - right side (desktop only) */}
         {!isMobile && (
           <Box
             sx={{
-              width: { md: '300px' },
+              width: { md: '350px', lg: '400px' },
               flexShrink: 0
             }}
           >
-            <WordSelector selectedWords={selectedWords} onWordsChange={setSelectedWords} />
-          </Box>
-        )}
-
-        {/* Word selector for mobile - collapsible or at bottom */}
-        {isMobile && exerciseBlocks.length > 0 && (
-          <Box sx={{ width: '100%', mt: 2 }}>
-            <WordSelector selectedWords={selectedWords} onWordsChange={setSelectedWords} />
+            <WordSelector 
+              selectedWords={selectedWords} 
+              onWordsChange={setSelectedWords}
+              customTopic={customTopic}
+              onTopicChange={setCustomTopic}
+              sentenceCount={sentenceCount}
+              onSentenceCountChange={setSentenceCount}
+              mode={selectedMode}
+            />
           </Box>
         )}
       </Box>
