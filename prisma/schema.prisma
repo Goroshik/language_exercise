@@ -70,6 +70,7 @@ model User {
   sentenceHistory SentenceHistory[]
   userAnswers     UserAnswer[]
   chatMessages    ChatMessage[]
+  essays          Essay[]
 
   @@map("users")
 }
@@ -101,6 +102,7 @@ model UserSettings {
   topicsByLanguage  Json?   // { "en": "topic_name", "pl": "another_topic" } - topics per language
   levelsByLanguage  Json?   // { "en": "A2", "pl": "B1" } - levels per language
   chatIdsByLanguage Json?   // { "en": "chatId1", "pl": "chatId2" } - chat IDs per language
+  lastEssayId       String? // last edited essay ID
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -171,3 +173,21 @@ model ChatMessage {
   @@index([userId, chatId])
   @@map("chat_messages")
 }
+
+model Essay {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId       String   @db.ObjectId
+  title        String
+  content      String   // User's essay text
+  aiResponse   String?  // AI feedback in JSON format
+  languageCode String   // Language of the essay (en, pl, etc.)
+  level        String?  // Detected CEFR level (A1-C2)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, languageCode])
+  @@map("essays")
+}
+
