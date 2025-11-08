@@ -1,6 +1,6 @@
-import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
-import { userRepository, passwordResetTokenRepository } from '../repository/client';
+import crypto from 'crypto';
+import { passwordResetTokenRepository, userRepository } from '../repository/client';
 import { emailService } from './emailService';
 
 export async function requestPasswordResetService(email: string, baseUrl?: string) {
