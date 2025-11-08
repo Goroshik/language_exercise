@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -14,20 +14,28 @@ import python from 'react-syntax-highlighter/dist/esm/languages/prism/python';
 import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx';
 import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript';
 
-// Register languages
-SyntaxHighlighter.registerLanguage('javascript', javascript);
-SyntaxHighlighter.registerLanguage('typescript', typescript);
-SyntaxHighlighter.registerLanguage('python', python);
-SyntaxHighlighter.registerLanguage('json', json);
-SyntaxHighlighter.registerLanguage('jsx', jsx);
-SyntaxHighlighter.registerLanguage('tsx', tsx);
-
 interface MarkdownMessageProps {
   content: string;
   role: 'user' | 'assistant';
 }
 
+// Flag to track if languages are registered
+let languagesRegistered = false;
+
 const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, role }) => {
+  // Register languages only once on client side
+  useEffect(() => {
+    if (!languagesRegistered) {
+      SyntaxHighlighter.registerLanguage('javascript', javascript);
+      SyntaxHighlighter.registerLanguage('typescript', typescript);
+      SyntaxHighlighter.registerLanguage('python', python);
+      SyntaxHighlighter.registerLanguage('json', json);
+      SyntaxHighlighter.registerLanguage('jsx', jsx);
+      SyntaxHighlighter.registerLanguage('tsx', tsx);
+      languagesRegistered = true;
+    }
+  }, []);
+
   return (
     <Box
       sx={{

@@ -1,6 +1,7 @@
 'use client';
 
 import BookIcon from '@mui/icons-material/Book';
+import EditNoteIcon from '@mui/icons-material/EditNote';
 import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import HistoryIcon from '@mui/icons-material/History';
 import LanguageIcon from '@mui/icons-material/Language';
@@ -241,6 +242,25 @@ const Header: React.FC = () => {
                     </IconButton>
                   </span>
                 </Tooltip>
+                <Tooltip title="Сочинения">
+                  <span>
+                    <IconButton
+                      color="inherit"
+                      onClick={() => handleNavigation('/essay')}
+                      disabled={isLoading}
+                      size="medium"
+                      sx={{
+                        backgroundColor: 'white',
+                        color: 'primary.main',
+                        '&:hover': { backgroundColor: '#f5f5f5' },
+                        '&.Mui-disabled': { backgroundColor: '#e0e0e0', color: '#9e9e9e' }
+                      }}
+                      aria-label="essay"
+                    >
+                      <EditNoteIcon />
+                    </IconButton>
+                  </span>
+                </Tooltip>
                 <Tooltip title="Словарь">
                   <span>
                     <IconButton
@@ -367,6 +387,20 @@ const Header: React.FC = () => {
                 <FitnessCenterIcon color="primary" />
               </ListItemIcon>
               <ListItemText primary="Тренировка" />
+            </ListItemButton>
+          </ListItem>
+          <ListItem disablePadding>
+            <ListItemButton
+              onClick={() => {
+                handleNavigation('/essay');
+                setMobileMenuOpen(false);
+              }}
+              disabled={isLoading}
+            >
+              <ListItemIcon>
+                <EditNoteIcon color="primary" />
+              </ListItemIcon>
+              <ListItemText primary="Сочинения" />
             </ListItemButton>
           </ListItem>
           <ListItem disablePadding>
