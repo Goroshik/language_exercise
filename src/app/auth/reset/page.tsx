@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 import { Box, Button, TextField, Typography, Alert, CircularProgress } from '@mui/material';
 
-export default function ResetPassword() {
+function ResetPasswordForm() {
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -243,5 +243,19 @@ export default function ResetPassword() {
         </Box>
       )}
     </Box>
+  );
+}
+
+export default function ResetPassword() {
+  return (
+    <Suspense
+      fallback={
+        <Box maxWidth={400} mx="auto" mt={8} display="flex" justifyContent="center">
+          <CircularProgress />
+        </Box>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
   );
 }
