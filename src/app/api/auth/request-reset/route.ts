@@ -11,7 +11,12 @@ export async function POST(request: NextRequest) {
       throw new NextResponseError('Email обязателен', 400);
     }
 
-    const result = await requestPasswordResetService(email);
+    // Get base URL from request headers
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('host') || 'localhost:3000';
+    const baseUrl = `${protocol}://${host}`;
+
+    const result = await requestPasswordResetService(email, baseUrl);
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {

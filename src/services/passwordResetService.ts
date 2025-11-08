@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { userRepository, passwordResetTokenRepository } from '../repository/client';
 import { emailService } from './emailService';
 
-export async function requestPasswordResetService(email: string) {
+export async function requestPasswordResetService(email: string, baseUrl?: string) {
   // Find user by email
   const user = await userRepository.getUserByEmail(email);
 
@@ -22,8 +22,8 @@ export async function requestPasswordResetService(email: string) {
   // Save token to database
   await passwordResetTokenRepository.createToken(user.id, token, expiresAt);
 
-  // Send email
-  const emailSent = await emailService.sendPasswordResetEmail(user.email, token);
+  // Send email with dynamic URL
+  const emailSent = await emailService.sendPasswordResetEmail(user.email, token, baseUrl);
 
   if (!emailSent) {
     throw new Error('Не удалось отправить email');

@@ -69,8 +69,10 @@ class EmailService {
     }
   }
 
-  async sendPasswordResetEmail(email: string, token: string): Promise<boolean> {
-    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/auth/reset?token=${token}`;
+  async sendPasswordResetEmail(email: string, token: string, baseUrl?: string): Promise<boolean> {
+    // Use provided baseUrl or fallback to env variable or localhost
+    const appUrl = baseUrl || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    const resetUrl = `${appUrl}/auth/reset?token=${token}`;
 
     const emailOptions: EmailOptions = {
       to: email,
