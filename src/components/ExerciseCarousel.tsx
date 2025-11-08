@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Box, IconButton, Typography, Stack, useTheme } from '@mui/material';
 import { ChevronLeft, ChevronRight } from '@mui/icons-material';
+import { Box, IconButton, Stack, Typography, useTheme } from '@mui/material';
+import React, { useCallback, useEffect, useState } from 'react';
 
 interface ExerciseCarouselProps {
   children: React.ReactElement[];
@@ -15,7 +15,6 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
 }) => {
   const [internalIndex, setInternalIndex] = useState(0);
   const currentIndex = externalIndex !== undefined ? externalIndex : internalIndex;
-  const carouselRef = useRef<HTMLDivElement>(null);
   const theme = useTheme();
 
   const totalBlocks = children.length;
@@ -43,25 +42,6 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
     onIndexChange?.(newIndex);
   }, [currentIndex, totalBlocks, externalIndex, onIndexChange]);
 
-  // Add keyboard navigation only when carousel is focused
-  useEffect(() => {
-    const carouselElement = carouselRef.current;
-    if (!carouselElement) return;
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowLeft') {
-        event.preventDefault();
-        handlePrevious();
-      } else if (event.key === 'ArrowRight') {
-        event.preventDefault();
-        handleNext();
-      }
-    };
-
-    carouselElement.addEventListener('keydown', handleKeyDown);
-    return () => carouselElement.removeEventListener('keydown', handleKeyDown);
-  }, [handlePrevious, handleNext]);
-
   const goToBlock = useCallback((index: number) => {
     if (externalIndex === undefined) {
       setInternalIndex(index);
@@ -74,7 +54,7 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
   }
 
   return (
-    <Box ref={carouselRef} tabIndex={0} sx={{ outline: 'none', '&:focus': { outline: 'none' } }}>
+    <Box>
       {/* Carousel Container */}
       <Box sx={{ position: 'relative', minHeight: '300px' }}>
         {/* Navigation Buttons */}
