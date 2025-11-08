@@ -25,12 +25,13 @@
     "@mui/icons-material": "^7.3.2",
     "@mui/material": "^7.3.4",
     "@mui/material-nextjs": "^7.3.3",
-    "@prisma/client": "6.18.0",
+    "@prisma/client": "^6.19.0",
     "bcryptjs": "^3.0.2",
     "joi": "^17.9.2",
     "jose": "^5.9.6",
     "next": "15.5.4",
     "next-auth": "^4.24.11",
+    "nodemailer": "^6.10.1",
     "openai": "^6.3.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -43,6 +44,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "3.3.1",
     "@types/node": "20.6.0",
+    "@types/nodemailer": "^7.0.3",
     "@types/react": "19.0.12",
     "@types/react-dom": "19.0.4",
     "@types/react-syntax-highlighter": "^15.5.13",
@@ -51,7 +53,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react-refresh": "^0.4.23",
-    "prisma": "6.18.0",
+    "prisma": "^6.19.0",
     "standard-version": "^9.5.0",
     "typescript": "5.9.2"
   }

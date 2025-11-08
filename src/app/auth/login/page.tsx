@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React, { Suspense, useState } from 'react';
 
 import { Box, Button, TextField, Typography } from '@mui/material';
+import { PasswordInput } from 'src/components/Form/base';
 
 function LoginForm() {
   const router = useRouter();
@@ -56,9 +57,8 @@ function LoginForm() {
           value={email}
           onChange={e => setEmail(e.target.value)}
         />
-        <TextField
+        <PasswordInput
           label="Пароль"
-          type="password"
           fullWidth
           margin="normal"
           value={password}
