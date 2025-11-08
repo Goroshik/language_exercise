@@ -1,22 +1,22 @@
 'use client';
 
 import {
-    Alert,
-    Box,
-    Button,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    Link,
-    TextField,
-    Typography,
-    useMediaQuery,
-    useTheme
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Link,
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
 import { showAlert } from 'src/utils/alert';
+import { PasswordInput } from './Form/base';
 
 interface SettingsModalProps {
   open: boolean;
@@ -167,12 +167,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
             securely.
           </Typography>
 
-          <TextField
+          <PasswordInput
             label="Gemini API Token"
             variant="outlined"
             fullWidth
             margin="normal"
-            type="password"
             value={tokens.gemini}
             onChange={e => handleTokenChange('gemini', e.target.value)}
             placeholder="Enter your Gemini API token"
@@ -199,12 +198,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
             }}
           />
 
-          <TextField
+          <PasswordInput
             label="OpenAI API Token"
             variant="outlined"
             fullWidth
             margin="normal"
-            type="password"
             value={tokens.openai}
             onChange={e => handleTokenChange('openai', e.target.value)}
             placeholder="Enter your OpenAI API token"
@@ -231,12 +229,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
             }}
           />
 
-          <TextField
+          <PasswordInput
             label="Anthropic API Token"
             variant="outlined"
             fullWidth
             margin="normal"
-            type="password"
             value={tokens.anthropic}
             onChange={e => handleTokenChange('anthropic', e.target.value)}
             placeholder="Enter your Anthropic API token"
@@ -263,12 +260,11 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
             }}
           />
 
-          <TextField
+          <PasswordInput
             label="DeepL API Token"
             variant="outlined"
             fullWidth
             margin="normal"
-            type="password"
             value={tokens.deepl}
             onChange={e => handleTokenChange('deepl', e.target.value)}
             placeholder="Enter your DeepL API token"

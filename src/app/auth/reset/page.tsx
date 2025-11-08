@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import React, { Suspense, useEffect, useState } from 'react';
 
-import { Box, Button, TextField, Typography, Alert, CircularProgress } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, TextField, Typography } from '@mui/material';
+import { PasswordInput } from 'src/components/Form/base';
 
 function ResetPasswordForm() {
   const [email, setEmail] = useState('');
@@ -171,9 +172,8 @@ function ResetPasswordForm() {
           <Typography variant="body2" color="text.secondary" mb={2}>
             Введите новый пароль для вашей учетной записи
           </Typography>
-          <TextField
+          <PasswordInput
             label="Новый пароль"
-            type="password"
             fullWidth
             margin="normal"
             value={newPassword}
@@ -181,9 +181,8 @@ function ResetPasswordForm() {
             required
             disabled={loading || success}
           />
-          <TextField
+          <PasswordInput
             label="Подтвердите пароль"
-            type="password"
             fullWidth
             margin="normal"
             value={confirmPassword}
