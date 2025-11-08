@@ -244,7 +244,7 @@ const Page: React.FC = () => {
       languageId: selectedLanguageId,
       level: selectedLevel,
       mode: selectedMode,
-      limit: 5
+      limit: sentenceCount
     });
   };
 
