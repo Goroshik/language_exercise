@@ -340,7 +340,6 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
             className={`exercise-input ${
               isValidated ? (isCorrect ? 'exercise-input-correct' : 'exercise-input-incorrect') : ''
             }`}
-            sx={{ paddingRight: '140px' }}
           />
 
           <Stack
