@@ -19,7 +19,7 @@ interface WordSelectorProps {
   customTopic?: string;
   onTopicChange?: (topic: string) => void;
   sentenceCount?: number;
-  onSentenceCountChange?: (count: number | undefined) => void;
+  onSentenceCountChange?: (count: number) => void;
   mode?: 'student' | 'teacher';
 }
 
@@ -30,8 +30,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   customTopic = '',
   onTopicChange,
   sentenceCount,
-  onSentenceCountChange,
-  mode = 'student'
+  onSentenceCountChange
 }) => {
   const [filterText, setFilterText] = useState('');
   const [words, setWords] = useState<DictionaryWord[]>([]);
@@ -381,15 +380,9 @@ const WordSelector: React.FC<WordSelectorProps> = ({
           size="small"
           type="number"
           label="Количество предложений"
-          value={sentenceCount ?? (mode === 'student' ? 5 : 10)}
+          value={sentenceCount ?? 5}
           onChange={e => {
-            const inputValue = e.target.value;
-            if (inputValue === '') {
-              // Reset to default when cleared
-              onSentenceCountChange?.(undefined);
-              return;
-            }
-            const value = parseInt(inputValue, 10);
+            const value = parseInt(e.target.value, 10);
             if (!isNaN(value) && value >= 1 && value <= 20) {
               onSentenceCountChange?.(value);
             }
