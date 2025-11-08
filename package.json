@@ -25,6 +25,7 @@
     "@mui/icons-material": "^7.3.2",
     "@mui/material": "^7.3.4",
     "@mui/material-nextjs": "^7.3.3",
+    "@octokit/rest": "^22.0.1",
     "@prisma/client": "^6.19.0",
     "bcryptjs": "^3.0.2",
     "joi": "^17.9.2",
