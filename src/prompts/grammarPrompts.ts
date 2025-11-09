@@ -18,7 +18,11 @@ IMPORTANT REQUIREMENTS:
 1. Each sentence must be complete and grammatically correct
 2. ONE key word should be highlighted with **word** - this word should be in the CORRECT grammatical form (NOT base form)
 3. The highlighted word demonstrates the grammar topic being practiced
-4. The word MUST be wrapped like this: **word** (with asterisks on BOTH sides, not word**)
+4. CRITICAL FORMATTING: The word MUST be wrapped EXACTLY like this: **word** 
+   - Opening **: BEFORE the entire word
+   - Closing **: AFTER the entire word
+   - WRONG: **Książ**ka** or Książ**ka** or **wor**d**
+   - CORRECT: **Książka** or **word**
 5. MANDATORY: Add a hint in parentheses after EVERY sentence where the highlighted word is NOT an article/wh-word/pronoun/preposition:
    - For ALL verbs: add the infinitive + any important context words (adverbs, negations) from the sentence
    - For complex verb forms (have been, has done, will go): highlight the ENTIRE verb form including auxiliaries
