@@ -28,8 +28,9 @@ interface ParsedExerciseContent {
 }
 
 const PLACEHOLDER_REGEX = /\{\{input\}\}/gi;
-// Pattern for bold markdown format (e.g., **word**)
-const BOLD_PATTERN = /\*\*(.*?)\*\*/g;
+// Pattern for bold markdown format (e.g., **word** or **multiple words**)
+// Matches ** followed by any content (including spaces) until closing **
+const BOLD_PATTERN = /\*\*([^*]+)\*\*/g;
 
 const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
   displaySentence: '',

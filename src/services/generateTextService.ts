@@ -55,6 +55,15 @@ export function formatAIResponse(text: string): string[] {
     .map(line => {
       // Fix malformed bold formatting where word comes before closing **
       // e.g., "Kto** przyszedł" -> "**Kto** przyszedł"
+      // But DON'T touch correctly formatted multi-word phrases like **have been**
+      
+      // First check if line has properly formatted bold with multiple words
+      const hasProperMultiWordBold = /\*\*[^*]+\s+[^*]+\*\*/.test(line);
+      if (hasProperMultiWordBold) {
+        // Don't apply fix if we have proper multi-word bold formatting
+        return line;
+      }
+      
       // Look for pattern: word** (without opening **)
       return line.replace(/(\w+)\*\*/g, (match, word) => {
         // Check if this word already has ** before it
@@ -105,6 +114,8 @@ export async function processGenerateTextRequest(
     let rawResult: unknown;
     try {
       rawResult = await aiService.generateText(prompt, userId);
+
+      console.log(rawResult)
     } catch (err) {
       if (err instanceof Error && err.message.includes('No token found')) {
         return { status: 402, body: { error: 'AI service token not configured for user' } };
