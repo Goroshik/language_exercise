@@ -12,12 +12,14 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('query') || '';
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
 
     // Get user's learning language from settings
     const userSettings = await userSettingsRepository.findByUserId(userId);
     const languageCode = userSettings?.learningLanguage || undefined;
 
-    const words = await searchWordsService(userId, query, languageCode);
+    const words = await searchWordsService(userId, query, languageCode, limit);
     return NextResponse.json({ success: true, words });
   } catch (_error) {
     return NextResponse.json(
