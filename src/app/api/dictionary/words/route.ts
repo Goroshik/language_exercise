@@ -13,17 +13,19 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const query = searchParams.get('query') || '';
     const limitParam = searchParams.get('limit');
+    const pageParam = searchParams.get('page');
     const limit = limitParam ? parseInt(limitParam, 10) : undefined;
+    const page = pageParam ? parseInt(pageParam, 10) : undefined;
 
     // Get user's learning language from settings
     const userSettings = await userSettingsRepository.findByUserId(userId);
     const languageCode = userSettings?.learningLanguage || undefined;
 
-    const words = await searchWordsService(userId, query, languageCode, limit);
-    return NextResponse.json({ success: true, words });
+    const result = await searchWordsService(userId, query, languageCode, limit, page);
+    return NextResponse.json({ success: true, ...result });
   } catch (_error) {
     return NextResponse.json(
-      { success: false, error: 'Failed to load words', words: [] },
+      { success: false, error: 'Failed to load words', words: [], total: 0 },
       { status: 500 }
     );
   }

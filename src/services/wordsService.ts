@@ -4,9 +4,10 @@ export async function searchWordsService(
   userId: string, 
   query: string, 
   languageCode?: string,
-  limit?: number
+  limit?: number,
+  page?: number
 ) {
-  return wordRepository.searchWords(userId, query, languageCode, limit);
+  return wordRepository.searchWords(userId, query, languageCode, limit, page);
 }
 
 export async function addManyWordService(
