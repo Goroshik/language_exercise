@@ -19,7 +19,7 @@ export class WordRepository {
     return this.client.delete({ where: { id } });
   }
 
-  async searchWords(userId: string, query: string, languageCode?: string) {
+  async searchWords(userId: string, query: string, languageCode?: string, limit?: number) {
     // TODO: Fix types - create proper Prisma where clause type instead of using any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
@@ -38,7 +38,17 @@ export class WordRepository {
       ];
     }
 
-    return this.client.findMany({ where, orderBy: { createdAt: 'desc' } });
+    const findOptions = {
+      where,
+      orderBy: { createdAt: 'desc' as const }
+    };
+
+    // Add limit only if specified
+    if (limit !== undefined) {
+      return this.client.findMany({ ...findOptions, take: limit });
+    }
+
+    return this.client.findMany(findOptions);
   }
 
   async addWord(

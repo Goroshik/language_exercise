@@ -1,7 +1,12 @@
 import { wordRepository } from 'src/repository/client';
 
-export async function searchWordsService(userId: string, query: string, languageCode?: string) {
-  return wordRepository.searchWords(userId, query, languageCode);
+export async function searchWordsService(
+  userId: string, 
+  query: string, 
+  languageCode?: string,
+  limit?: number
+) {
+  return wordRepository.searchWords(userId, query, languageCode, limit);
 }
 
 export async function addManyWordService(

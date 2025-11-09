@@ -2,13 +2,16 @@ import {
   Box,
   Checkbox,
   Chip,
+  CircularProgress,
   FormControlLabel,
+  InputAdornment,
   Paper,
   Stack,
   TextField,
   Typography
 } from '@mui/material';
 import React, { useEffect, useState } from 'react';
+import { useDebounce } from 'src/hooks/useDebounce';
 import { DictionaryWord } from 'src/types';
 import { showAlert } from 'src/utils/alert';
 
@@ -37,14 +40,35 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   const [allTags, setAllTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Debounce search query for server requests
+  const debouncedSearchQuery = useDebounce(filterText, 300);
 
+  // Load initial words on mount (limited to 20)
   useEffect(() => {
-    loadWords();
+    loadWords('', 20);
   }, []);
 
-  const loadWords = async () => {
+  // Load words when debounced search query changes
+  useEffect(() => {
+    if (isInitialized) {
+      // When searching, don't limit results
+      loadWords(debouncedSearchQuery, debouncedSearchQuery.trim() ? undefined : 20);
+    }
+  }, [debouncedSearchQuery]);
+
+  const loadWords = async (query: string, limit?: number) => {
     try {
-      const response = await fetch('/api/dictionary/words');
+      setIsSearching(true);
+      const params = new URLSearchParams();
+      if (query) params.append('query', query);
+      if (limit) params.append('limit', limit.toString());
+      
+      const url = params.toString() 
+        ? `/api/dictionary/words?${params.toString()}`
+        : '/api/dictionary/words';
+      const response = await fetch(url);
       const data = await response.json();
 
       if (data.success) {
@@ -59,25 +83,12 @@ const WordSelector: React.FC<WordSelectorProps> = ({
     } catch (_error) {
       showAlert.error('Failed to load words');
       setIsInitialized(true);
+    } finally {
+      setIsSearching(false);
     }
   };
 
   // Теги вычисляются из загруженных слов, отдельный запрос не нужен
-
-  const getFilteredWords = (searchQuery: string = '') => {
-    return words.filter(word => {
-      // Filter by tags
-      const matchesTags = selectedTags.length === 0;
-
-      // Filter by search query
-      const matchesSearch =
-        searchQuery === '' ||
-        word.word.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        word.translate.toLowerCase().includes(searchQuery.toLowerCase());
-
-      return matchesTags && matchesSearch;
-    });
-  };
 
   const handleWordToggle = (word: DictionaryWord) => {
     const currentIndex = selectedWords.indexOf(word);
@@ -113,259 +124,43 @@ const WordSelector: React.FC<WordSelectorProps> = ({
     setSelectedTags([]);
   };
 
-  // NOTE: Get filtered dictionary words based on search text
-  const filteredWords = getFilteredWords(filterText);
-
-  // NOTE: Split words into selected and unselected groups
+  // NOTE: Words from server are already filtered by search query
+  // Split into selected and unselected groups
   // Selected words always appear at the top, regardless of search
   const selectedWordsList = selectedWords.filter(
-    word => words.some(w => w.id === word.id) // Ensure selected words are still in the dictionary
+    word => words.some(w => w.id === word.id) || filterText.trim() === '' // Keep selected words visible even if not in search results
   );
-  const unselectedWords = filteredWords.filter(word => !selectedWords.some(w => w.id === word.id));
+  const unselectedWords = words.filter(word => !selectedWords.some(w => w.id === word.id));
 
-  // Combine: selected words first, then unselected filtered words
+  // Combine for display count check
   const displayWords = [...selectedWordsList, ...unselectedWords];
 
   return (
-    <Paper
+    <Box
       sx={{
-        p: 3,
-        maxHeight: { xs: 'none', md: 'calc(100vh - 200px)' },
-        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        height: { xs: 'auto', md: 'calc(100vh - 200px)' },
         width: '100%',
-        backgroundColor: '#fafafa'
+        gap: 2
       }}
     >
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        Выберите слова ({selectedWords.length}/{maxWords})
-      </Typography>
-
-      {/* NOTE: Tag filtering section */}
-      {allTags.length > 0 && (
-        <Box sx={{ mb: 2 }}>
-          <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
-            Фильтр по тегам:
-          </Typography>
-          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-            {allTags.map(tag => (
-              <Chip
-                key={tag}
-                label={tag}
-                onClick={() => handleTagToggle(tag)}
-                color={selectedTags.includes(tag) ? 'primary' : 'default'}
-                variant={selectedTags.includes(tag) ? 'filled' : 'outlined'}
-                size="small"
-                sx={{
-                  '&:hover': {
-                    backgroundColor: selectedTags.includes(tag) ? 'primary.dark' : 'action.hover'
-                  }
-                }}
-              />
-            ))}
-            {selectedTags.length > 0 && (
-              <Chip
-                label="Очистить фильтры"
-                onClick={handleClearFilters}
-                variant="outlined"
-                size="small"
-                color="secondary"
-                sx={{ ml: 1 }}
-              />
-            )}
-          </Stack>
-        </Box>
-      )}
-
-      <TextField
-        fullWidth
-        size="small"
-        placeholder="Поиск слов..."
-        value={filterText}
-        onChange={e => setFilterText(e.target.value)}
-        sx={{ mb: 2 }}
-      />
-
-      {/* NOTE: Display filtered dictionary words */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-        {/* Selected words section */}
-        {selectedWordsList.length > 0 && (
-          <>
-            <Typography
-              variant="caption"
-              sx={{
-                px: 2,
-                py: 1,
-                color: 'primary.main',
-                fontWeight: 600,
-                backgroundColor: 'rgba(25, 118, 210, 0.08)',
-                borderRadius: 1,
-                mb: 1
-              }}
-            >
-              Выбранные слова ({selectedWordsList.length})
-            </Typography>
-            {selectedWordsList.map((dictionaryWord, index) => (
-              <Box key={dictionaryWord.id}>
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={true}
-                      onChange={() => handleWordToggle(dictionaryWord)}
-                      color="primary"
-                    />
-                  }
-                  label={
-                    <Box sx={{ display: 'flex', flexDirection: 'column', py: 1 }}>
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          fontWeight: 600,
-                          fontSize: '1rem',
-                          color: 'primary.main',
-                          lineHeight: 1.2
-                        }}
-                      >
-                        {dictionaryWord.word}
-                      </Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontSize: '0.9rem',
-                          color: 'text.secondary',
-                          fontStyle: 'italic',
-                          mt: 0.5
-                        }}
-                      >
-                        {dictionaryWord.translate}
-                      </Typography>
-                    </Box>
-                  }
-                  sx={{
-                    margin: 0,
-                    width: '100%',
-                    py: 1,
-                    backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(25, 118, 210, 0.08)'
-                    }
-                  }}
-                />
-                {index < selectedWordsList.length - 1 && (
-                  <Box
-                    sx={{
-                      height: '1px',
-                      backgroundColor: 'divider',
-                      mx: 2,
-                      opacity: 0.3
-                    }}
-                  />
-                )}
-              </Box>
-            ))}
-
-            {/* Separator between selected and unselected */}
-            {unselectedWords.length > 0 && (
-              <Box sx={{ my: 2, px: 2 }}>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: 'text.secondary',
-                    display: 'block',
-                    mb: 1
-                  }}
-                >
-                  Доступные слова
-                </Typography>
-                <Box
-                  sx={{
-                    height: '2px',
-                    backgroundColor: 'divider',
-                    opacity: 0.5
-                  }}
-                />
-              </Box>
-            )}
-          </>
-        )}
-
-        {/* Unselected words section */}
-        {unselectedWords.map((dictionaryWord, index) => (
-          <Box key={dictionaryWord.id}>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={false}
-                  onChange={() => handleWordToggle(dictionaryWord)}
-                  disabled={isWordDisabled(dictionaryWord.word)}
-                  color="primary"
-                />
-              }
-              label={
-                <Box sx={{ display: 'flex', flexDirection: 'column', py: 1 }}>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '1rem',
-                      color: 'primary.main',
-                      lineHeight: 1.2
-                    }}
-                  >
-                    {dictionaryWord.word}
-                  </Typography>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontSize: '0.9rem',
-                      color: 'text.secondary',
-                      fontStyle: 'italic',
-                      mt: 0.5
-                    }}
-                  >
-                    {dictionaryWord.translate}
-                  </Typography>
-                </Box>
-              }
-              sx={{
-                margin: 0,
-                width: '100%',
-                py: 1,
-                '&:hover': {
-                  backgroundColor: 'rgba(0, 0, 0, 0.04)'
-                }
-              }}
-            />
-            {index < unselectedWords.length - 1 && (
-              <Box
-                sx={{
-                  height: '1px',
-                  backgroundColor: 'divider',
-                  mx: 2,
-                  opacity: 0.3
-                }}
-              />
-            )}
-          </Box>
-        ))}
-      </Box>
-
-      {/* NOTE: Show message when no words found */}
-      {displayWords.length === 0 && isInitialized && (
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          {words.length === 0 ? 'Словарь пуст' : 'Слова не найдены'}
-        </Typography>
-      )}
-
-      {/* NOTE: Custom topic and sentence count section */}
-      <Box sx={{ mt: 3, pt: 3, borderTop: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-          Дополнительные настройки
+      {/* NOTE: Settings section - fixed height, no scroll */}
+      <Paper
+        sx={{
+          p: 3,
+          backgroundColor: '#fafafa',
+          flexShrink: 0
+        }}
+      >
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+          Настройки генерации
         </Typography>
 
         <TextField
           fullWidth
           size="small"
-          label="Тема (необязательно)"
+          label="Препромпт (необязательно)"
           placeholder="Например: визит к доктору, поездка заграницу, в ресторане..."
           value={customTopic}
           onChange={e => onTopicChange?.(e.target.value)}
@@ -390,8 +185,249 @@ const WordSelector: React.FC<WordSelectorProps> = ({
           inputProps={{ min: 1, max: 20 }}
           helperText="От 1 до 20 предложений"
         />
-      </Box>
-    </Paper>
+      </Paper>
+
+      {/* NOTE: Word selection section - scrollable */}
+      <Paper
+        sx={{
+          p: 3,
+          backgroundColor: '#fafafa',
+          flex: 1,
+          overflowY: 'auto',
+          minHeight: 0
+        }}
+      >
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          Выберите слова ({selectedWords.length}/{maxWords})
+        </Typography>
+
+        {/* NOTE: Tag filtering section */}
+        {allTags.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
+              Фильтр по тегам:
+            </Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              {allTags.map(tag => (
+                <Chip
+                  key={tag}
+                  label={tag}
+                  onClick={() => handleTagToggle(tag)}
+                  color={selectedTags.includes(tag) ? 'primary' : 'default'}
+                  variant={selectedTags.includes(tag) ? 'filled' : 'outlined'}
+                  size="small"
+                  sx={{
+                    '&:hover': {
+                      backgroundColor: selectedTags.includes(tag) ? 'primary.dark' : 'action.hover'
+                    }
+                  }}
+                />
+              ))}
+              {selectedTags.length > 0 && (
+                <Chip
+                  label="Очистить фильтры"
+                  onClick={handleClearFilters}
+                  variant="outlined"
+                  size="small"
+                  color="secondary"
+                  sx={{ ml: 1 }}
+                />
+              )}
+            </Stack>
+          </Box>
+        )}
+
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Поиск слов..."
+          value={filterText}
+          onChange={e => setFilterText(e.target.value)}
+          sx={{ mb: 2 }}
+          InputProps={{
+            endAdornment: isSearching ? (
+              <InputAdornment position="end">
+                <CircularProgress size={20} />
+              </InputAdornment>
+            ) : null
+          }}
+        />
+
+        {/* NOTE: Display filtered dictionary words - limited to 20 visible without search */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+          {/* Selected words section */}
+          {selectedWordsList.length > 0 && (
+            <>
+              <Typography
+                variant="caption"
+                sx={{
+                  px: 2,
+                  py: 1,
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                  borderRadius: 1,
+                  mb: 1
+                }}
+              >
+                Выбранные слова ({selectedWordsList.length})
+              </Typography>
+              {selectedWordsList.map((dictionaryWord, index) => (
+                <Box key={dictionaryWord.id}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={true}
+                        onChange={() => handleWordToggle(dictionaryWord)}
+                        color="primary"
+                      />
+                    }
+                    label={
+                      <Box sx={{ display: 'flex', flexDirection: 'column', py: 1 }}>
+                        <Typography
+                          variant="body1"
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '1rem',
+                            color: 'primary.main',
+                            lineHeight: 1.2
+                          }}
+                        >
+                          {dictionaryWord.word}
+                        </Typography>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            fontSize: '0.9rem',
+                            color: 'text.secondary',
+                            fontStyle: 'italic',
+                            mt: 0.5
+                          }}
+                        >
+                          {dictionaryWord.translate}
+                        </Typography>
+                      </Box>
+                    }
+                    sx={{
+                      margin: 0,
+                      width: '100%',
+                      py: 1,
+                      backgroundColor: 'rgba(25, 118, 210, 0.04)',
+                      '&:hover': {
+                        backgroundColor: 'rgba(25, 118, 210, 0.08)'
+                      }
+                    }}
+                  />
+                  {index < selectedWordsList.length - 1 && (
+                    <Box
+                      sx={{
+                        height: '1px',
+                        backgroundColor: 'divider',
+                        mx: 2,
+                        opacity: 0.3
+                      }}
+                    />
+                  )}
+                </Box>
+              ))}
+
+              {/* Separator between selected and unselected */}
+              {unselectedWords.length > 0 && (
+                <Box sx={{ my: 2, px: 2 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                      display: 'block',
+                      mb: 1
+                    }}
+                  >
+                    {filterText.trim() 
+                      ? 'Результаты поиска'
+                      : 'Доступные слова (показано до 20, используйте поиск для остальных)'
+                    }
+                  </Typography>
+                  <Box
+                    sx={{
+                      height: '2px',
+                      backgroundColor: 'divider',
+                      opacity: 0.5
+                    }}
+                  />
+                </Box>
+              )}
+            </>
+          )}
+
+          {/* Unselected words section - server already handles limiting */}
+          {unselectedWords.map((dictionaryWord, index) => (
+            <Box key={dictionaryWord.id}>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={false}
+                    onChange={() => handleWordToggle(dictionaryWord)}
+                    disabled={isWordDisabled(dictionaryWord.word)}
+                    color="primary"
+                  />
+                }
+                label={
+                  <Box sx={{ display: 'flex', flexDirection: 'column', py: 1 }}>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '1rem',
+                        color: 'primary.main',
+                        lineHeight: 1.2
+                      }}
+                    >
+                      {dictionaryWord.word}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontSize: '0.9rem',
+                        color: 'text.secondary',
+                        fontStyle: 'italic',
+                        mt: 0.5
+                      }}
+                    >
+                      {dictionaryWord.translate}
+                    </Typography>
+                  </Box>
+                }
+                sx={{
+                  margin: 0,
+                  width: '100%',
+                  py: 1,
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)'
+                  }
+                }}
+              />
+              {index < unselectedWords.length - 1 && (
+                <Box
+                  sx={{
+                    height: '1px',
+                    backgroundColor: 'divider',
+                    mx: 2,
+                    opacity: 0.3
+                  }}
+                />
+              )}
+            </Box>
+          ))}
+        </Box>
+
+        {/* NOTE: Show message when no words found */}
+        {displayWords.length === 0 && isInitialized && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+            {words.length === 0 ? 'Словарь пуст' : 'Слова не найдены'}
+          </Typography>
+        )}
+      </Paper>
+    </Box>
   );
 };
 
