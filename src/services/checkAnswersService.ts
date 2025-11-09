@@ -1,8 +1,10 @@
 import Joi from 'joi';
 
 import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
+import { languageRepository } from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
 import { formatAIResponse, ServiceResponse } from 'src/services/generateTextService';
+import { getUserSettingsService } from 'src/services/userSettingsService';
 import { CheckAnswerItem } from 'src/types';
 
 interface CheckAnswersRequest {
@@ -32,7 +34,16 @@ export async function processCheckAnswersRequest(
       return { status: 400, body: { error: messages.join('; ') } };
     }
 
-    const { topic, sentences, languageName = 'English' } = value as CheckAnswersRequest;
+    const { topic, sentences } = value as CheckAnswersRequest;
+    let { languageName } = value as CheckAnswersRequest;
+
+    // Получаем название языка из настроек пользователя, если не передано
+    if (!languageName) {
+      const userSettings = await getUserSettingsService(userId);
+      const learningLanguageCode = userSettings.learningLanguage || 'en';
+      const language = await languageRepository.findByCode(learningLanguageCode);
+      languageName = language?.name || 'English';
+    }
 
     const aiService = await AIFactory.getAIService(userId);
     if (!aiService || typeof aiService.generateText !== 'function') {
