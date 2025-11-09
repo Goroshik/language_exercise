@@ -10,7 +10,7 @@ import {
   TextField,
   Typography
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useDebounce } from 'src/hooks/useDebounce';
 import { DictionaryWord } from 'src/types';
 import { showAlert } from 'src/utils/alert';
@@ -43,7 +43,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   const [isSearching, setIsSearching] = useState(false);
   
   // Debounce search query for server requests
-  const debouncedSearchQuery = useDebounce(filterText, 300);
+  const debouncedSearchQuery = useDebounce(filterText, 500);
 
   // Load initial words on mount (limited to 20)
   useEffect(() => {
@@ -90,7 +90,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
 
   // Теги вычисляются из загруженных слов, отдельный запрос не нужен
 
-  const handleWordToggle = (word: DictionaryWord) => {
+  const handleWordToggle = useCallback((word: DictionaryWord) => {
     const currentIndex = selectedWords.indexOf(word);
     const newSelectedWords = [...selectedWords];
 
@@ -105,24 +105,24 @@ const WordSelector: React.FC<WordSelectorProps> = ({
     }
 
     onWordsChange(newSelectedWords);
-  };
+  }, [selectedWords, maxWords, onWordsChange]);
 
-  const isWordDisabled = (wordText: string) => {
+  const isWordDisabled = useCallback((wordText: string) => {
     return selectedWords.length >= maxWords && !selectedWords.some(w => w.word === wordText);
-  };
+  }, [selectedWords, maxWords]);
 
   // NOTE: Handle tag selection for filtering
-  const handleTagToggle = (tag: string) => {
+  const handleTagToggle = useCallback((tag: string) => {
     const newSelectedTags = selectedTags.includes(tag)
       ? selectedTags.filter(t => t !== tag)
       : [...selectedTags, tag];
     setSelectedTags(newSelectedTags);
-  };
+  }, [selectedTags]);
 
   // NOTE: Clear all tag filters
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSelectedTags([]);
-  };
+  }, []);
 
   // NOTE: Words from server are already filtered by search query
   // Split into selected and unselected groups
