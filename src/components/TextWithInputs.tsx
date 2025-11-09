@@ -1,6 +1,6 @@
 import HistoryIcon from '@mui/icons-material/History';
 import { Box, Button, Stack, TextField, Typography } from '@mui/material';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTextSelection } from 'src/hooks/useTextSelection';
 import { useAlertStore } from 'src/store/alertStore';
@@ -188,14 +188,14 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
     }
   }, [sentenceId, savedAnswers]);
 
-  const handlePrefillClick = () => {
+  const handlePrefillClick = useCallback(() => {
     if (textareaValue.trim().length > 0 || !prefillSentence) {
       return;
     }
     setTextareaValue(prefillSentence);
-  };
+  }, [textareaValue, prefillSentence]);
 
-  const handleLoadPreviousAnswer = async () => {
+  const handleLoadPreviousAnswer = useCallback(async () => {
     if (!sentenceId || isLoadingPreviousAnswer) {
       return;
     }
@@ -220,39 +220,57 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
     } finally {
       setIsLoadingPreviousAnswer(false);
     }
-  };
+  }, [sentenceId, isLoadingPreviousAnswer, addAlert]);
 
-  const handleTextareaChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  // Use ref to track debounce timeout
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleTextareaChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = event.target.value;
     setTextareaValue(newValue);
     
-    // Update savedAnswers in store immediately for instant switching between blocks
-    if (sentenceId && typeof window !== 'undefined') {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const store = (window as any).__appStore;
-      if (store?.setState) {
-        const currentSavedAnswers = store.getState().savedAnswers;
-        store.setState({ savedAnswers: { ...currentSavedAnswers, [sentenceId]: newValue } });
-      }
+    // Clear previous timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
-  };
+    
+    // Update savedAnswers in store with debounce for instant switching between blocks
+    if (sentenceId && typeof window !== 'undefined') {
+      saveTimeoutRef.current = setTimeout(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const store = (window as any).__appStore;
+        if (store?.setState) {
+          const currentSavedAnswers = store.getState().savedAnswers;
+          store.setState({ savedAnswers: { ...currentSavedAnswers, [sentenceId]: newValue } });
+        }
+      }, 150); // Debounce 150ms to reduce store updates
+    }
+  }, [sentenceId]);
 
-  const handleTextareaBlur = () => {
-    // Save answer to store when textarea loses focus
+  const handleTextareaBlur = useCallback(() => {
+    // Clear any pending timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = null;
+    }
+    
+    // Save answer to store immediately when textarea loses focus
     if (sentenceId && textareaValue.trim() && typeof window !== 'undefined') {
-      // TODO: Fix types - properly type window.__appStore instead of using any
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const store = (window as any).__appStore;
-      if (store?.getState) {
+      if (store?.setState && store?.getState) {
+        const currentSavedAnswers = store.getState().savedAnswers;
+        store.setState({ savedAnswers: { ...currentSavedAnswers, [sentenceId]: textareaValue } });
+        
         const { saveAnswer } = store.getState();
         if (saveAnswer) {
           saveAnswer(sentenceId, textareaValue);
         }
       }
     }
-  };
+  }, [sentenceId, textareaValue]);
 
-  const handleTextDoubleClick = (event: React.MouseEvent) => {
+  const handleTextDoubleClick = useCallback((event: React.MouseEvent) => {
     if (typeof window === 'undefined') return;
 
     // Only handle actual double-click events, not single clicks
@@ -295,11 +313,11 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
         position
       });
     }
-  };
+  }, []);
 
-  const handleCloseDoubleClickTranslationPanel = () => {
+  const handleCloseDoubleClickTranslationPanel = useCallback(() => {
     setDoubleClickTranslationPanel(null);
-  };
+  }, []);
 
   const validationResult = validationResults[textareaId];
   const isValidated = Boolean(validationResult);

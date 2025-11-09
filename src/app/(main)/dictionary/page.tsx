@@ -21,7 +21,7 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import ImportWordsModal from 'src/components/ImportWordsModal';
 import { useDebounce } from 'src/hooks/useDebounce';
@@ -47,7 +47,7 @@ const DictionaryPage: React.FC = () => {
   const { settings, loadSettings } = useSettingsStore();
 
   // Debounce search query
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
+  const debouncedSearchQuery = useDebounce(searchQuery, 500);
 
   // Get display name for the learning language
   const getLanguageDisplayName = () => {
@@ -107,14 +107,14 @@ const DictionaryPage: React.FC = () => {
     }
   };
 
-  const handleSearchChange = (query: string) => {
+  const handleSearchChange = useCallback((query: string) => {
     setSearchQuery(query);
     setCurrentPage(1); // Reset to first page when searching
-  };
+  }, []);
 
-  const handlePageChange = (_event: React.ChangeEvent<unknown>, page: number) => {
+  const handlePageChange = useCallback((_event: React.ChangeEvent<unknown>, page: number) => {
     setCurrentPage(page);
-  };
+  }, []);
 
   // Calculate total pages from server data
   const totalPages = Math.ceil(totalWords / WORDS_PER_PAGE);

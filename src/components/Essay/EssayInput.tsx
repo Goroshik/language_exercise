@@ -11,7 +11,7 @@ interface EssayInputProps {
   onCheck: () => void;
 }
 
-export const EssayInput: React.FC<EssayInputProps> = ({
+const EssayInputComponent: React.FC<EssayInputProps> = ({
   content,
   wordCount,
   charCount,
@@ -48,3 +48,6 @@ export const EssayInput: React.FC<EssayInputProps> = ({
     </Box>
   );
 };
+
+// Memoize component to prevent unnecessary re-renders
+export const EssayInput = React.memo(EssayInputComponent);
