@@ -10,6 +10,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Container,
   InputAdornment,
   Pagination,
@@ -23,6 +24,7 @@ import {
 import React, { useEffect, useState } from 'react';
 
 import ImportWordsModal from 'src/components/ImportWordsModal';
+import { useDebounce } from 'src/hooks/useDebounce';
 import { useSettingsStore } from 'src/store/settingsStore';
 import { DictionaryWord } from 'src/types';
 import { showAlert } from 'src/utils/alert';
@@ -38,9 +40,14 @@ const DictionaryPage: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [words, setWords] = useState<DictionaryWord[]>([]);
+  const [totalWords, setTotalWords] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   const { settings, loadSettings } = useSettingsStore();
+
+  // Debounce search query
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
   // Get display name for the learning language
   const getLanguageDisplayName = () => {
@@ -62,11 +69,12 @@ const DictionaryPage: React.FC = () => {
 
   useEffect(() => {
     loadWords();
-  }, [searchQuery, settings?.learningLanguage]); // Reload when language changes
+  }, [debouncedSearchQuery, currentPage, settings?.learningLanguage]); // Reload when search, page, or language changes
 
   // Listen for language changes from header
   useEffect(() => {
     const handleLanguageChange = () => {
+      setCurrentPage(1); // Reset to first page
       loadWords();
     };
 
@@ -78,32 +86,38 @@ const DictionaryPage: React.FC = () => {
 
   const loadWords = async () => {
     try {
-      const url = `/api/dictionary/words${searchQuery ? `?query=${encodeURIComponent(searchQuery)}` : ''}`;
+      setIsLoading(true);
+      const params = new URLSearchParams();
+      if (debouncedSearchQuery) params.append('query', debouncedSearchQuery);
+      params.append('page', currentPage.toString());
+      params.append('limit', WORDS_PER_PAGE.toString());
+
+      const url = `/api/dictionary/words?${params.toString()}`;
       const response = await fetch(url);
       const data = await response.json();
 
       if (data.success) {
         setWords(data.words);
-        setCurrentPage(1); // Reset to first page when data changes
+        setTotalWords(data.total);
       }
     } catch (_error) {
       showAlert.error('Failed to load words');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleSearchChange = (query: string) => {
     setSearchQuery(query);
+    setCurrentPage(1); // Reset to first page when searching
   };
 
   const handlePageChange = (_event: React.ChangeEvent<unknown>, page: number) => {
     setCurrentPage(page);
   };
 
-  // Pagination logic
-  const totalPages = Math.ceil(words.length / WORDS_PER_PAGE);
-  const startIndex = (currentPage - 1) * WORDS_PER_PAGE;
-  const endIndex = startIndex + WORDS_PER_PAGE;
-  const paginatedWords = words.slice(startIndex, endIndex);
+  // Calculate total pages from server data
+  const totalPages = Math.ceil(totalWords / WORDS_PER_PAGE);
 
   return (
     <Container
@@ -140,7 +154,7 @@ const DictionaryPage: React.FC = () => {
             size={isMobile ? 'small' : 'medium'}
           />
           <Chip
-            label={`${words.length} ${words.length === 1 ? 'слово' : words.length < 5 ? 'слова' : 'слов'}`}
+            label={`${totalWords} ${totalWords === 1 ? 'слово' : totalWords < 5 ? 'слова' : 'слов'}`}
             size={isMobile ? 'small' : 'medium'}
             sx={{ fontWeight: 500 }}
           />
@@ -190,12 +204,21 @@ const DictionaryPage: React.FC = () => {
               <InputAdornment position="start">
                 <SearchIcon />
               </InputAdornment>
-            )
+            ),
+            endAdornment: isLoading ? (
+              <InputAdornment position="end">
+                <CircularProgress size={20} />
+              </InputAdornment>
+            ) : null
           }}
         />
       </Box>
 
-      {words.length === 0 ? (
+      {isLoading && words.length === 0 ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
+          <CircularProgress />
+        </Box>
+      ) : words.length === 0 ? (
         <Paper sx={{ p: { xs: 2, sm: 4 }, textAlign: 'center' }}>
           <LanguageIcon sx={{ fontSize: { xs: 36, sm: 48 }, color: 'text.secondary', mb: 2 }} />
           <Typography
@@ -244,7 +267,7 @@ const DictionaryPage: React.FC = () => {
               }
             }}
           >
-            {paginatedWords.map(word => (
+            {words.map(word => (
               <WordCard
                 key={word.id}
                 word={word}
