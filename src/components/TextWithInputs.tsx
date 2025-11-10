@@ -361,17 +361,18 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
               <Box
                 sx={{
                   display: 'flex',
-                  gap: 1,
-                  overflowX: 'auto',
-                  overflowY: 'hidden',
+                  flexDirection: 'column',
+                  gap: 0.5,
                   maxHeight: {
-                    xs: 'calc(3 * 32px + 2 * 8px)', // 3 rows on mobile (chip height + gap)
-                    sm: 'calc(5 * 32px + 4 * 8px)'  // 5 rows on desktop (chip height + gap)
+                    xs: 'calc(3 * (24px + 4px))', // 3 items on mobile (chip height + gap)
+                    sm: 'calc(5 * (24px + 4px))'  // 5 items on desktop (chip height + gap)
                   },
-                  flexWrap: 'wrap',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
                   pb: 0.5,
+                  pr: 0.5,
                   '&::-webkit-scrollbar': {
-                    height: '6px'
+                    width: '6px'
                   },
                   '&::-webkit-scrollbar-track': {
                     backgroundColor: 'rgba(0, 0, 0, 0.05)',
@@ -398,6 +399,7 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
                       color: '#1976d2',
                       fontWeight: 500,
                       cursor: 'text',
+                      justifyContent: 'flex-start',
                       '&:hover': {
                         backgroundColor: 'rgba(25, 118, 210, 0.12)'
                       }
