@@ -1,5 +1,5 @@
 import HistoryIcon from '@mui/icons-material/History';
-import { Box, Button, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Chip, Stack, TextField, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTextSelection } from 'src/hooks/useTextSelection';
@@ -351,12 +351,61 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
           ))}
 
           {hints.length > 0 && (
-            <Typography
-              variant="caption"
-              sx={{ color: '#777', whiteSpace: 'pre-wrap', cursor: 'text' }}
-            >
-              Подсказка: {hints.join(', ')}
-            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+              <Typography
+                variant="caption"
+                sx={{ color: '#777', fontWeight: 500 }}
+              >
+                Подсказка:
+              </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  overflowX: 'auto',
+                  overflowY: 'hidden',
+                  maxHeight: {
+                    xs: 'calc(3 * 32px + 2 * 8px)', // 3 rows on mobile (chip height + gap)
+                    sm: 'calc(5 * 32px + 4 * 8px)'  // 5 rows on desktop (chip height + gap)
+                  },
+                  flexWrap: 'wrap',
+                  pb: 0.5,
+                  '&::-webkit-scrollbar': {
+                    height: '6px'
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+                    borderRadius: '3px'
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                    borderRadius: '3px',
+                    '&:hover': {
+                      backgroundColor: 'rgba(0, 0, 0, 0.3)'
+                    }
+                  }
+                }}
+              >
+                {hints.map((hint, index) => (
+                  <Chip
+                    key={index}
+                    label={hint}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                      borderColor: 'rgba(25, 118, 210, 0.3)',
+                      color: '#1976d2',
+                      fontWeight: 500,
+                      cursor: 'text',
+                      '&:hover': {
+                        backgroundColor: 'rgba(25, 118, 210, 0.12)'
+                      }
+                    }}
+                  />
+                ))}
+              </Box>
+            </Box>
           )}
 
           {translation && (
