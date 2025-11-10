@@ -57,6 +57,7 @@ export function formatAIResponse(text: string): string[] {
       // 1. **word**word** -> **wordword** (nested closing tags)
       // 2. **wor**d** -> **word** (closing tag in middle of word)
       // 3. word** -> **word** (missing opening tag)
+      // 4. word*** or word**** -> **word** (multiple asterisks)
       
       // First, fix the most problematic case: **part**rest** -> **partrest**
       // This handles cases like **Książ**ka** -> **Książka**
@@ -66,8 +67,13 @@ export function formatAIResponse(text: string): string[] {
       // This catches any remaining ** that appear in the middle of words
       line = line.replace(/([^\s*])\*\*([^\s*]+)\*\*/g, '$1$2');
       
-      // Third, fix words that end with ** but don't have opening **
-      line = line.replace(/(\S+)\*\*/g, (match, word, offset) => {
+      // Third, normalize multiple asterisks (3 or more) to exactly 2
+      // This handles cases like word*** or word**** -> word**
+      line = line.replace(/([^\s*]+)\*{3,}/g, '$1**');
+      
+      // Fourth, fix words that end with ** but don't have opening **
+      // Use [^\s*]+ instead of \S+ to exclude asterisks from the captured word
+      line = line.replace(/([^\s*]+)\*\*/g, (match, word, offset) => {
         // Check if this already has proper opening **
         const before = line.substring(Math.max(0, offset - 2), offset);
         if (before === '**' || word.startsWith('**')) {
