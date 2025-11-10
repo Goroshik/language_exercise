@@ -53,34 +53,19 @@ export function formatAIResponse(text: string): string[] {
       return line.replace(/^(?:[\d]+[).\s]+|[-*]\s+)/, '');
     })
     .map(line => {
-      // Fix malformed bold formatting issues:
-      // 1. **word**word** -> **wordword** (nested closing tags)
-      // 2. **wor**d** -> **word** (closing tag in middle of word)
-      // 3. word** -> **word** (missing opening tag)
-      // 4. word*** or word**** -> **word** (multiple asterisks)
+      // Simplified approach: Find everything between ** and **
+      // First, normalize multiple asterisks (3+) to double asterisks
+      line = line.replace(/\*{3,}/g, '**');
       
-      // First, fix the most problematic case: **part**rest** -> **partrest**
-      // This handles cases like **Książ**ka** -> **Książka**
-      line = line.replace(/\*\*([^*\s]+)\*\*([^\s*]+)\*\*/g, '**$1$2**');
+      // Check if line already has valid **word** format
+      const boldPattern = /\*\*([^*]+)\*\*/g;
+      if (boldPattern.test(line)) {
+        // Already has valid format, return as is
+        return line;
+      }
       
-      // Second, fix standalone closing tags after partial words: part**rest** -> partrest
-      // This catches any remaining ** that appear in the middle of words
-      line = line.replace(/([^\s*])\*\*([^\s*]+)\*\*/g, '$1$2');
-      
-      // Third, normalize multiple asterisks (3 or more) to exactly 2
-      // This handles cases like word*** or word**** -> word**
-      line = line.replace(/([^\s*]+)\*{3,}/g, '$1**');
-      
-      // Fourth, fix words that end with ** but don't have opening **
-      // Use [^\s*]+ instead of \S+ to exclude asterisks from the captured word
-      line = line.replace(/([^\s*]+)\*\*/g, (match, word, offset) => {
-        // Check if this already has proper opening **
-        const before = line.substring(Math.max(0, offset - 2), offset);
-        if (before === '**' || word.startsWith('**')) {
-          return match; // Already properly formatted
-        }
-        return `**${word}**`;
-      });
+      // Fix simple case: word** -> **word**
+      line = line.replace(/([^\s*]+)\*\*/g, '**$1**');
       
       return line;
     });
