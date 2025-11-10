@@ -1,7 +1,7 @@
 import Joi from 'joi';
 
 import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
-import { languageRepository } from 'src/repository/client';
+import { languageRepository, wordRepository, wordUsageStatsRepository } from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
 import { formatAIResponse, ServiceResponse } from 'src/services/generateTextService';
 import { getUserSettingsService } from 'src/services/userSettingsService';
@@ -92,6 +92,61 @@ export async function processCheckAnswersRequest(
 
     const aiResults = formatAIResponse(text);
 
+    // Extract all words in base forms from AI responses for usage tracking
+    const allBaseWords: string[] = [];
+    aiResults.forEach(line => {
+      // Extract words from "WORDS: word1, word2, word3" section
+      if (line.includes('WORDS:')) {
+        const wordsSection = line.split('WORDS:')[1] || '';
+        // Remove any trailing text after the words list
+        const wordsPart = wordsSection.split('|')[0];
+        const words = wordsPart
+          .split(',')
+          .map(w => w.trim().toLowerCase())
+          .filter(Boolean);
+        allBaseWords.push(...words);
+      }
+    });
+
+    // Match base words with user's dictionary and increment usage counters
+    if (allBaseWords.length > 0) {
+      try {
+        // Get user settings to determine the learning language
+        const userSettings = await getUserSettingsService(userId);
+        const learningLanguageCode = userSettings.learningLanguage || 'en';
+
+        // Get all user's words in the learning language
+        const userWords = await wordRepository.getAllWords(userId, learningLanguageCode);
+        
+        // Create a map of base word -> word ID
+        const wordMap = new Map<string, string>();
+        userWords.forEach(word => {
+          // Store both the original word and its lowercase version for matching
+          wordMap.set(word.word.toLowerCase(), word.id);
+        });
+
+        // Find matching word IDs
+        const matchedWordIds = new Set<string>();
+        allBaseWords.forEach(baseWord => {
+          const wordId = wordMap.get(baseWord);
+          if (wordId) {
+            matchedWordIds.add(wordId);
+          }
+        });
+
+        // Increment usage counters for matched words
+        if (matchedWordIds.size > 0) {
+          await wordUsageStatsRepository.incrementUsageForWords(
+            userId,
+            Array.from(matchedWordIds)
+          );
+        }
+      } catch (trackingErr) {
+        // Log error but don't fail the request
+        console.error('Error tracking word usage:', trackingErr);
+      }
+    }
+
     // Вспомогательный парсер строки ответа AI в структурированный формат
     const parseLineToItem = (line: string): CheckAnswerItem => {
       const lower = line.toLowerCase();
@@ -114,7 +169,10 @@ export async function processCheckAnswersRequest(
       // Ошибки перевода
       if (line.includes('TRANSLATION_ERRORS:')) {
         const after = line.split('TRANSLATION_ERRORS:')[1] || '';
-        const list = after
+        // Extract text before WORDS: if present
+        const beforeWords = after.split('WORDS:')[0] || after;
+        const list = beforeWords
+          .split('|')[0]
           .split(/[,\n]/)
           .map(s => s.trim())
           .filter(Boolean);
