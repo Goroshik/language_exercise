@@ -64,39 +64,52 @@ Idę do **sklepu** po zakupy. (sklep)
 
   validateAnswers: (
     topic: string,
-    answersText: string,
+    exercisesJson: string,
     languageName: string = 'the target language'
   ) => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences that a student has written as answers to exercises. Topic: "${topic}".
 
-The student's answers:
-${answersText}
+The student's answers (as JSON array):
+${exercisesJson}
 
-For each sentence:
+For each exercise:
 1. Check if it's grammatically correct in the context of the topic "${topic}"
 2. Check if Russian translations (if provided in the sentence) are accurate
 3. Provide helpful feedback if there are errors
 
-Response format:
-- If everything is correct: "CORRECT"
-- If there are grammar errors: "ERROR: [clear explanation in Russian of what's wrong and how to fix it]"
-- If there are incorrect translations: "TRANSLATION_ERRORS: word1 - правильный перевод, word2 - правильный перевод"
+CRITICAL: You MUST respond with a valid JSON array. Each element must include the "id" from the input and validation results.
 
-You can combine both types of errors if needed:
-"ERROR: [grammar explanation] | TRANSLATION_ERRORS: word1 - правильный перевод"
+Response format (JSON array):
+[
+  {
+    "id": "exercise_id_from_input",
+    "isCorrect": true
+  },
+  {
+    "id": "exercise_id_from_input",
+    "isCorrect": false,
+    "grammarError": "объяснение ошибки и как её исправить"
+  },
+  {
+    "id": "exercise_id_from_input", 
+    "isCorrect": false,
+    "translationErrors": ["word1 - правильный перевод", "word2 - правильный перевод"]
+  },
+  {
+    "id": "exercise_id_from_input",
+    "isCorrect": false,
+    "grammarError": "грамматическая ошибка",
+    "translationErrors": ["word - перевод"]
+  }
+]
 
 IMPORTANT:
-- Number your responses (1., 2., 3., etc.) to match the sentence numbers
-- Be specific about the error and how to correct it
+- Return ONLY valid JSON, no additional text or explanations
+- Every result object MUST include the "id" field matching the input
+- The "id" field is critical for matching answers to exercises
+- If a sentence is empty, mark it with "isCorrect": true and "skipped": true
+- Be specific about errors and how to correct them
 - Consider the topic context when evaluating correctness
-- If a sentence has multiple errors, mention all of them
-- Check translations carefully - students may include Russian words/phrases in their answers
-
-Format your response as:
-1. CORRECT
-2. ERROR: объяснение ошибки и как её исправить
-3. TRANSLATION_ERRORS: word - правильный перевод
-4. ERROR: грамматическая ошибка | TRANSLATION_ERRORS: word - перевод
-etc.`,
+- Check translations carefully - students may include Russian words/phrases in their answers`,
 
   // For teacher mode - provide correct example sentences for learning/viewing
   generateTeacherExamples: (
