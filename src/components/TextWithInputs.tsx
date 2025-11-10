@@ -157,6 +157,9 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const [textareaValue, setTextareaValue] = useState('');
   const [doubleClickTranslationPanel, setDoubleClickTranslationPanel] =
     useState<TranslationPanelState | null>(null);
+  
+  // Ref for textarea to enable focus and selection
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get savedAnswers from store
   const savedAnswers = useAppStore(state => state.savedAnswers);
@@ -193,6 +196,20 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
       return;
     }
     setTextareaValue(prefillSentence);
+    
+    // Focus and select the first blank (_____)
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        
+        // Find the first occurrence of _____
+        const blankIndex = prefillSentence.indexOf('_____');
+        if (blankIndex !== -1) {
+          // Select the blank
+          textareaRef.current.setSelectionRange(blankIndex, blankIndex + 5);
+        }
+      }
+    }, 0);
   }, [textareaValue, prefillSentence]);
 
   const handleLoadPreviousAnswer = useCallback(async () => {
@@ -380,6 +397,7 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
             onChange={handleTextareaChange}
             onBlur={handleTextareaBlur}
             placeholder="Введите ваш ответ здесь..."
+            inputRef={textareaRef}
             className={`exercise-input ${
               isValidated ? (isCorrect ? 'exercise-input-correct' : 'exercise-input-incorrect') : ''
             }`}
