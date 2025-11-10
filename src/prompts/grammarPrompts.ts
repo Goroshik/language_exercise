@@ -66,19 +66,19 @@ Idę do **sklepu** po zakupy. (sklep)
     topic: string,
     exercisesJson: string,
     languageName: string = 'the target language'
-  ) => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences that a student has written as answers to exercises. Topic: "${topic}".
+  ) => `Pomagasz rosyjskojęzycznemu użytkownikowi uczyć się ${languageName}. Sprawdź te zdania w języku ${languageName}, które uczeń napisał jako odpowiedzi do ćwiczeń. Temat: "${topic}".
 
-The student's answers (as JSON array):
+Odpowiedzi ucznia (jako tablica JSON):
 ${exercisesJson}
 
-For each exercise:
-1. Check if it's grammatically correct in the context of the topic "${topic}"
-2. Check if Russian translations (if provided in the sentence) are accurate
-3. Provide helpful feedback if there are errors
+Dla każdego ćwiczenia:
+1. Sprawdź, czy jest poprawne gramatycznie w kontekście tematu "${topic}"
+2. Sprawdź, czy rosyjskie tłumaczenia (jeśli są podane w zdaniu) są dokładne
+3. Podaj pomocną informację zwrotną, jeśli są błędy
 
-CRITICAL: You MUST respond with a valid JSON array. Each element must include the "id" from the input and validation results.
+KRYTYCZNE: MUSISZ odpowiedzieć poprawną tablicą JSON. Każdy element musi zawierać "id" z danych wejściowych i wyniki walidacji.
 
-Response format (JSON array):
+Format odpowiedzi (tablica JSON):
 [
   {
     "id": "exercise_id_from_input",
@@ -87,29 +87,31 @@ Response format (JSON array):
   {
     "id": "exercise_id_from_input",
     "isCorrect": false,
-    "grammarError": "объяснение ошибки и как её исправить"
+    "grammarError": "wyjaśnienie błędu i jak go poprawić"
   },
   {
     "id": "exercise_id_from_input", 
     "isCorrect": false,
-    "translationErrors": ["word1 - правильный перевод", "word2 - правильный перевод"]
+    "translationErrors": ["oryginalneSłowo1 - prawidłowe tłumaczenie", "oryginalneSłowo2 - prawidłowe tłumaczenie"]
   },
   {
     "id": "exercise_id_from_input",
     "isCorrect": false,
-    "grammarError": "грамматическая ошибка",
-    "translationErrors": ["word - перевод"]
+    "grammarError": "błąd gramatyczny",
+    "translationErrors": ["oryginalneSłowo - prawidłowe tłumaczenie"]
   }
 ]
 
-IMPORTANT:
-- Return ONLY valid JSON, no additional text or explanations
-- Every result object MUST include the "id" field matching the input
-- The "id" field is critical for matching answers to exercises
-- If a sentence is empty, mark it with "isCorrect": true and "skipped": true
-- Be specific about errors and how to correct them
-- Consider the topic context when evaluating correctness
-- Check translations carefully - students may include Russian words/phrases in their answers`,
+WAŻNE:
+- Zwróć TYLKO poprawny JSON, bez dodatkowego tekstu ani wyjaśnień
+- Każdy obiekt wyniku MUSI zawierać pole "id" pasujące do danych wejściowych
+- Pole "id" jest kluczowe dla dopasowania odpowiedzi do ćwiczeń
+- Jeśli zdanie jest puste, oznacz je "isCorrect": true i "skipped": true
+- Bądź konkretny w kwestii błędów i sposobu ich poprawy
+- Uwzględnij kontekst tematu przy ocenie poprawności
+- Sprawdzając tłumaczenia, użyj DOKŁADNEJ formy słowa ze zdania ucznia w translationErrors
+- Format dla translationErrors: ["oryginalneSłowo - prawidłowe tłumaczenie"] gdzie oryginalneSłowo to dokładne słowo napisane przez ucznia
+- Przykład: Jeśli uczeń napisał "Potrzebuję pięciu jabłek" → translationErrors: ["Potrzebuję - Мне нужно", "pięciu - пять", "jabłek - яблок"]`,
 
   // For teacher mode - provide correct example sentences for learning/viewing
   generateTeacherExamples: (
