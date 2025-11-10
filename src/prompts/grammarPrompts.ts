@@ -87,18 +87,18 @@ Format odpowiedzi (tablica JSON):
   {
     "id": "exercise_id_from_input",
     "isCorrect": false,
-    "grammarError": "wyjaśnienie błędu i jak go poprawić"
+    "grammarError": "объяснение ошибки и как её исправить (НА РУССКОМ ЯЗЫКЕ)"
   },
   {
     "id": "exercise_id_from_input", 
     "isCorrect": false,
-    "translationErrors": ["oryginalneSłowo1 - prawidłowe tłumaczenie", "oryginalneSłowo2 - prawidłowe tłumaczenie"]
+    "translationErrors": ["oryginalneSłowo1 - правильный перевод НА РУССКОМ", "oryginalneSłowo2 - правильный перевод НА РУССКОМ"]
   },
   {
     "id": "exercise_id_from_input",
     "isCorrect": false,
-    "grammarError": "błąd gramatyczny",
-    "translationErrors": ["oryginalneSłowo - prawidłowe tłumaczenie"]
+    "grammarError": "грамматическая ошибка (НА РУССКОМ ЯЗЫКЕ)",
+    "translationErrors": ["oryginalneSłowo - правильный перевод НА РУССКОМ"]
   }
 ]
 
@@ -109,8 +109,10 @@ WAŻNE:
 - Jeśli zdanie jest puste, oznacz je "isCorrect": true i "skipped": true
 - Bądź konkretny w kwestii błędów i sposobu ich poprawy
 - Uwzględnij kontekst tematu przy ocenie poprawności
+- WSZYSTKIE komunikaty błędów (grammarError) MUSZĄ być napisane PO ROSYJSKU
+- WSZYSTKIE tłumaczenia (translationErrors) MUSZĄ być podane PO ROSYJSKU
 - Sprawdzając tłumaczenia, użyj DOKŁADNEJ formy słowa ze zdania ucznia w translationErrors
-- Format dla translationErrors: ["oryginalneSłowo - prawidłowe tłumaczenie"] gdzie oryginalneSłowo to dokładne słowo napisane przez ucznia
+- Format dla translationErrors: ["oryginalneSłowo - правильный перевод НА РУССКОМ"] gdzie oryginalneSłowo to dokładne słowo napisane przez ucznia
 - Przykład: Jeśli uczeń napisał "Potrzebuję pięciu jabłek" → translationErrors: ["Potrzebuję - Мне нужно", "pięciu - пять", "jabłek - яблок"]`,
 
   // For teacher mode - provide correct example sentences for learning/viewing
