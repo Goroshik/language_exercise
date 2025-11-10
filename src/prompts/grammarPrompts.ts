@@ -75,14 +75,15 @@ For each sentence:
 1. Check if it's grammatically correct in the context of the topic "${topic}"
 2. Check if Russian translations (if provided in the sentence) are accurate
 3. Provide helpful feedback if there are errors
+4. Extract and list ALL words from the sentence in their BASE FORMS (infinitive for verbs, nominative singular for nouns, base form for adjectives)
 
 Response format:
-- If everything is correct: "CORRECT"
-- If there are grammar errors: "ERROR: [clear explanation in Russian of what's wrong and how to fix it]"
-- If there are incorrect translations: "TRANSLATION_ERRORS: word1 - правильный перевод, word2 - правильный перевод"
+- If everything is correct: "CORRECT | WORDS: word1, word2, word3"
+- If there are grammar errors: "ERROR: [clear explanation in Russian of what's wrong and how to fix it] | WORDS: word1, word2, word3"
+- If there are incorrect translations: "TRANSLATION_ERRORS: word1 - правильный перевод, word2 - правильный перевод | WORDS: word1, word2, word3"
 
 You can combine both types of errors if needed:
-"ERROR: [grammar explanation] | TRANSLATION_ERRORS: word1 - правильный перевод"
+"ERROR: [grammar explanation] | TRANSLATION_ERRORS: word1 - правильный перевод | WORDS: word1, word2, word3"
 
 IMPORTANT:
 - Number your responses (1., 2., 3., etc.) to match the sentence numbers
@@ -90,12 +91,15 @@ IMPORTANT:
 - Consider the topic context when evaluating correctness
 - If a sentence has multiple errors, mention all of them
 - Check translations carefully - students may include Russian words/phrases in their answers
+- ALWAYS include "WORDS:" section with all words from the sentence in their base forms (separated by commas)
+- For base forms: use infinitive for verbs (e.g., "go" not "went"), nominative for nouns, base form for adjectives
+- Include common words like articles (a, the), pronouns (I, you, he), prepositions (in, on, at) in the WORDS list
 
 Format your response as:
-1. CORRECT
-2. ERROR: объяснение ошибки и как её исправить
-3. TRANSLATION_ERRORS: word - правильный перевод
-4. ERROR: грамматическая ошибка | TRANSLATION_ERRORS: word - перевод
+1. CORRECT | WORDS: go, to, store
+2. ERROR: объяснение ошибки и как её исправить | WORDS: visit, many, country, last, summer
+3. TRANSLATION_ERRORS: word - правильный перевод | WORDS: word1, word2
+4. ERROR: грамматическая ошибка | TRANSLATION_ERRORS: word - перевод | WORDS: word1, word2
 etc.`,
 
   // For teacher mode - provide correct example sentences for learning/viewing
