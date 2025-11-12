@@ -1,19 +1,31 @@
 import Joi from 'joi';
 
 import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
+import { languageRepository } from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
-import { formatAIResponse, ServiceResponse } from 'src/services/generateTextService';
+import { ServiceResponse } from 'src/services/generateTextService';
+import { getUserSettingsService } from 'src/services/userSettingsService';
 import { CheckAnswerItem } from 'src/types';
+
+interface ExerciseAnswer {
+  id: string;
+  sentence: string;
+}
 
 interface CheckAnswersRequest {
   topic: string;
-  sentences: string[];
+  exercises: ExerciseAnswer[];
   languageName?: string;
 }
 
 const schema = Joi.object<CheckAnswersRequest>({
   topic: Joi.string().required(),
-  sentences: Joi.array().items(Joi.string().allow('')).required(),
+  exercises: Joi.array().items(
+    Joi.object({
+      id: Joi.string().required(),
+      sentence: Joi.string().allow('').required()
+    })
+  ).required(),
   languageName: Joi.string().optional()
 });
 
@@ -32,34 +44,34 @@ export async function processCheckAnswersRequest(
       return { status: 400, body: { error: messages.join('; ') } };
     }
 
-    const { topic, sentences, languageName = 'English' } = value as CheckAnswersRequest;
+    const { topic, exercises } = value as CheckAnswersRequest;
+    let { languageName } = value as CheckAnswersRequest;
+
+    // Получаем название языка из настроек пользователя, если не передано
+    if (!languageName) {
+      const userSettings = await getUserSettingsService(userId);
+      const learningLanguageCode = userSettings.learningLanguage || 'en';
+      const language = await languageRepository.findByCode(learningLanguageCode);
+      languageName = language?.name || 'English';
+    }
 
     const aiService = await AIFactory.getAIService(userId);
     if (!aiService || typeof aiService.generateText !== 'function') {
       return { status: 502, body: { error: 'AI service not available for user' } };
     }
 
-    // Создаём карту индексов для непустых предложений
-    const sentenceIndexMap: number[] = [];
-    const nonEmptySentences = sentences.filter((sentence, index) => {
-      const isNonEmpty = sentence.trim().length > 0;
-      if (isNonEmpty) {
-        sentenceIndexMap.push(index);
-      }
-      return isNonEmpty;
-    });
+    // Фильтруем только непустые упражнения для отправки AI
+    const nonEmptyExercises = exercises.filter(ex => ex.sentence.trim().length > 0);
 
     // Если нет ни одного предложения для проверки
-    if (nonEmptySentences.length === 0) {
+    if (nonEmptyExercises.length === 0) {
       return { status: 400, body: { error: 'No sentences to check' } };
     }
 
-    // Формируем текст с нумерованными предложениями для промпта
-    const numberedSentences = nonEmptySentences
-      .map((sentence, index) => `${index + 1}. ${sentence}`)
-      .join('\n');
+    // Формируем JSON для промпта
+    const exercisesJson = JSON.stringify(nonEmptyExercises, null, 2);
 
-    const prompt = GRAMMAR_PROMPTS.validateAnswers(topic, numberedSentences, languageName);
+    const prompt = GRAMMAR_PROMPTS.validateAnswers(topic, exercisesJson, languageName);
 
     let rawResult: unknown;
     try {
@@ -79,48 +91,44 @@ export async function processCheckAnswersRequest(
           ? ((rawResult as { text?: string }).text ?? '')
           : '';
 
-    const aiResults = formatAIResponse(text);
-
-    // Вспомогательный парсер строки ответа AI в структурированный формат
-    const parseLineToItem = (line: string): CheckAnswerItem => {
-      const lower = line.toLowerCase();
-      if (lower.includes('correct')) {
-        return { isCorrect: true };
+    // Парсим JSON ответ от AI
+    let aiResults: Array<CheckAnswerItem & { id: string }>;
+    try {
+      // Извлекаем JSON из ответа (AI может добавить markdown обертку)
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        throw new Error('No JSON array found in AI response');
       }
+      aiResults = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+      console.error('Failed to parse AI response as JSON:', parseError);
+      console.error('AI response:', text);
+      // Fallback: возвращаем ошибку парсинга
+      return { 
+        status: 502, 
+        body: { error: 'Failed to parse AI validation response. Please try again.' } 
+      };
+    }
 
-      const item: CheckAnswerItem = { isCorrect: false };
+    // Создаём карту результатов по ID
+    const resultsById = new Map<string, CheckAnswerItem>();
+    aiResults.forEach(result => {
+      const { id, ...checkResult } = result;
+      resultsById.set(id, checkResult);
+    });
 
-      // Грамматическая ошибка
-      if (line.includes('ERROR:')) {
-        const beforePipe = line.split('|')[0];
-        const grammar = beforePipe
-          .replace(/^\d+\.?\s*/, '')
-          .replace(/^ERROR:\s*/i, '')
-          .trim();
-        if (grammar) item.grammarError = grammar;
-      }
-
-      // Ошибки перевода
-      if (line.includes('TRANSLATION_ERRORS:')) {
-        const after = line.split('TRANSLATION_ERRORS:')[1] || '';
-        const list = after
-          .split(/[,\n]/)
-          .map(s => s.trim())
-          .filter(Boolean);
-        if (list.length) item.translationErrors = list;
-      }
-
-      return item;
-    };
-
-    // Создаём полный массив результатов с сохранением индексов (структурированный)
-    const fullResults: CheckAnswerItem[] = sentences.map((sentence, index) => {
-      if (sentence.trim().length === 0) {
+    // Создаём полный массив результатов с сохранением порядка из оригинального запроса
+    const fullResults: CheckAnswerItem[] = exercises.map(exercise => {
+      if (exercise.sentence.trim().length === 0) {
         return { isCorrect: true, skipped: true };
       }
-      const aiIndex = sentenceIndexMap.indexOf(index);
-      const line = aiIndex >= 0 ? aiResults[aiIndex] : '';
-      return line ? parseLineToItem(line) : { isCorrect: true };
+      // Ищем результат по ID
+      const result = resultsById.get(exercise.id);
+      if (result) {
+        return result;
+      }
+      // Если результат не найден (не должно произойти), считаем корректным
+      return { isCorrect: true };
     });
 
     return { status: 200, body: { success: true, data: fullResults } };

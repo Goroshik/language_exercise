@@ -53,17 +53,30 @@ export function formatAIResponse(text: string): string[] {
       return line.replace(/^(?:[\d]+[).\s]+|[-*]\s+)/, '');
     })
     .map(line => {
-      // Fix malformed bold formatting where word comes before closing **
-      // e.g., "Kto** przyszedł" -> "**Kto** przyszedł"
-      // Look for pattern: word** (without opening **)
-      return line.replace(/(\w+)\*\*/g, (match, word) => {
-        // Check if this word already has ** before it
-        const beforeWord = line.substring(0, line.indexOf(match));
-        if (beforeWord.endsWith('**')) {
-          return match; // Already correct format: **word**
+      // Fix malformed bold formatting issues:
+      // 1. **word**word** -> **wordword** (nested closing tags)
+      // 2. **wor**d** -> **word** (closing tag in middle of word)
+      // 3. word** -> **word** (missing opening tag)
+      
+      // First, fix the most problematic case: **part**rest** -> **partrest**
+      // This handles cases like **Książ**ka** -> **Książka**
+      line = line.replace(/\*\*([^*\s]+)\*\*([^\s*]+)\*\*/g, '**$1$2**');
+      
+      // Second, fix standalone closing tags after partial words: part**rest** -> partrest
+      // This catches any remaining ** that appear in the middle of words
+      line = line.replace(/([^\s*])\*\*([^\s*]+)\*\*/g, '$1$2');
+      
+      // Third, fix words that end with ** but don't have opening **
+      line = line.replace(/(\S+)\*\*/g, (match, word, offset) => {
+        // Check if this already has proper opening **
+        const before = line.substring(Math.max(0, offset - 2), offset);
+        if (before === '**' || word.startsWith('**')) {
+          return match; // Already properly formatted
         }
-        return `**${word}**`; // Fix it: word** -> **word**
+        return `**${word}**`;
       });
+      
+      return line;
     });
 }
 
@@ -105,6 +118,8 @@ export async function processGenerateTextRequest(
     let rawResult: unknown;
     try {
       rawResult = await aiService.generateText(prompt, userId);
+
+      console.log('AI Raw Response:', rawResult);
     } catch (err) {
       if (err instanceof Error && err.message.includes('No token found')) {
         return { status: 402, body: { error: 'AI service token not configured for user' } };
@@ -121,7 +136,10 @@ export async function processGenerateTextRequest(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           ? ((rawResult as any).text ?? '')
           : '';
+    
+    console.log('AI Text Before Formatting:', text);
     const result = formatAIResponse(text);
+    console.log('AI Text After Formatting:', result);
 
     // Store sentence IDs to return with sentences
     let sentenceIds: string[] = [];

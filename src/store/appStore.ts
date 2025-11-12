@@ -309,16 +309,19 @@ export const useAppStore = create<AppStore>()(
           throw new Error('Block not found');
         }
 
-        // Формируем массив предложений с ответами студента
-        const sentencesWithAnswers = block.exercises.map((exercise, index) => {
+        // Формируем массив упражнений с ID и ответами студента
+        const exercisesWithAnswers = block.exercises.map((exercise, index) => {
           const textareaId = `textarea_${blockId}_${index}`;
-          return userAnswers[textareaId] || '';
+          return {
+            id: exercise.sentenceId || `${blockId}_${index}`, // Use sentenceId if available, otherwise fallback to block_index
+            sentence: userAnswers[textareaId] || ''
+          };
         });
 
-        // Отправляем на бэк только предложения с ответами
+        // Отправляем на бэк упражнения с ID
         const data = await ApiService.checkAnswers({
           topic: selectedTopic,
-          sentences: sentencesWithAnswers
+          exercises: exercisesWithAnswers
         });
 
         const results: {
