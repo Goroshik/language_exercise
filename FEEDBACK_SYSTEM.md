@@ -15,7 +15,7 @@ The feedback form can be accessed from two locations:
 
 ### Form Fields
 
-The feedback modal contains three fields:
+The feedback modal contains four fields:
 
 1. **Type (Тип)**: Dropdown selector
    - 🐛 Баг (Bug) - For reporting issues
@@ -30,19 +30,51 @@ The feedback modal contains three fields:
    - Required field
    - Detailed explanation of the problem or suggestion
 
+4. **Screenshot (Скриншот)**: Image upload (Optional)
+   - Optional field
+   - Attach images or screenshots to better describe the issue
+   - Supports: PNG, JPEG, GIF, WebP
+   - Maximum file size: 5MB
+   - Preview shown after selection
+   - Can be removed before submission
+
 ### Validation
 
-- Both title and description fields are required
-- User receives error alerts if required fields are empty
+- Title and description fields are required
+- Image must be a valid image file (if provided)
+- Image size must not exceed 5MB
+- User receives error alerts if validation fails
 - Success alert shown when issue is created successfully
 
 ## Technical Implementation
+
+### Architecture
+
+The feedback system follows a clean, modular architecture:
+
+**Service Layer** (`src/services/feedbackService.ts`)
+- `FeedbackService` class handles GitHub API integration
+- `createFeedbackService()` factory function for service instantiation
+- Encapsulates Octokit configuration and issue creation logic
+
+**Validation Layer** (`src/utils/feedbackValidation.ts`)
+- `validateFeedback()` - Comprehensive input validation
+- `validateFeedbackType()` - Type validation (bug/feature)
+- `validateTitle()` - Title validation with length check
+- `validateDescription()` - Description validation
+- `validateImage()` - Image format and type validation
+
+**Image Processing** (`src/utils/imageUpload.ts`)
+- `processImageForGitHub()` - Converts images for GitHub compatibility
+- `validateImageSize()` - Size validation (max 5MB)
+- Supports base64 data URLs and regular URLs
 
 ### Components
 
 **`FeedbackModal.tsx`**
 - React component using Material-UI Dialog
 - Manages form state and submission
+- Image upload with preview and remove functionality
 - Responsive design (fullscreen on mobile)
 - Loading states during submission
 
@@ -55,14 +87,15 @@ The feedback modal contains three fields:
 
 **`POST /api/feedback`**
 
-Creates a GitHub issue using the Octokit REST API.
+Creates a GitHub issue using the service layer.
 
 **Request Body:**
 ```json
 {
   "type": "bug" | "feature",
   "title": "string",
-  "description": "string"
+  "description": "string",
+  "image": "string (optional, base64 or URL)"
 }
 ```
 
@@ -84,13 +117,15 @@ Creates a GitHub issue using the Octokit REST API.
 
 ### GitHub Integration
 
-The endpoint uses `@octokit/rest` to interact with GitHub API:
+The service layer uses `@octokit/rest` to interact with GitHub API:
 
 - Creates issues with emoji prefixes (🐛 for bugs, 💡 for features)
 - Automatically adds appropriate labels:
   - `bug` for bug reports
   - `enhancement` for feature requests
 - Mentions @Goroshik in the issue body
+- Embeds screenshots in issue body (if provided)
+- Screenshots displayed under "### Screenshot" markdown section
 
 ## Configuration
 
@@ -158,6 +193,12 @@ Potential improvements for the feedback system:
 - Check browser console for errors
 - Verify network connectivity
 
+**Image upload fails**
+- Ensure file is a valid image format (PNG, JPEG, GIF, WebP)
+- Check file size is under 5MB
+- Try a different image format
+- Check browser console for errors
+
 ## Testing
 
 To test the feedback system:
@@ -167,11 +208,33 @@ To test the feedback system:
 3. Navigate to the application
 4. Click the feedback icon in the header
 5. Fill out the form with test data
-6. Submit and verify issue appears in GitHub repository
+6. (Optional) Attach a screenshot
+7. Submit and verify issue appears in GitHub repository
+8. Check that screenshot is embedded in the issue (if provided)
 
 ## Code References
 
-- **Modal Component**: `src/components/FeedbackModal.tsx`
+- **Service Layer**: `src/services/feedbackService.ts`
+- **Validation Utilities**: `src/utils/feedbackValidation.ts`
+- **Image Processing**: `src/utils/imageUpload.ts`
 - **API Route**: `src/app/api/feedback/route.ts`
+- **Modal Component**: `src/components/FeedbackModal.tsx`
 - **Header Integration**: `src/components/Header.tsx`
 - **Component Export**: `src/components/index.ts`
+
+## Recent Improvements
+
+### Code Refactoring
+The feedback system has been refactored to follow clean architecture principles:
+- **Separation of Concerns**: Business logic moved to service layer
+- **Modular Validation**: Validation logic extracted to utilities
+- **Clean API Route**: Route handler focuses on request/response orchestration
+- **Testability**: Each module can be tested independently
+
+### Image Upload Feature
+Users can now attach screenshots to their feedback:
+- **Simple Upload**: Click "Прикрепить скриншот" button to select image
+- **Preview**: Selected image shown with preview before submission
+- **Remove Option**: X button to remove image before submitting
+- **Validation**: Automatic validation of file type and size
+- **GitHub Integration**: Images embedded in GitHub issue body
