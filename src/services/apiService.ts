@@ -18,7 +18,7 @@ interface AddWordRequest {
 
 interface CheckAnswersRequest {
   topic: string;
-  sentences: string[];
+  exercises: Array<{ id: string; sentence: string }>;
   languageName?: string;
 }
 

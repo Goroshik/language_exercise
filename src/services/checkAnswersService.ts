@@ -1,21 +1,31 @@
 import Joi from 'joi';
 
 import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
-import { languageRepository, wordRepository, wordUsageStatsRepository } from 'src/repository/client';
+import { languageRepository } from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
-import { formatAIResponse, ServiceResponse } from 'src/services/generateTextService';
+import { ServiceResponse } from 'src/services/generateTextService';
 import { getUserSettingsService } from 'src/services/userSettingsService';
 import { CheckAnswerItem } from 'src/types';
 
+interface ExerciseAnswer {
+  id: string;
+  sentence: string;
+}
+
 interface CheckAnswersRequest {
   topic: string;
-  sentences: string[];
+  exercises: ExerciseAnswer[];
   languageName?: string;
 }
 
 const schema = Joi.object<CheckAnswersRequest>({
   topic: Joi.string().required(),
-  sentences: Joi.array().items(Joi.string().allow('')).required(),
+  exercises: Joi.array().items(
+    Joi.object({
+      id: Joi.string().required(),
+      sentence: Joi.string().allow('').required()
+    })
+  ).required(),
   languageName: Joi.string().optional()
 });
 
@@ -34,7 +44,7 @@ export async function processCheckAnswersRequest(
       return { status: 400, body: { error: messages.join('; ') } };
     }
 
-    const { topic, sentences } = value as CheckAnswersRequest;
+    const { topic, exercises } = value as CheckAnswersRequest;
     let { languageName } = value as CheckAnswersRequest;
 
     // Получаем название языка из настроек пользователя, если не передано
@@ -50,27 +60,18 @@ export async function processCheckAnswersRequest(
       return { status: 502, body: { error: 'AI service not available for user' } };
     }
 
-    // Создаём карту индексов для непустых предложений
-    const sentenceIndexMap: number[] = [];
-    const nonEmptySentences = sentences.filter((sentence, index) => {
-      const isNonEmpty = sentence.trim().length > 0;
-      if (isNonEmpty) {
-        sentenceIndexMap.push(index);
-      }
-      return isNonEmpty;
-    });
+    // Фильтруем только непустые упражнения для отправки AI
+    const nonEmptyExercises = exercises.filter(ex => ex.sentence.trim().length > 0);
 
     // Если нет ни одного предложения для проверки
-    if (nonEmptySentences.length === 0) {
+    if (nonEmptyExercises.length === 0) {
       return { status: 400, body: { error: 'No sentences to check' } };
     }
 
-    // Формируем текст с нумерованными предложениями для промпта
-    const numberedSentences = nonEmptySentences
-      .map((sentence, index) => `${index + 1}. ${sentence}`)
-      .join('\n');
+    // Формируем JSON для промпта
+    const exercisesJson = JSON.stringify(nonEmptyExercises, null, 2);
 
-    const prompt = GRAMMAR_PROMPTS.validateAnswers(topic, numberedSentences, languageName);
+    const prompt = GRAMMAR_PROMPTS.validateAnswers(topic, exercisesJson, languageName);
 
     let rawResult: unknown;
     try {
@@ -90,106 +91,44 @@ export async function processCheckAnswersRequest(
           ? ((rawResult as { text?: string }).text ?? '')
           : '';
 
-    const aiResults = formatAIResponse(text);
-
-    // Extract all words in base forms from AI responses for usage tracking
-    const allBaseWords: string[] = [];
-    aiResults.forEach(line => {
-      // Extract words from "WORDS: word1, word2, word3" section
-      if (line.includes('WORDS:')) {
-        const wordsSection = line.split('WORDS:')[1] || '';
-        // Remove any trailing text after the words list
-        const wordsPart = wordsSection.split('|')[0];
-        const words = wordsPart
-          .split(',')
-          .map(w => w.trim().toLowerCase())
-          .filter(Boolean);
-        allBaseWords.push(...words);
+    // Парсим JSON ответ от AI
+    let aiResults: Array<CheckAnswerItem & { id: string }>;
+    try {
+      // Извлекаем JSON из ответа (AI может добавить markdown обертку)
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        throw new Error('No JSON array found in AI response');
       }
-    });
-
-    // Match base words with user's dictionary and increment usage counters
-    if (allBaseWords.length > 0) {
-      try {
-        // Get user settings to determine the learning language
-        const userSettings = await getUserSettingsService(userId);
-        const learningLanguageCode = userSettings.learningLanguage || 'en';
-
-        // Get all user's words in the learning language
-        const userWords = await wordRepository.getAllWords(userId, learningLanguageCode);
-        
-        // Create a map of base word -> word ID
-        const wordMap = new Map<string, string>();
-        userWords.forEach(word => {
-          // Store both the original word and its lowercase version for matching
-          wordMap.set(word.word.toLowerCase(), word.id);
-        });
-
-        // Find matching word IDs
-        const matchedWordIds = new Set<string>();
-        allBaseWords.forEach(baseWord => {
-          const wordId = wordMap.get(baseWord);
-          if (wordId) {
-            matchedWordIds.add(wordId);
-          }
-        });
-
-        // Increment usage counters for matched words
-        if (matchedWordIds.size > 0) {
-          await wordUsageStatsRepository.incrementUsageForWords(
-            userId,
-            Array.from(matchedWordIds)
-          );
-        }
-      } catch (trackingErr) {
-        // Log error but don't fail the request
-        console.error('Error tracking word usage:', trackingErr);
-      }
+      aiResults = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+      console.error('Failed to parse AI response as JSON:', parseError);
+      console.error('AI response:', text);
+      // Fallback: возвращаем ошибку парсинга
+      return { 
+        status: 502, 
+        body: { error: 'Failed to parse AI validation response. Please try again.' } 
+      };
     }
 
-    // Вспомогательный парсер строки ответа AI в структурированный формат
-    const parseLineToItem = (line: string): CheckAnswerItem => {
-      const lower = line.toLowerCase();
-      if (lower.includes('correct')) {
-        return { isCorrect: true };
-      }
+    // Создаём карту результатов по ID
+    const resultsById = new Map<string, CheckAnswerItem>();
+    aiResults.forEach(result => {
+      const { id, ...checkResult } = result;
+      resultsById.set(id, checkResult);
+    });
 
-      const item: CheckAnswerItem = { isCorrect: false };
-
-      // Грамматическая ошибка
-      if (line.includes('ERROR:')) {
-        const beforePipe = line.split('|')[0];
-        const grammar = beforePipe
-          .replace(/^\d+\.?\s*/, '')
-          .replace(/^ERROR:\s*/i, '')
-          .trim();
-        if (grammar) item.grammarError = grammar;
-      }
-
-      // Ошибки перевода
-      if (line.includes('TRANSLATION_ERRORS:')) {
-        const after = line.split('TRANSLATION_ERRORS:')[1] || '';
-        // Extract text before WORDS: if present
-        const beforeWords = after.split('WORDS:')[0] || after;
-        const list = beforeWords
-          .split('|')[0]
-          .split(/[,\n]/)
-          .map(s => s.trim())
-          .filter(Boolean);
-        if (list.length) item.translationErrors = list;
-      }
-
-      return item;
-    };
-
-    // Создаём полный массив результатов с сохранением индексов (структурированный)
-    const fullResults: CheckAnswerItem[] = sentences.map((sentence, index) => {
-      if (sentence.trim().length === 0) {
+    // Создаём полный массив результатов с сохранением порядка из оригинального запроса
+    const fullResults: CheckAnswerItem[] = exercises.map(exercise => {
+      if (exercise.sentence.trim().length === 0) {
         return { isCorrect: true, skipped: true };
       }
-      const aiIndex = sentenceIndexMap.indexOf(index);
-      const line = aiIndex >= 0 ? aiResults[aiIndex] : '';
-      return line ? parseLineToItem(line) : { isCorrect: true };
+      // Ищем результат по ID
+      const result = resultsById.get(exercise.id);
+      if (result) {
+        return result;
+      }
+      // Если результат не найден (не должно произойти), считаем корректным
+      return { isCorrect: true };
     });
 
     return { status: 200, body: { success: true, data: fullResults } };
