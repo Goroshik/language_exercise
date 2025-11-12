@@ -91,7 +91,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     if (hintMatch) {
       hints = hintMatch[1]
         .split(/[,;]+/)
-        .map(part => part.trim())
+        .map(part => part.trim().replace(/\*\*([^*]+)\*\*/g, '$1')) // Remove ** from hints
         .filter(Boolean);
 
       mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
@@ -114,7 +114,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     hints = hintMatch
       ? hintMatch[1]
           .split(/[,;]+/)
-          .map(part => part.trim())
+          .map(part => part.trim().replace(/\*\*([^*]+)\*\*/g, '$1')) // Remove ** from hints
           .filter(Boolean)
       : [];
     if (hintMatch) {
