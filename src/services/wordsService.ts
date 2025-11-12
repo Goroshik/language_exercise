@@ -5,9 +5,10 @@ export async function searchWordsService(
   query: string, 
   languageCode?: string,
   limit?: number,
-  page?: number
+  page?: number,
+  sortByUsage: boolean = false
 ) {
-  return wordRepository.searchWords(userId, query, languageCode, limit, page);
+  return wordRepository.searchWords(userId, query, languageCode, limit, page, sortByUsage);
 }
 
 export async function addManyWordService(

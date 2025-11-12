@@ -11,6 +11,7 @@ import { UserTokenRepository } from './UserTokenRepository';
 import { WordRepository } from './WordRepository';
 import { EssayRepository } from './EssayRepository';
 import { PasswordResetTokenRepository } from './PasswordResetTokenRepository';
+import { WordUsageStatsRepository } from './WordUsageStatsRepository';
 
 // Singleton Prisma client instance
 const prisma = new PrismaClient();
@@ -28,5 +29,6 @@ export const userAnswerRepository = new UserAnswerRepository(prisma);
 export const chatMessageRepository = new ChatMessageRepository(prisma);
 export const essayRepository = new EssayRepository(prisma);
 export const passwordResetTokenRepository = new PasswordResetTokenRepository(prisma);
+export const wordUsageStatsRepository = new WordUsageStatsRepository(prisma);
 // Export Prisma client instance for direct access if needed
 export { prisma };

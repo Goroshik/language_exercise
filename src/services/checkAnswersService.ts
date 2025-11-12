@@ -1,7 +1,7 @@
 import Joi from 'joi';
 
 import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
-import { languageRepository } from 'src/repository/client';
+import { languageRepository, wordRepository, wordUsageStatsRepository } from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
 import { ServiceResponse } from 'src/services/generateTextService';
 import { getUserSettingsService } from 'src/services/userSettingsService';
@@ -117,6 +117,29 @@ export async function processCheckAnswersRequest(
       resultsById.set(id, checkResult);
     });
 
+    // Извлекаем все слова из предложений пользователя для отслеживания использования
+    const allUserWords: string[] = [];
+    exercises.forEach(exercise => {
+      if (exercise.sentence.trim()) {
+        // Разбиваем предложение на слова и убираем знаки препинания
+        const words = exercise.sentence
+          .toLowerCase()
+          .replace(/[^\p{Letter}\p{Mark}\s]/gu, '') // Убираем все кроме букв, диакритических знаков и пробелов
+          .split(/\s+/)
+          .filter(word => word.length > 1); // Только слова длиннее 1 символа
+        allUserWords.push(...words);
+      }
+    });
+
+    // Отслеживание использования слов в фоновом режиме (не блокирует основной поток)
+    if (allUserWords.length > 0) {
+      // Запускаем в фоновом режиме без await, чтобы не блокировать ответ
+      trackWordUsage(userId, allUserWords).catch(trackingErr => {
+        // Логируем ошибку, но не прерываем основной процесс
+        console.error('Error tracking word usage:', trackingErr);
+      });
+    }
+
     // Создаём полный массив результатов с сохранением порядка из оригинального запроса
     const fullResults: CheckAnswerItem[] = exercises.map(exercise => {
       if (exercise.sentence.trim().length === 0) {
@@ -135,5 +158,42 @@ export async function processCheckAnswersRequest(
   } catch (err) {
     console.error('Unexpected error in checkAnswers service:', err);
     return { status: 500, body: { error: 'Internal server error' } };
+  }
+}
+
+/**
+ * Отслеживает использование слов в фоновом режиме
+ * Сопоставляет слова из предложений пользователя со словарем и увеличивает счетчики
+ */
+async function trackWordUsage(userId: string, userWords: string[]): Promise<void> {
+  // Получаем настройки пользователя для определения изучаемого языка
+  const userSettings = await getUserSettingsService(userId);
+  const learningLanguageCode = userSettings.learningLanguage || 'en';
+
+  // Получаем все слова пользователя для изучаемого языка
+  const dictionaryWords = await wordRepository.getAllWords(userId, learningLanguageCode);
+  
+  // Создаем карту: слово в нижнем регистре -> ID слова
+  const wordMap = new Map<string, string>();
+  dictionaryWords.forEach(word => {
+    // Сохраняем и оригинальное слово, и его версию в нижнем регистре для сопоставления
+    wordMap.set(word.word.toLowerCase(), word.id);
+  });
+
+  // Находим совпадающие ID слов
+  const matchedWordIds = new Set<string>();
+  userWords.forEach(userWord => {
+    const wordId = wordMap.get(userWord.toLowerCase());
+    if (wordId) {
+      matchedWordIds.add(wordId);
+    }
+  });
+
+  // Увеличиваем счетчики использования для совпавших слов
+  if (matchedWordIds.size > 0) {
+    await wordUsageStatsRepository.incrementUsageForWords(
+      userId,
+      Array.from(matchedWordIds)
+    );
   }
 }
