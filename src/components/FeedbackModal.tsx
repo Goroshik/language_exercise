@@ -1,8 +1,6 @@
 'use client';
 
-import AttachFileIcon from '@mui/icons-material/AttachFile';
 import BugReportIcon from '@mui/icons-material/BugReport';
-import CloseIcon from '@mui/icons-material/Close';
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 import {
   Box,
@@ -13,17 +11,15 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
-  IconButton,
   InputLabel,
   MenuItem,
   Select,
   SelectChangeEvent,
   TextField,
-  Typography,
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import { showAlert } from 'src/utils/alert';
 
 interface FeedbackModalProps {
@@ -40,9 +36,6 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onClose }) => {
   const [issueType, setIssueType] = useState<IssueType>('bug');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [image, setImage] = useState<string | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleClose = () => {
     if (!loading) {
@@ -50,8 +43,6 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onClose }) => {
       setIssueType('bug');
       setTitle('');
       setDescription('');
-      setImage(null);
-      setImagePreview(null);
       onClose();
     }
   };
@@ -60,43 +51,6 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onClose }) => {
     setIssueType(event.target.value as IssueType);
   };
 
-  const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      showAlert.error('Пожалуйста, выберите файл изображения');
-      return;
-    }
-
-    // Check file size (max 5MB)
-    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
-    if (file.size > maxSize) {
-      showAlert.error('Размер изображения не должен превышать 5MB');
-      return;
-    }
-
-    // Read file as base64
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      setImage(result);
-      setImagePreview(result);
-    };
-    reader.onerror = () => {
-      showAlert.error('Не удалось загрузить изображение');
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleRemoveImage = () => {
-    setImage(null);
-    setImagePreview(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
 
   const handleSubmit = async () => {
     // Validation
@@ -122,7 +76,6 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onClose }) => {
           type: issueType,
           title: title.trim(),
           description: description.trim(),
-          image: image || undefined
         })
       });
 
@@ -208,83 +161,6 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onClose }) => {
             rows={6}
             placeholder="Подробное описание..."
           />
-
-          {/* Image upload section */}
-          <Box>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              onChange={handleImageSelect}
-              style={{ display: 'none' }}
-              disabled={loading}
-            />
-            <Button
-              variant="outlined"
-              startIcon={<AttachFileIcon />}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={loading || !!imagePreview}
-              fullWidth
-            >
-              Прикрепить скриншот (опционально)
-            </Button>
-          </Box>
-
-          {/* Image preview */}
-          {imagePreview && (
-            <Box
-              sx={{
-                position: 'relative',
-                borderRadius: 1,
-                overflow: 'hidden',
-                border: '1px solid',
-                borderColor: 'divider'
-              }}
-            >
-              <img
-                src={imagePreview}
-                alt="Preview"
-                style={{
-                  width: '100%',
-                  maxHeight: '300px',
-                  objectFit: 'contain',
-                  display: 'block'
-                }}
-              />
-              <IconButton
-                size="small"
-                onClick={handleRemoveImage}
-                disabled={loading}
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                  color: 'white',
-                  '&:hover': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)'
-                  }
-                }}
-              >
-                <CloseIcon fontSize="small" />
-              </IconButton>
-              <Typography
-                variant="caption"
-                sx={{
-                  position: 'absolute',
-                  bottom: 8,
-                  left: 8,
-                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
-                  color: 'white',
-                  px: 1,
-                  py: 0.5,
-                  borderRadius: 0.5
-                }}
-              >
-                Скриншот будет прикреплен к issue
-              </Typography>
-            </Box>
-          )}
         </Box>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
