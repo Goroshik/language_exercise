@@ -19,7 +19,13 @@ export class WordRepository {
     return this.client.delete({ where: { id } });
   }
 
-  async searchWords(userId: string, query: string, languageCode?: string) {
+  async searchWords(
+    userId: string, 
+    query: string, 
+    languageCode?: string, 
+    limit?: number,
+    page?: number
+  ) {
     // TODO: Fix types - create proper Prisma where clause type instead of using any
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
@@ -38,7 +44,34 @@ export class WordRepository {
       ];
     }
 
-    return this.client.findMany({ where, orderBy: { createdAt: 'desc' } });
+    // Get total count for pagination
+    const total = await this.client.count({ where });
+
+    const findOptions = {
+      where,
+      orderBy: { createdAt: 'desc' as const }
+    };
+
+    // Add pagination if both limit and page are specified
+    if (limit !== undefined && page !== undefined) {
+      const skip = (page - 1) * limit;
+      const words = await this.client.findMany({ 
+        ...findOptions, 
+        skip,
+        take: limit 
+      });
+      return { words, total };
+    }
+
+    // Add limit only if specified (without pagination)
+    if (limit !== undefined) {
+      const words = await this.client.findMany({ ...findOptions, take: limit });
+      return { words, total };
+    }
+
+    // Return all words
+    const words = await this.client.findMany(findOptions);
+    return { words, total };
   }
 
   async addWord(

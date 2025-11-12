@@ -18,64 +18,102 @@ IMPORTANT REQUIREMENTS:
 1. Each sentence must be complete and grammatically correct
 2. ONE key word should be highlighted with **word** - this word should be in the CORRECT grammatical form (NOT base form)
 3. The highlighted word demonstrates the grammar topic being practiced
-4. The word MUST be wrapped like this: **word** (with asterisks on BOTH sides, not word**)
-5. After the sentence, add a hint in parentheses ONLY if appropriate:
-   - DO NOT add hints for articles (a/the)
-   - DO NOT add "to be" for continuous tenses (the student should know the form)
-   - DO add hints for verb infinitives, base noun forms, or other helpful context
-   - Format: (hint text)
+4. CRITICAL FORMATTING: The word MUST be wrapped EXACTLY like this: **word** 
+   - Opening **: BEFORE the entire word
+   - Closing **: AFTER the entire word
+   - WRONG: **Książ**ka** or Książ**ka** or **wor**d**
+   - CORRECT: **Książka** or **word**
+5. MANDATORY: Add a hint in parentheses after EVERY sentence where the highlighted word is NOT an article/wh-word/pronoun/preposition:
+   - For ALL verbs: add the infinitive + any important context words (adverbs, negations) from the sentence
+   - For complex verb forms (have been, has done, will go): highlight the ENTIRE verb form including auxiliaries
+   - For nouns with case changes: add the nominative singular form
+   - For adjectives with declension: add the base form
+   - ONLY skip hints for: articles (a/the), wh-words (who/what/where), pronouns, prepositions
+   - Include context words in hints: adverbs (never, always, often), negations (not), and other key words near the verb
+   - Format: (word1, word2, infinitive) - parentheses are REQUIRED, separate multiple hints with commas
 
-CRITICAL: Return ONLY the sentences, one per line. DO NOT include any introductory text, explanations, or headers.
+CRITICAL: 
+- Return ONLY the sentences, one per line
+- DO NOT include any introductory text, explanations, or headers
+- EVERY sentence with a verb/noun/adjective MUST have a hint in parentheses
 
 Example output for topic "Past Simple":
 They **visited** many countries last summer. (visit)
 She **bought** a beautiful dress yesterday. (buy)
+He **went** to the store. (go)
+
+Example output for topic "Present Perfect":
+I **have been** to Paris three times. (be)
+She **has eaten** sushi before. (never, eat)
+They **have finished** their homework. (already, finish)
 
 Example output for topic "Articles":
 I need **a** new phone.
 **The** sun is shining brightly.
 
-Example output for questions (wh-words):
+Example output for Polish questions (wh-words):
 **Kto** przyszedł wczoraj?
 **Co** czytasz?
-**Gdzie** mieszkasz?`;
+**Gdzie** mieszkasz?
+
+Example output for Polish cases:
+Widzę **kota** na ulicy. (kot)
+Idę do **sklepu** po zakupy. (sklep)
+**Dziewczyna** czyta książkę. (dziewczyna)`;
   },
 
   validateAnswers: (
     topic: string,
-    answersText: string,
+    exercisesJson: string,
     languageName: string = 'the target language'
-  ) => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences that a student has written as answers to exercises. Topic: "${topic}".
+  ) => `Pomagasz rosyjskojęzycznemu użytkownikowi uczyć się ${languageName}. Sprawdź te zdania w języku ${languageName}, które uczeń napisał jako odpowiedzi do ćwiczeń. Temat: "${topic}".
 
-The student's answers:
-${answersText}
+Odpowiedzi ucznia (jako tablica JSON):
+${exercisesJson}
 
-For each sentence:
-1. Check if it's grammatically correct in the context of the topic "${topic}"
-2. Check if Russian translations (if provided in the sentence) are accurate
-3. Provide helpful feedback if there are errors
+Dla każdego ćwiczenia:
+1. Sprawdź, czy jest poprawne gramatycznie w kontekście tematu "${topic}"
+2. Sprawdź, czy rosyjskie tłumaczenia (jeśli są podane w zdaniu) są dokładne
+3. Podaj pomocną informację zwrotną, jeśli są błędy
 
-Response format:
-- If everything is correct: "CORRECT"
-- If there are grammar errors: "ERROR: [clear explanation in Russian of what's wrong and how to fix it]"
-- If there are incorrect translations: "TRANSLATION_ERRORS: word1 - правильный перевод, word2 - правильный перевод"
+KRYTYCZNE: MUSISZ odpowiedzieć poprawną tablicą JSON. Każdy element musi zawierać "id" z danych wejściowych i wyniki walidacji.
 
-You can combine both types of errors if needed:
-"ERROR: [grammar explanation] | TRANSLATION_ERRORS: word1 - правильный перевод"
+Format odpowiedzi (tablica JSON):
+[
+  {
+    "id": "exercise_id_from_input",
+    "isCorrect": true
+  },
+  {
+    "id": "exercise_id_from_input",
+    "isCorrect": false,
+    "grammarError": "объяснение ошибки и как её исправить (НА РУССКОМ ЯЗЫКЕ)"
+  },
+  {
+    "id": "exercise_id_from_input", 
+    "isCorrect": false,
+    "translationErrors": ["oryginalneSłowo1 - правильный перевод НА РУССКОМ", "oryginalneSłowo2 - правильный перевод НА РУССКОМ"]
+  },
+  {
+    "id": "exercise_id_from_input",
+    "isCorrect": false,
+    "grammarError": "грамматическая ошибка (НА РУССКОМ ЯЗЫКЕ)",
+    "translationErrors": ["oryginalneSłowo - правильный перевод НА РУССКОМ"]
+  }
+]
 
-IMPORTANT:
-- Number your responses (1., 2., 3., etc.) to match the sentence numbers
-- Be specific about the error and how to correct it
-- Consider the topic context when evaluating correctness
-- If a sentence has multiple errors, mention all of them
-- Check translations carefully - students may include Russian words/phrases in their answers
-
-Format your response as:
-1. CORRECT
-2. ERROR: объяснение ошибки и как её исправить
-3. TRANSLATION_ERRORS: word - правильный перевод
-4. ERROR: грамматическая ошибка | TRANSLATION_ERRORS: word - перевод
-etc.`,
+WAŻNE:
+- Zwróć TYLKO poprawny JSON, bez dodatkowego tekstu ani wyjaśnień
+- Każdy obiekt wyniku MUSI zawierać pole "id" pasujące do danych wejściowych
+- Pole "id" jest kluczowe dla dopasowania odpowiedzi do ćwiczeń
+- Jeśli zdanie jest puste, oznacz je "isCorrect": true i "skipped": true
+- Bądź konkretny w kwestii błędów i sposobu ich poprawy
+- Uwzględnij kontekst tematu przy ocenie poprawności
+- WSZYSTKIE komunikaty błędów (grammarError) MUSZĄ być napisane PO ROSYJSKU
+- WSZYSTKIE tłumaczenia (translationErrors) MUSZĄ być podane PO ROSYJSKU
+- Sprawdzając tłumaczenia, użyj DOKŁADNEJ formy słowa ze zdania ucznia w translationErrors
+- Format dla translationErrors: ["oryginalneSłowo - правильный перевод НА РУССКОМ"] gdzie oryginalneSłowo to dokładne słowo napisane przez ucznia
+- Przykład: Jeśli uczeń napisał "Potrzebuję pięciu jabłek" → translationErrors: ["Potrzebuję - Мне нужно", "pięciu - пять", "jabłek - яблок"]`,
 
   // For teacher mode - provide correct example sentences for learning/viewing
   generateTeacherExamples: (

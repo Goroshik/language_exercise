@@ -136,7 +136,7 @@ export const EssayContainer: React.FC = () => {
   }, [title, content, saveEssay]);
 
   // Check essay with AI
-  const handleCheck = async () => {
+  const handleCheck = useCallback(async () => {
     if (!content.trim()) {
       showAlert.warning('Пожалуйста, введите текст для проверки');
       return;
@@ -172,10 +172,10 @@ export const EssayContainer: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [content, currentEssayId, title, languageCode, setSaving, setCurrentEssayId, setLoading, setSelectedErrorIndex, setAiResponse]);
 
   // Handle title change
-  const handleTitleChange = (newValue: string | null) => {
+  const handleTitleChange = useCallback((newValue: string | null) => {
     if (newValue) {
       setTitle(newValue);
       // If it's an existing title, load the essay
@@ -189,7 +189,12 @@ export const EssayContainer: React.FC = () => {
         setSelectedErrorIndex(null);
       }
     }
-  };
+  }, [essayTitles, loadEssayByTitle, setTitle, setCurrentEssayId, setContent, setAiResponse, setSelectedErrorIndex]);
+
+  // Memoize content change handler to avoid re-creating on every render
+  const handleContentChange = useCallback((newContent: string) => {
+    setContent(newContent);
+  }, [setContent]);
 
   return (
     <Box sx={{ maxWidth: '1200px', margin: '0 auto', padding: 2 }}>
@@ -209,7 +214,7 @@ export const EssayContainer: React.FC = () => {
           charCount={charCount}
           saving={saving}
           loading={loading}
-          onContentChange={setContent}
+          onContentChange={handleContentChange}
           onCheck={handleCheck}
         />
 

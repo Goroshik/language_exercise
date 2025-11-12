@@ -22,7 +22,7 @@ import {
     useMediaQuery,
     useTheme
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useSettingsStore } from 'src/store/settingsStore';
 import { showAlert } from 'src/utils/alert';
 
@@ -194,15 +194,15 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
     }
   };
 
-  const updateParsedWord = (index: number, field: 'word' | 'translate', value: string) => {
+  const updateParsedWord = useCallback((index: number, field: 'word' | 'translate', value: string) => {
     setParsedWords(prev =>
       prev.map((word, i) => (i === index ? { ...word, [field]: value } : word))
     );
-  };
+  }, []);
 
-  const removeParsedWord = (index: number) => {
+  const removeParsedWord = useCallback((index: number) => {
     setParsedWords(prev => prev.filter((_, i) => i !== index));
-  };
+  }, []);
 
   return (
     <Dialog
