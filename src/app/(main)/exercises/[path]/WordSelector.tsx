@@ -15,6 +15,13 @@ import { useDebounce } from 'src/hooks/useDebounce';
 import { DictionaryWord } from 'src/types';
 import { showAlert } from 'src/utils/alert';
 
+interface DictionaryWordWithUsage extends DictionaryWord {
+  usageStats?: Array<{
+    count: number;
+    lastUsedAt: string;
+  }>;
+}
+
 interface WordSelectorProps {
   selectedWords: DictionaryWord[];
   onWordsChange: (words: DictionaryWord[]) => void;
@@ -36,7 +43,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   onSentenceCountChange
 }) => {
   const [filterText, setFilterText] = useState('');
-  const [words, setWords] = useState<DictionaryWord[]>([]);
+  const [words, setWords] = useState<DictionaryWordWithUsage[]>([]);
   const [allTags, setAllTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -64,15 +71,15 @@ const WordSelector: React.FC<WordSelectorProps> = ({
       const params = new URLSearchParams();
       if (query) params.append('query', query);
       if (limit) params.append('limit', limit.toString());
+      // Всегда сортируем по использованию в WordSelector
+      params.append('sortByUsage', 'true');
       
-      const url = params.toString() 
-        ? `/api/dictionary/words?${params.toString()}`
-        : '/api/dictionary/words';
+      const url = `/api/dictionary/words?${params.toString()}`;
       const response = await fetch(url);
       const data = await response.json();
 
       if (data.success) {
-        const loadedWords: DictionaryWord[] = data.words;
+        const loadedWords: DictionaryWordWithUsage[] = data.words;
         setWords(loadedWords);
         // Собираем уникальные теги из слов
         const tagSet = new Set<string>();
@@ -127,9 +134,14 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   // NOTE: Words from server are already filtered by search query
   // Split into selected and unselected groups
   // Selected words always appear at the top, regardless of search
-  const selectedWordsList = selectedWords.filter(
-    word => words.some(w => w.id === word.id) || filterText.trim() === '' // Keep selected words visible even if not in search results
-  );
+  const selectedWordsList: DictionaryWordWithUsage[] = selectedWords
+    .map(selectedWord => {
+      // Найти соответствующее слово с статистикой использования
+      const wordWithStats = words.find(w => w.id === selectedWord.id);
+      return wordWithStats || { ...selectedWord, usageStats: [] };
+    })
+    .filter(word => words.some(w => w.id === word.id) || filterText.trim() === ''); // Keep selected words visible even if not in search results
+  
   const unselectedWords = words.filter(word => !selectedWords.some(w => w.id === word.id));
 
   // Combine for display count check
@@ -197,8 +209,11 @@ const WordSelector: React.FC<WordSelectorProps> = ({
           minHeight: 0
         }}
       >
-        <Typography variant="h6" sx={{ mb: 2 }}>
+        <Typography variant="h6" sx={{ mb: 1 }}>
           Выберите слова ({selectedWords.length}/{maxWords})
+        </Typography>
+        <Typography variant="caption" sx={{ mb: 2, color: 'text.secondary', display: 'block' }}>
+          Слова сортируются по частоте использования (менее используемые показаны первыми)
         </Typography>
 
         {/* NOTE: Tag filtering section */}
@@ -284,17 +299,35 @@ const WordSelector: React.FC<WordSelectorProps> = ({
                     }
                     label={
                       <Box sx={{ display: 'flex', flexDirection: 'column', py: 1 }}>
-                        <Typography
-                          variant="body1"
-                          sx={{
-                            fontWeight: 600,
-                            fontSize: '1rem',
-                            color: 'primary.main',
-                            lineHeight: 1.2
-                          }}
-                        >
-                          {dictionaryWord.word}
-                        </Typography>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              fontWeight: 600,
+                              fontSize: '1rem',
+                              color: 'primary.main',
+                              lineHeight: 1.2
+                            }}
+                          >
+                            {dictionaryWord.word}
+                          </Typography>
+                          {dictionaryWord.usageStats && dictionaryWord.usageStats[0] && (
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                fontSize: '0.75rem',
+                                color: 'text.secondary',
+                                backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                                px: 1,
+                                py: 0.25,
+                                borderRadius: 1,
+                                fontWeight: 500
+                              }}
+                            >
+                              {dictionaryWord.usageStats[0].count}x
+                            </Typography>
+                          )}
+                        </Box>
                         <Typography
                           variant="body2"
                           sx={{
@@ -373,17 +406,50 @@ const WordSelector: React.FC<WordSelectorProps> = ({
                 }
                 label={
                   <Box sx={{ display: 'flex', flexDirection: 'column', py: 1 }}>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: '1rem',
-                        color: 'primary.main',
-                        lineHeight: 1.2
-                      }}
-                    >
-                      {dictionaryWord.word}
-                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '1rem',
+                          color: 'primary.main',
+                          lineHeight: 1.2
+                        }}
+                      >
+                        {dictionaryWord.word}
+                      </Typography>
+                      {dictionaryWord.usageStats && dictionaryWord.usageStats[0] ? (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontSize: '0.75rem',
+                            color: 'text.secondary',
+                            backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: 1,
+                            fontWeight: 500
+                          }}
+                        >
+                          {dictionaryWord.usageStats[0].count}x
+                        </Typography>
+                      ) : (
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            fontSize: '0.75rem',
+                            color: 'warning.main',
+                            backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                            px: 1,
+                            py: 0.25,
+                            borderRadius: 1,
+                            fontWeight: 500
+                          }}
+                        >
+                          новое
+                        </Typography>
+                      )}
+                    </Box>
                     <Typography
                       variant="body2"
                       sx={{

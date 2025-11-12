@@ -204,16 +204,18 @@ export async function processGenerateTextRequest(
       Object.assign(hasAnswers, answersMap);
     }
 
+    const responseBody = { 
+      success: true, 
+      data: result,         // предложения напрямую в data
+      sentenceIds,          // ID предложений на верхнем уровне
+      hasAnswers           // информация о наличии ответов на верхнем уровне
+    };
+    
+    console.log('Final API Response Body:', JSON.stringify(responseBody, null, 2));
+    
     return { 
       status: 200, 
-      body: { 
-        success: true, 
-        data: { 
-          data: result, 
-          sentenceIds,
-          hasAnswers // добавляем информацию о наличии ответов
-        } 
-      } 
+      body: responseBody
     };
   } catch (_err) {
     showAlert.error('Unexpected error in generateText service');

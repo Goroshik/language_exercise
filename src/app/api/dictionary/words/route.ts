@@ -14,6 +14,7 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('query') || '';
     const limitParam = searchParams.get('limit');
     const pageParam = searchParams.get('page');
+    const sortByUsage = searchParams.get('sortByUsage') === 'true';
     const limit = limitParam ? parseInt(limitParam, 10) : undefined;
     const page = pageParam ? parseInt(pageParam, 10) : undefined;
 
@@ -21,9 +22,12 @@ export async function GET(request: NextRequest) {
     const userSettings = await userSettingsRepository.findByUserId(userId);
     const languageCode = userSettings?.learningLanguage || undefined;
 
-    const result = await searchWordsService(userId, query, languageCode, limit, page);
+    // Используем сортировку по использованию если указан параметр sortByUsage=true
+    const result = await searchWordsService(userId, query, languageCode, limit, page, sortByUsage);
+      
     return NextResponse.json({ success: true, ...result });
   } catch (_error) {
+    console.log('Error in GET /api/dictionary/words:', _error);
     return NextResponse.json(
       { success: false, error: 'Failed to load words', words: [], total: 0 },
       { status: 500 }

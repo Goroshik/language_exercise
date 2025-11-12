@@ -78,11 +78,9 @@ export async function getTrainingExercisesService(
       status: 200, 
       body: { 
         success: true, 
-        data: { 
-          data, 
-          sentenceIds,
-          hasAnswers // добавляем информацию о наличии ответов
-        } 
+        data,              // предложения напрямую в data
+        sentenceIds,       // ID предложений на верхнем уровне
+        hasAnswers        // информация о наличии ответов на верхнем уровне
       } 
     };
   } catch (err) {
