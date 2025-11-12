@@ -31,7 +31,10 @@ export class ApiService {
   static async generateText(
     data: GenerateTextRequest
   ): Promise<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }> {
-    return this.post<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }>('/api/ai/generate-text', data);
+    console.log('ApiService.generateText called with:', data);
+    const result = await this.post<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }>('/api/ai/generate-text', data);
+    console.log('ApiService.generateText result:', result);
+    return result;
   }
 
   static async getTrainingExercises(data: {
@@ -92,7 +95,12 @@ export class ApiService {
       body: JSON.stringify(data)
     });
 
-    return response.json().then(({ data }) => data);
+    const responseData = await response.json();
+    // Для generateText возвращаем весь объект, для остальных - только data
+    if (endpoint === '/api/ai/generate-text' || endpoint === '/api/ai/training-exercises') {
+      return responseData as T;
+    }
+    return responseData.data as T;
   }
 
   private static async get<T>(endpoint: string): Promise<T> {
