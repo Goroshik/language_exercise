@@ -177,7 +177,7 @@ async function trackWordUsage(userId: string, userWords: string[]): Promise<void
   const wordMap = new Map<string, string>();
   dictionaryWords.forEach(word => {
     // Сохраняем и оригинальное слово, и его версию в нижнем регистре для сопоставления
-    wordMap.set(word.word.toLowerCase(), word.id);
+    if(word) wordMap.set(word.word.toLowerCase(), word.id);
   });
 
   // Находим совпадающие ID слов
