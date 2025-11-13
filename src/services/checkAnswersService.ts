@@ -1,21 +1,31 @@
 import Joi from 'joi';
 
 import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
-import { languageRepository } from 'src/repository/client';
+import { languageRepository, wordRepository, wordUsageStatsRepository } from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
-import { formatAIResponse, ServiceResponse } from 'src/services/generateTextService';
+import { ServiceResponse } from 'src/services/generateTextService';
 import { getUserSettingsService } from 'src/services/userSettingsService';
 import { CheckAnswerItem } from 'src/types';
 
+interface ExerciseAnswer {
+  id: string;
+  sentence: string;
+}
+
 interface CheckAnswersRequest {
   topic: string;
-  sentences: string[];
+  exercises: ExerciseAnswer[];
   languageName?: string;
 }
 
 const schema = Joi.object<CheckAnswersRequest>({
   topic: Joi.string().required(),
-  sentences: Joi.array().items(Joi.string().allow('')).required(),
+  exercises: Joi.array().items(
+    Joi.object({
+      id: Joi.string().required(),
+      sentence: Joi.string().allow('').required()
+    })
+  ).required(),
   languageName: Joi.string().optional()
 });
 
@@ -34,7 +44,7 @@ export async function processCheckAnswersRequest(
       return { status: 400, body: { error: messages.join('; ') } };
     }
 
-    const { topic, sentences } = value as CheckAnswersRequest;
+    const { topic, exercises } = value as CheckAnswersRequest;
     let { languageName } = value as CheckAnswersRequest;
 
     // Получаем название языка из настроек пользователя, если не передано
@@ -50,27 +60,18 @@ export async function processCheckAnswersRequest(
       return { status: 502, body: { error: 'AI service not available for user' } };
     }
 
-    // Создаём карту индексов для непустых предложений
-    const sentenceIndexMap: number[] = [];
-    const nonEmptySentences = sentences.filter((sentence, index) => {
-      const isNonEmpty = sentence.trim().length > 0;
-      if (isNonEmpty) {
-        sentenceIndexMap.push(index);
-      }
-      return isNonEmpty;
-    });
+    // Фильтруем только непустые упражнения для отправки AI
+    const nonEmptyExercises = exercises.filter(ex => ex.sentence.trim().length > 0);
 
     // Если нет ни одного предложения для проверки
-    if (nonEmptySentences.length === 0) {
+    if (nonEmptyExercises.length === 0) {
       return { status: 400, body: { error: 'No sentences to check' } };
     }
 
-    // Формируем текст с нумерованными предложениями для промпта
-    const numberedSentences = nonEmptySentences
-      .map((sentence, index) => `${index + 1}. ${sentence}`)
-      .join('\n');
+    // Формируем JSON для промпта
+    const exercisesJson = JSON.stringify(nonEmptyExercises, null, 2);
 
-    const prompt = GRAMMAR_PROMPTS.validateAnswers(topic, numberedSentences, languageName);
+    const prompt = GRAMMAR_PROMPTS.validateAnswers(topic, exercisesJson, languageName);
 
     let rawResult: unknown;
     try {
@@ -90,53 +91,109 @@ export async function processCheckAnswersRequest(
           ? ((rawResult as { text?: string }).text ?? '')
           : '';
 
-    const aiResults = formatAIResponse(text);
-
-    // Вспомогательный парсер строки ответа AI в структурированный формат
-    const parseLineToItem = (line: string): CheckAnswerItem => {
-      const lower = line.toLowerCase();
-      if (lower.includes('correct')) {
-        return { isCorrect: true };
+    // Парсим JSON ответ от AI
+    let aiResults: Array<CheckAnswerItem & { id: string }>;
+    try {
+      // Извлекаем JSON из ответа (AI может добавить markdown обертку)
+      const jsonMatch = text.match(/\[[\s\S]*\]/);
+      if (!jsonMatch) {
+        throw new Error('No JSON array found in AI response');
       }
+      aiResults = JSON.parse(jsonMatch[0]);
+    } catch (parseError) {
+      console.error('Failed to parse AI response as JSON:', parseError);
+      console.error('AI response:', text);
+      // Fallback: возвращаем ошибку парсинга
+      return { 
+        status: 502, 
+        body: { error: 'Failed to parse AI validation response. Please try again.' } 
+      };
+    }
 
-      const item: CheckAnswerItem = { isCorrect: false };
+    // Создаём карту результатов по ID
+    const resultsById = new Map<string, CheckAnswerItem>();
+    aiResults.forEach(result => {
+      const { id, ...checkResult } = result;
+      resultsById.set(id, checkResult);
+    });
 
-      // Грамматическая ошибка
-      if (line.includes('ERROR:')) {
-        const beforePipe = line.split('|')[0];
-        const grammar = beforePipe
-          .replace(/^\d+\.?\s*/, '')
-          .replace(/^ERROR:\s*/i, '')
-          .trim();
-        if (grammar) item.grammarError = grammar;
+    // Извлекаем все слова из предложений пользователя для отслеживания использования
+    const allUserWords: string[] = [];
+    exercises.forEach(exercise => {
+      if (exercise.sentence.trim()) {
+        // Разбиваем предложение на слова и убираем знаки препинания
+        const words = exercise.sentence
+          .toLowerCase()
+          .replace(/[^\p{Letter}\p{Mark}\s]/gu, '') // Убираем все кроме букв, диакритических знаков и пробелов
+          .split(/\s+/)
+          .filter(word => word.length > 1); // Только слова длиннее 1 символа
+        allUserWords.push(...words);
       }
+    });
 
-      // Ошибки перевода
-      if (line.includes('TRANSLATION_ERRORS:')) {
-        const after = line.split('TRANSLATION_ERRORS:')[1] || '';
-        const list = after
-          .split(/[,\n]/)
-          .map(s => s.trim())
-          .filter(Boolean);
-        if (list.length) item.translationErrors = list;
-      }
+    // Отслеживание использования слов в фоновом режиме (не блокирует основной поток)
+    if (allUserWords.length > 0) {
+      // Запускаем в фоновом режиме без await, чтобы не блокировать ответ
+      trackWordUsage(userId, allUserWords).catch(trackingErr => {
+        // Логируем ошибку, но не прерываем основной процесс
+        console.error('Error tracking word usage:', trackingErr);
+      });
+    }
 
-      return item;
-    };
-
-    // Создаём полный массив результатов с сохранением индексов (структурированный)
-    const fullResults: CheckAnswerItem[] = sentences.map((sentence, index) => {
-      if (sentence.trim().length === 0) {
+    // Создаём полный массив результатов с сохранением порядка из оригинального запроса
+    const fullResults: CheckAnswerItem[] = exercises.map(exercise => {
+      if (exercise.sentence.trim().length === 0) {
         return { isCorrect: true, skipped: true };
       }
-      const aiIndex = sentenceIndexMap.indexOf(index);
-      const line = aiIndex >= 0 ? aiResults[aiIndex] : '';
-      return line ? parseLineToItem(line) : { isCorrect: true };
+      // Ищем результат по ID
+      const result = resultsById.get(exercise.id);
+      if (result) {
+        return result;
+      }
+      // Если результат не найден (не должно произойти), считаем корректным
+      return { isCorrect: true };
     });
 
     return { status: 200, body: { success: true, data: fullResults } };
   } catch (err) {
     console.error('Unexpected error in checkAnswers service:', err);
     return { status: 500, body: { error: 'Internal server error' } };
+  }
+}
+
+/**
+ * Отслеживает использование слов в фоновом режиме
+ * Сопоставляет слова из предложений пользователя со словарем и увеличивает счетчики
+ */
+async function trackWordUsage(userId: string, userWords: string[]): Promise<void> {
+  // Получаем настройки пользователя для определения изучаемого языка
+  const userSettings = await getUserSettingsService(userId);
+  const learningLanguageCode = userSettings.learningLanguage || 'en';
+
+  // Получаем все слова пользователя для изучаемого языка
+  const dictionaryWords = await wordRepository.getAllWords(userId, learningLanguageCode);
+  
+  // Создаем карту: слово в нижнем регистре -> ID слова
+  const wordMap = new Map<string, string>();
+  dictionaryWords.forEach(word => {
+    // Сохраняем и оригинальное слово, и его версию в нижнем регистре для сопоставления
+    if(word) wordMap.set(word.word.toLowerCase(), word.id);
+  });
+
+  // Находим совпадающие ID слов
+  const matchedWordIds = new Set<string>();
+  userWords.forEach(userWord => {
+    const wordId = wordMap.get(userWord.toLowerCase());
+    if (wordId) {
+      matchedWordIds.add(wordId);
+    }
+  });
+
+  // Увеличиваем счетчики использования для совпавших слов
+  if (matchedWordIds.size > 0) {
+    await wordUsageStatsRepository.incrementUsageForWords(
+      userId,
+      Array.from(matchedWordIds)
+    );
   }
 }

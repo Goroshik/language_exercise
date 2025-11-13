@@ -41,7 +41,8 @@ model Word {
 
   // NOTE: Many-to-many relation with tags
 
-  owner User? @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  owner      User?             @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  usageStats WordUsageStats[]
 
   @@map("dictionary_words")
 }
@@ -72,6 +73,7 @@ model User {
   chatMessages         ChatMessage[]
   essays               Essay[]
   passwordResetTokens  PasswordResetToken[]
+  wordUsageStats       WordUsageStats[]
 
   @@map("users")
 }
@@ -204,4 +206,21 @@ model PasswordResetToken {
 
   @@map("password_reset_tokens")
 }
+
+model WordUsageStats {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  wordId     String   @db.ObjectId
+  count      Int      @default(0)
+  lastUsedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word Word @relation(fields: [wordId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, wordId])
+  @@map("word_usage_stats")
+}
+
 

@@ -64,39 +64,56 @@ Idę do **sklepu** po zakupy. (sklep)
 
   validateAnswers: (
     topic: string,
-    answersText: string,
+    exercisesJson: string,
     languageName: string = 'the target language'
-  ) => `You are helping a Russian speaker learn ${languageName}. Check these ${languageName} sentences that a student has written as answers to exercises. Topic: "${topic}".
+  ) => `Pomagasz rosyjskojęzycznemu użytkownikowi uczyć się ${languageName}. Sprawdź te zdania w języku ${languageName}, które uczeń napisał jako odpowiedzi do ćwiczeń. Temat: "${topic}".
 
-The student's answers:
-${answersText}
+Odpowiedzi ucznia (jako tablica JSON):
+${exercisesJson}
 
-For each sentence:
-1. Check if it's grammatically correct in the context of the topic "${topic}"
-2. Check if Russian translations (if provided in the sentence) are accurate
-3. Provide helpful feedback if there are errors
+Dla każdego ćwiczenia:
+1. Sprawdź, czy jest poprawne gramatycznie w kontekście tematu "${topic}"
+2. Sprawdź, czy rosyjskie tłumaczenia (jeśli są podane w zdaniu) są dokładne
+3. Podaj pomocną informację zwrotną, jeśli są błędy
 
-Response format:
-- If everything is correct: "CORRECT"
-- If there are grammar errors: "ERROR: [clear explanation in Russian of what's wrong and how to fix it]"
-- If there are incorrect translations: "TRANSLATION_ERRORS: word1 - правильный перевод, word2 - правильный перевод"
+KRYTYCZNE: MUSISZ odpowiedzieć poprawną tablicą JSON. Każdy element musi zawierać "id" z danych wejściowych i wyniki walidacji.
 
-You can combine both types of errors if needed:
-"ERROR: [grammar explanation] | TRANSLATION_ERRORS: word1 - правильный перевод"
+Format odpowiedzi (tablica JSON):
+[
+  {
+    "id": "exercise_id_from_input",
+    "isCorrect": true
+  },
+  {
+    "id": "exercise_id_from_input",
+    "isCorrect": false,
+    "grammarError": "объяснение ошибки и как её исправить (НА РУССКОМ ЯЗЫКЕ)"
+  },
+  {
+    "id": "exercise_id_from_input", 
+    "isCorrect": false,
+    "translationErrors": ["oryginalneSłowo1 - правильный перевод НА РУССКОМ", "oryginalneSłowo2 - правильный перевод НА РУССКОМ"]
+  },
+  {
+    "id": "exercise_id_from_input",
+    "isCorrect": false,
+    "grammarError": "грамматическая ошибка (НА РУССКОМ ЯЗЫКЕ)",
+    "translationErrors": ["oryginalneSłowo - правильный перевод НА РУССКОМ"]
+  }
+]
 
-IMPORTANT:
-- Number your responses (1., 2., 3., etc.) to match the sentence numbers
-- Be specific about the error and how to correct it
-- Consider the topic context when evaluating correctness
-- If a sentence has multiple errors, mention all of them
-- Check translations carefully - students may include Russian words/phrases in their answers
-
-Format your response as:
-1. CORRECT
-2. ERROR: объяснение ошибки и как её исправить
-3. TRANSLATION_ERRORS: word - правильный перевод
-4. ERROR: грамматическая ошибка | TRANSLATION_ERRORS: word - перевод
-etc.`,
+WAŻNE:
+- Zwróć TYLKO poprawny JSON, bez dodatkowego tekstu ani wyjaśnień
+- Każdy obiekt wyniku MUSI zawierać pole "id" pasujące do danych wejściowych
+- Pole "id" jest kluczowe dla dopasowania odpowiedzi do ćwiczeń
+- Jeśli zdanie jest puste, oznacz je "isCorrect": true i "skipped": true
+- Bądź konkretny w kwestii błędów i sposobu ich poprawy
+- Uwzględnij kontekst tematu przy ocenie poprawności
+- WSZYSTKIE komunikaty błędów (grammarError) MUSZĄ być napisane PO ROSYJSKU
+- WSZYSTKIE tłumaczenia (translationErrors) MUSZĄ być podane PO ROSYJSKU
+- Sprawdzając tłumaczenia, użyj DOKŁADNEJ formy słowa ze zdania ucznia w translationErrors
+- Format dla translationErrors: ["oryginalneSłowo - правильный перевод НА РУССКОМ"] gdzie oryginalneSłowo to dokładne słowo napisane przez ucznia
+- Przykład: Jeśli uczeń napisał "Potrzebuję pięciu jabłek" → translationErrors: ["Potrzebuję - Мне нужно", "pięciu - пять", "jabłek - яблок"]`,
 
   // For teacher mode - provide correct example sentences for learning/viewing
   generateTeacherExamples: (

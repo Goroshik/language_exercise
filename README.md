@@ -27,6 +27,7 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 - [Exercise History](./EXERCISE_HISTORY.md) - Comprehensive documentation for the generated sentences history feature
 - [Exercise History AI Guide](./EXERCISE_HISTORY_AI_PROMPT.md) - Quick reference for AI assistants working with exercise history
 - [Exercise History TODO](./EXERCISE_HISTORY_TODO.md) - Future improvements and AI-ready implementation prompts
+- [Feedback System](./FEEDBACK_SYSTEM.md) - User feedback and bug reporting feature documentation
 
 ### Other Documentation
 
