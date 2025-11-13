@@ -2,8 +2,8 @@ export default {
   /* ====================== A1 ====================== */
 
   'A1: Nouns and basic forms': {
-    countable_uncountable: 'Countable / uncountable nouns (исчисляемые/неисчисляемые)',
-    singular_plural: 'Singular / plural (единственное/множественное)',
+    countable_uncountable: 'Countable  uncountable nouns (исчисляемые/неисчисляемые)',
+    singular_plural: 'Singular  plural (единственное/множественное)',
     basic_pronouns: 'Basic pronouns (базовые местоимения)',
     basic_adjectives: 'Basic adjectives (простые прилагательные)',
     basic_prepositions: 'Basic prepositions (базовые предлоги)'
