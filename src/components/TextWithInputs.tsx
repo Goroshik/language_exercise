@@ -1,5 +1,5 @@
 import HistoryIcon from '@mui/icons-material/History';
-import { Box, Button, Stack, TextField, Typography } from '@mui/material';
+import { Box, Button, Chip, Stack, TextField, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { useTextSelection } from 'src/hooks/useTextSelection';
@@ -290,9 +290,6 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const handleTextDoubleClick = useCallback((event: React.MouseEvent) => {
     if (typeof window === 'undefined') return;
 
-    // Only handle actual double-click events, not single clicks
-    if (event.detail !== 2) return;
-
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 
@@ -368,12 +365,32 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
           ))}
 
           {hints.length > 0 && (
-            <Typography
-              variant="caption"
-              sx={{ color: '#777', whiteSpace: 'pre-wrap', cursor: 'text' }}
-            >
-              Подсказка: {hints.join(', ')}
-            </Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
+              <Typography
+                variant="caption"
+                sx={{ color: '#777', fontWeight: 500 }}
+              >
+                Подсказка:
+              </Typography>
+              {hints.map((hint, index) => (
+                <Chip
+                  key={index}
+                  label={hint}
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                    borderColor: 'rgba(25, 118, 210, 0.3)',
+                    color: '#1976d2',
+                    fontWeight: 500,
+                    cursor: 'text',
+                    '&:hover': {
+                      backgroundColor: 'rgba(25, 118, 210, 0.12)'
+                    }
+                  }}
+                />
+              ))}
+            </Box>
           )}
 
           {translation && (

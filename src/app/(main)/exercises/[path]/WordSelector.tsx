@@ -152,7 +152,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: { xs: 'auto', md: 'calc(100vh - 200px)' },
+        height: { xs: 'auto' },
         width: '100%',
         gap: 2
       }}
@@ -268,8 +268,35 @@ const WordSelector: React.FC<WordSelectorProps> = ({
           }}
         />
 
-        {/* NOTE: Display filtered dictionary words - limited to 20 visible without search */}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        {/* NOTE: Display filtered dictionary words - limited to 20, scrollable list */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0,
+            maxHeight: {
+              xs: 'calc(3 * (80px))', // 3 items visible on mobile
+              sm: 'calc(5 * (80px))'  // 5 items visible on desktop
+            },
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            pr: 0.5,
+            '&::-webkit-scrollbar': {
+              width: '8px'
+            },
+            '&::-webkit-scrollbar-track': {
+              backgroundColor: 'rgba(0, 0, 0, 0.05)',
+              borderRadius: '4px'
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '4px',
+              '&:hover': {
+                backgroundColor: 'rgba(0, 0, 0, 0.3)'
+              }
+            }
+          }}
+        >
           {/* Selected words section */}
           {selectedWordsList.length > 0 && (
             <>
