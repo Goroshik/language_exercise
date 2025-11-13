@@ -16,21 +16,21 @@ ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific wor
 
 IMPORTANT REQUIREMENTS:
 1. Each sentence must be complete and grammatically correct
-2. ONE key word should be highlighted with **word** - this word should be in the CORRECT grammatical form (NOT base form)
-3. The highlighted word demonstrates the grammar topic being practiced
-4. CRITICAL FORMATTING: The word MUST be wrapped EXACTLY like this: **word** 
-   - Opening **: BEFORE the entire word
-   - Closing **: AFTER the entire word
+2. ONE key word/phrase should be highlighted with **word** - this should include ALL words the student needs to write
+3. The highlighted text demonstrates the grammar topic being practiced
+4. CRITICAL FORMATTING: The word/phrase MUST be wrapped EXACTLY like this: **word** or **multiple words**
+   - Opening **: BEFORE the entire word/phrase
+   - Closing **: AFTER the entire word/phrase
    - WRONG: **Książ**ka** or Książ**ka** or **wor**d**
-   - CORRECT: **Książka** or **word**
+   - CORRECT: **Książka** or **word** or **has never eaten**
 5. MANDATORY: Add a hint in parentheses after EVERY sentence where the highlighted word is NOT an article/wh-word/pronoun/preposition:
-   - For ALL verbs: add the infinitive + any important context words (adverbs, negations) from the sentence
-   - For complex verb forms (have been, has done, will go): highlight the ENTIRE verb form including auxiliaries
-   - For nouns with case changes: add the nominative singular form
-   - For adjectives with declension: add the base form
-   - ONLY skip hints for: articles (a/the), wh-words (who/what/where), pronouns, prepositions
-   - Include context words in hints: adverbs (never, always, often), negations (not), and other key words near the verb
-   - Format: (word1, word2, infinitive) - parentheses are REQUIRED, separate multiple hints with commas
+   - Hints should contain BASE FORMS of words from the highlighted text
+   - For verbs: include the infinitive form (without "to") + any adverbs/negations that are INSIDE the highlighted text
+   - Auxiliary verbs (is, has, have, will, would, etc.) can be included in base form or omitted if obvious
+   - For multi-word phrases: include all significant words from the phrase in their base forms
+   - DO NOT include words that are OUTSIDE the ** markers in the hint
+   - ONLY include words that appear INSIDE the ** markers
+   - Format: (word1, word2, infinitive) - parentheses are REQUIRED, separate multiple words with commas
 
 CRITICAL: 
 - Return ONLY the sentences, one per line
@@ -43,9 +43,13 @@ She **bought** a beautiful dress yesterday. (buy)
 He **went** to the store. (go)
 
 Example output for topic "Present Perfect":
-I **have been** to Paris three times. (be)
-She **has eaten** sushi before. (never, eat)
-They **have finished** their homework. (already, finish)
+She **has never eaten** sushi before. (never, eat)
+They **have already finished** their homework. (already, finish)
+
+Example output for multi-word phrases:
+After the divorce, she needed **a fresh start** to move on. (a fresh start)
+The project is **in progress** and will be done soon. (in progress)
+They made **a lot of mistakes** during the exam. (a lot of mistakes)
 
 Example output for topic "Articles":
 I need **a** new phone.

@@ -20,12 +20,14 @@ export class AIFactory {
 
       const selectedModel = settings?.aiModel || 'gemini-2.5-flash';
 
+      console.log(selectedModel)
+
       // Determine service based on model name
-      if (this.isGeminiModel(selectedModel)) {
+      if (this.getAvailableModels().gemini.some(model => model.value === selectedModel)) {
         return new GoogleAIService();
-      } else if (this.isOpenAIModel(selectedModel)) {
+      } else if (this.getAvailableModels().openai.some(model => model.value === selectedModel)) {
         return new OpenAIService();
-      } else if (this.isClaudeModel(selectedModel)) {
+      } else if (this.getAvailableModels().claude.some(model => model.value === selectedModel)) {
         return new ClaudeAIService();
       } else {
         // Default to Gemini if model is not recognized
@@ -40,76 +42,25 @@ export class AIFactory {
   }
 
   /**
-   * Check if model name is a Gemini model
-   * @param modelName - Model name to check
-   * @returns boolean
-   */
-  private static isGeminiModel(modelName: string): boolean {
-    const geminiModels = [
-      'gemini-2.0-flash-exp',
-      'gemini-2.5-flash',
-      'gemini-1.5-pro',
-      'gemini-1.0-pro'
-    ];
-    return geminiModels.includes(modelName);
-  }
-
-  /**
-   * Check if model name is an OpenAI model
-   * @param modelName - Model name to check
-   * @returns boolean
-   */
-  private static isOpenAIModel(modelName: string): boolean {
-    const openaiModels = [
-      'gpt-4o',
-      'gpt-4o-mini',
-      'gpt-4-turbo',
-      'gpt-4-turbo-preview',
-      'gpt-4',
-      'gpt-3.5-turbo',
-      'gpt-3.5-turbo-16k'
-    ];
-    return openaiModels.includes(modelName);
-  }
-
-  /**
-   * Check if model name is a Claude model
-   * @param modelName - Model name to check
-   * @returns boolean
-   */
-  private static isClaudeModel(modelName: string): boolean {
-    const claudeModels = [
-      'claude-3-5-sonnet-20241022',
-      'claude-3-opus-20240229',
-      'claude-3-sonnet-20240229',
-      'claude-3-haiku-20240307'
-    ];
-    return claudeModels.includes(modelName);
-  }
-
-  /**
    * Get all available AI models grouped by provider
    * @returns Object with models grouped by provider
    */
   static getAvailableModels() {
     return {
       gemini: [
-        { value: 'gemini-2.0-flash-exp', label: 'Gemini 2.0 Flash (Experimental)' },
-        { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-        { value: 'gemini-1.5-pro', label: 'Gemini 1.5 Pro' },
-        { value: 'gemini-1.0-pro', label: 'Gemini 1.0 Pro' }
+        { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', provider: 'gemini' },
+        { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', provider: 'gemini' },
+        { value: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash-Lite', provider: 'gemini' },
       ],
       openai: [
-        { value: 'gpt-4o', label: 'GPT-4o' },
-        { value: 'gpt-4o-mini', label: 'GPT-4o Mini' },
-        { value: 'gpt-4-turbo', label: 'GPT-4 Turbo' },
-        { value: 'gpt-3.5-turbo', label: 'GPT-3.5 Turbo' }
+        { value: 'gpt-5', label: 'GPT-5', provider: 'openai' },
+        { value: 'gpt-4.1', label: 'GPT-4.1', provider: 'openai' },
       ],
       claude: [
-        { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
-        { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' },
-        { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet' },
-        { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' }
+        { value: 'claude-haiku-4.5', label: 'Claude Haiku 4.5', provider: 'anthropic' },
+        { value: 'claude-opus-4.5', label: 'Claude Opus 4.5', provider: 'anthropic' },
+        { value: 'claude-sonnet-4.5', label: 'Claude Sonnet 4.5', provider: 'anthropic' },
+        { value: 'claude-sonnet-3.5', label: 'Claude Sonnet 3.5', provider: 'anthropic' },
       ]
     };
   }
