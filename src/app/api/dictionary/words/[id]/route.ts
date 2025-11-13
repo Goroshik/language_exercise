@@ -11,7 +11,7 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const { id } = await params;
     const originalWord = await wordRepository
       .getAllWords(userId)
-      .then(words => words.find(w => w.id === id));
+      .then(words => words.find(w => w?.id === id));
     const updatedWord = await updateWordService(
       userId,
       id,
