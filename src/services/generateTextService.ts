@@ -121,7 +121,8 @@ export async function processGenerateTextRequest(
             id: word.id,
             word: word.word,
             translate: word.translate,
-            languageCode: word.languageCode
+            languageCode: word.languageCode,
+            createdAt: word.createdAt
           }));
         
         wordsToUse = [...wordsToUse, ...additionalWords];
