@@ -3,7 +3,8 @@ import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
 import {
   languageRepository,
   sentenceHistoryRepository,
-  userAnswerRepository
+  userAnswerRepository,
+  wordRepository
 } from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
 import { DictionaryWord } from 'src/types';
@@ -95,7 +96,44 @@ export async function processGenerateTextRequest(
       return { status: 400, body: { error: 'Invalid language ID' } };
     }
 
-    const words = selectedWords.map(w => w.word || '');
+    // Auto-select words if user hasn't provided any or provided fewer than 5
+    let wordsToUse: DictionaryWord[] = [...selectedWords];
+    const targetWordCount = 5;
+    
+    if (wordsToUse.length < targetWordCount) {
+      try {
+        // Get words we need to fill up to 5
+        const wordsNeeded = targetWordCount - wordsToUse.length;
+        
+        // Get least used words, excluding already selected words
+        const selectedWordIds = wordsToUse.map(w => w.id).filter((id): id is string => id !== undefined && id !== null);
+        const leastUsedWords = await wordRepository.getLeastUsedWords(
+          userId,
+          language.code,
+          wordsNeeded + selectedWordIds.length // Get extra in case some are already selected
+        );
+        
+        // Filter out already selected words and take only what we need
+        const additionalWords = leastUsedWords
+          .filter(word => !selectedWordIds.includes(word.id))
+          .slice(0, wordsNeeded)
+          .map(word => ({
+            id: word.id,
+            word: word.word,
+            translate: word.translate,
+            languageCode: word.languageCode
+          }));
+        
+        wordsToUse = [...wordsToUse, ...additionalWords];
+        
+        console.log(`Auto-selected ${additionalWords.length} words to fill up to ${wordsToUse.length} total words`);
+      } catch (err) {
+        console.error('Failed to auto-select words:', err);
+        // Continue with whatever words we have
+      }
+    }
+
+    const words = wordsToUse.map(w => w.word || '');
     const prompt =
       mode === 'student'
         ? GRAMMAR_PROMPTS.generateStudentExercises(topic, language.name, words, customTopic, sentenceCount)
@@ -137,8 +175,8 @@ export async function processGenerateTextRequest(
 
     if (result.length > 0) {
       try {
-        // Создаем массив словарей для быстрого поиска
-        const wordMap = new Map(selectedWords.map(w => [w.word?.toLowerCase(), w.id]));
+        // Создаем массив словарей для быстрого поиска - используем wordsToUse вместо selectedWords
+        const wordMap = new Map(wordsToUse.map(w => [w.word?.toLowerCase(), w.id]));
 
         // Создаем записи для каждого предложения
         const sentencesToSave = result.map(sentence => {

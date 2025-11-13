@@ -275,4 +275,69 @@ export class WordRepository {
       }
     });
   }
+
+  /**
+   * Get least used words for a user, prioritizing:
+   * 1. Words that have never been used (sorted by oldest lastUsedAt/createdAt)
+   * 2. Words with lowest usage count (sorted by oldest lastUsedAt)
+   */
+  async getLeastUsedWords(userId: string, languageCode: string, limit: number) {
+    // Get all words for the user in the specified language
+    const allWords = await this.client.findMany({
+      where: {
+        ownerId: userId,
+        languageCode: languageCode
+      },
+      select: { id: true, createdAt: true, word: true, translate: true, languageCode: true }
+    });
+
+    if (allWords.length === 0) {
+      return [];
+    }
+
+    const wordIds = allWords.map(w => w.id);
+
+    // Get usage statistics for all words
+    const usageStats = await this.prisma.wordUsageStats.findMany({
+      where: {
+        userId,
+        wordId: { in: wordIds }
+      },
+      select: {
+        wordId: true,
+        count: true,
+        lastUsedAt: true
+      }
+    });
+
+    // Create a map for quick lookup
+    const statsMap = new Map(
+      usageStats.map(stat => [stat.wordId, { count: stat.count, lastUsedAt: stat.lastUsedAt }])
+    );
+
+    // Sort words by usage priority
+    const sortedWords = allWords.sort((a, b) => {
+      const aStats = statsMap.get(a.id);
+      const bStats = statsMap.get(b.id);
+      
+      // Priority 1: Words never used (no stats record)
+      if (!aStats && !bStats) {
+        // Both never used - sort by creation date (older first)
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+      if (!aStats) return -1; // a has no stats, prioritize it
+      if (!bStats) return 1;  // b has no stats, prioritize it
+      
+      // Priority 2: Words with lower usage count
+      if (aStats.count !== bStats.count) {
+        return aStats.count - bStats.count; // ASC: lower count first
+      }
+      
+      // Priority 3: Words not used recently (older lastUsedAt)
+      return new Date(aStats.lastUsedAt).getTime() - new Date(bStats.lastUsedAt).getTime();
+    });
+
+    // Return top N words
+    return sortedWords.slice(0, limit);
+  }
 }
