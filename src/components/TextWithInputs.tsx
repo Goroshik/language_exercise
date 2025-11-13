@@ -329,6 +329,141 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
     }
   }, []);
 
+  // Обработка тапов для мобильных устройств
+  const lastTapRef = useRef<number>(0);
+  const tapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMobileTap = useCallback((event: React.MouseEvent | React.TouchEvent) => {
+    if (typeof window === 'undefined') return;
+    
+    // Проверяем, это мобильное устройство
+    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    if (!isMobile) return;
+
+    const now = Date.now();
+    const timeSinceLastTap = now - lastTapRef.current;
+
+    // Двойной тап - промежуток менее 300ms
+    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+        tapTimeoutRef.current = null;
+      }
+
+      // Двойной тап - обрабатываем
+      const selection = window.getSelection();
+      
+      // Получаем координаты клика
+      let clientX: number;
+      let clientY: number;
+      
+      if ('touches' in event) {
+        clientX = event.changedTouches[0]?.clientX || 0;
+        clientY = event.changedTouches[0]?.clientY || 0;
+      } else {
+        clientX = event.clientX;
+        clientY = event.clientY;
+      }
+
+      if (selection && selection.rangeCount > 0) {
+        const selectedText = selection.toString().trim();
+        
+        // Если есть выделенный текст (несколько слов или фраза)
+        if (selectedText && selectedText.split(/\s+/).length > 1) {
+          // Для фразы - используем встроенный механизм useTextSelection
+          // Он автоматически покажет поповер при выделении
+          return;
+        }
+        
+        // Одно слово - показываем WordTranslationPanel
+        if (selectedText && /^[a-zA-Z]+$/.test(selectedText)) {
+          setDoubleClickTranslationPanel({
+            word: selectedText.toLowerCase(),
+            position: { x: clientX, y: clientY + 10 }
+          });
+          return;
+        }
+      }
+
+      // Если нет выделения - пытаемся найти слово под тапом
+      let wordAtPoint = '';
+      
+      if (typeof document !== 'undefined') {
+        // Для большинства браузеров (Chrome, Safari)
+        if ('caretRangeFromPoint' in document) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const range = (document as any).caretRangeFromPoint(clientX, clientY);
+          if (range && range.startContainer.nodeType === 3) { // TEXT_NODE = 3
+            const textNode = range.startContainer;
+            const offset = range.startOffset;
+            const text = textNode.textContent || '';
+            
+            // Находим границы слова вокруг offset
+            let start = offset;
+            let end = offset;
+            
+            // Ищем начало слова
+            while (start > 0 && /\w/.test(text[start - 1])) {
+              start--;
+            }
+            
+            // Ищем конец слова
+            while (end < text.length && /\w/.test(text[end])) {
+              end++;
+            }
+            
+            wordAtPoint = text.substring(start, end);
+          }
+        }
+        // Для Firefox
+        else if ('caretPositionFromPoint' in document) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const caretPos = (document as any).caretPositionFromPoint(clientX, clientY);
+          if (caretPos && caretPos.offsetNode.nodeType === 3) { // TEXT_NODE = 3
+            const textNode = caretPos.offsetNode;
+            const offset = caretPos.offset;
+            const text = textNode.textContent || '';
+            
+            // Находим границы слова вокруг offset
+            let start = offset;
+            let end = offset;
+            
+            // Ищем начало слова
+            while (start > 0 && /\w/.test(text[start - 1])) {
+              start--;
+            }
+            
+            // Ищем конец слова
+            while (end < text.length && /\w/.test(text[end])) {
+              end++;
+            }
+            
+            wordAtPoint = text.substring(start, end);
+          }
+        }
+      }
+      
+      const cleanWord = wordAtPoint.replace(/[^\w]/g, '');
+      if (cleanWord && /^[a-zA-Z]+$/.test(cleanWord)) {
+        setDoubleClickTranslationPanel({
+          word: cleanWord.toLowerCase(),
+          position: { x: clientX, y: clientY + 10 }
+        });
+      }
+    } else {
+      // Первый тап
+      lastTapRef.current = now;
+      
+      // Устанавливаем таймаут для сброса
+      if (tapTimeoutRef.current) {
+        clearTimeout(tapTimeoutRef.current);
+      }
+      tapTimeoutRef.current = setTimeout(() => {
+        lastTapRef.current = 0;
+      }, 300);
+    }
+  }, []);
+
   const handleCloseDoubleClickTranslationPanel = useCallback(() => {
     setDoubleClickTranslationPanel(null);
   }, []);
@@ -344,7 +479,13 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   return (
     <>
       <Stack gap={2} sx={{ width: '100%' }}>
-        <Stack gap={1} sx={{ color: '#333' }} onDoubleClick={handleTextDoubleClick}>
+        <Stack 
+          gap={1} 
+          sx={{ color: '#333' }} 
+          onDoubleClick={handleTextDoubleClick}
+          onTouchEnd={handleMobileTap}
+          onClick={handleMobileTap}
+        >
           {displaySentence && (
             <Typography
               variant="body1"
