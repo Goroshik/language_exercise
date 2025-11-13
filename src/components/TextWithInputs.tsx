@@ -68,15 +68,27 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
   let mainLine = lines[0];
   const extraLines = lines.slice(1);
 
+  // Extract hints FIRST (before processing dashes) to avoid false matches
+  let hints: string[] = [];
+  const hintMatch = mainLine.match(/\s*\(([^)]+)\)\s*$/);
+  if (hintMatch) {
+    hints = hintMatch[1]
+      .split(/[,;]+/)
+      .map(part => part.trim().replace(/\*\*([^*]+)\*\*/g, '$1')) // Remove ** from hints
+      .filter(Boolean);
+    mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
+  }
+
   let translation: string | null = null;
-  const dashMatch = mainLine.match(/^(.*?)[\s]*[-–—][\s]*(.+)$/);
+  // Match dash separator only when preceded by space, punctuation, or at sentence boundary
+  // This prevents matching hyphens within compound words like "break-up"
+  const dashMatch = mainLine.match(/^(.*[.!?]\s*)[\s]*[-–—][\s]*(.+)$/);
   if (dashMatch) {
     mainLine = dashMatch[1].trim();
     translation = stripTranslationLabel(dashMatch[2]);
   }
   
   const hasBoldFormat = BOLD_PATTERN.test(mainLine);
-  let hints: string[] = [];
 
   if (hasBoldFormat) {
     const boldWords: string[] = [];
@@ -85,16 +97,6 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     BOLD_PATTERN.lastIndex = 0;
     while ((match = BOLD_PATTERN.exec(mainLine)) !== null) {
       boldWords.push(match[1]);
-    }
-
-    const hintMatch = mainLine.match(/\s*\(([^)]+)\)\s*$/);
-    if (hintMatch) {
-      hints = hintMatch[1]
-        .split(/[,;]+/)
-        .map(part => part.trim().replace(/\*\*([^*]+)\*\*/g, '$1')) // Remove ** from hints
-        .filter(Boolean);
-
-      mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
     }
 
     // Reset regex lastIndex before use
@@ -110,17 +112,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
       additionalNotes: extraLines
     };
   } else {
-    const hintMatch = mainLine.match(/\(([^)]+)\)\s*$/);
-    hints = hintMatch
-      ? hintMatch[1]
-          .split(/[,;]+/)
-          .map(part => part.trim().replace(/\*\*([^*]+)\*\*/g, '$1')) // Remove ** from hints
-          .filter(Boolean)
-      : [];
-    if (hintMatch) {
-      mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
-    }
-
+    // For placeholder format {{input}}
     if (!translation) {
       const translationIndex = extraLines.findIndex(line =>
         /^(?:перевод|translation)\b/i.test(line)
