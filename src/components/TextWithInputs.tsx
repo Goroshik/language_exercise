@@ -290,9 +290,6 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const handleTextDoubleClick = useCallback((event: React.MouseEvent) => {
     if (typeof window === 'undefined') return;
 
-    // Only handle actual double-click events, not single clicks
-    if (event.detail !== 2) return;
-
     const selection = window.getSelection();
     if (!selection || selection.rangeCount === 0) return;
 
@@ -368,62 +365,31 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
           ))}
 
           {hints.length > 0 && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
               <Typography
                 variant="caption"
                 sx={{ color: '#777', fontWeight: 500 }}
               >
                 Подсказка:
               </Typography>
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.5,
-                  maxHeight: {
-                    xs: 'calc(3 * (24px + 4px))', // 3 items on mobile (chip height + gap)
-                    sm: 'calc(5 * (24px + 4px))'  // 5 items on desktop (chip height + gap)
-                  },
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
-                  pb: 0.5,
-                  pr: 0.5,
-                  '&::-webkit-scrollbar': {
-                    width: '6px'
-                  },
-                  '&::-webkit-scrollbar-track': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-                    borderRadius: '3px'
-                  },
-                  '&::-webkit-scrollbar-thumb': {
-                    backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                    borderRadius: '3px',
+              {hints.map((hint, index) => (
+                <Chip
+                  key={index}
+                  label={hint}
+                  size="small"
+                  variant="outlined"
+                  sx={{
+                    backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                    borderColor: 'rgba(25, 118, 210, 0.3)',
+                    color: '#1976d2',
+                    fontWeight: 500,
+                    cursor: 'text',
                     '&:hover': {
-                      backgroundColor: 'rgba(0, 0, 0, 0.3)'
+                      backgroundColor: 'rgba(25, 118, 210, 0.12)'
                     }
-                  }
-                }}
-              >
-                {hints.map((hint, index) => (
-                  <Chip
-                    key={index}
-                    label={hint}
-                    size="small"
-                    variant="outlined"
-                    sx={{
-                      backgroundColor: 'rgba(25, 118, 210, 0.08)',
-                      borderColor: 'rgba(25, 118, 210, 0.3)',
-                      color: '#1976d2',
-                      fontWeight: 500,
-                      cursor: 'text',
-                      justifyContent: 'flex-start',
-                      '&:hover': {
-                        backgroundColor: 'rgba(25, 118, 210, 0.12)'
-                      }
-                    }}
-                  />
-                ))}
-              </Box>
+                  }}
+                />
+              ))}
             </Box>
           )}
 
