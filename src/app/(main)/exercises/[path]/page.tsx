@@ -4,14 +4,17 @@ import { useParams, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 
 import {
+  Alert,
   Box,
   Button,
   ButtonGroup,
+  IconButton,
   Stack,
   Typography,
   useMediaQuery,
   useTheme
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 import { useAppStore } from 'src/store/appStore';
 import { useSettingsStore } from 'src/store/settingsStore';
@@ -118,11 +121,13 @@ const Page: React.FC = () => {
     setState,
     exerciseBlocks,
     validationResults,
+    error,
     handleTopicSelect,
     generateMoreExercises,
     loadTrainingExercises,
     handleCheckAnswers,
-    setIsNavigating
+    setIsNavigating,
+    clearError
   } = useAppStore();
 
   // Clear exercises when topic path changes
@@ -364,6 +369,26 @@ const Page: React.FC = () => {
           ))}
         </ButtonGroup>
       </Stack>
+
+      {/* Error Display */}
+      {error && (
+        <Alert 
+          severity="error" 
+          sx={{ mb: 2 }}
+          action={
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              size="small"
+              onClick={clearError}
+            >
+              <CloseIcon fontSize="inherit" />
+            </IconButton>
+          }
+        >
+          {error}
+        </Alert>
+      )}
 
       <Box
         sx={{
