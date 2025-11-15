@@ -8,7 +8,6 @@ import {
 } from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
 import { DictionaryWord } from 'src/types';
-import { showAlert } from 'src/utils/alert';
 
 export type Mode = 'student' | 'teacher' | string;
 
@@ -154,7 +153,7 @@ export async function processGenerateTextRequest(
       if (err instanceof Error && err.message.includes('No token found')) {
         return { status: 402, body: { error: 'AI service token not configured for user' } };
       }
-      showAlert.error('AI service error');
+      console.error('AI service error (generate text):', err);
       return { status: 502, body: { error: 'Failed to generate text from AI service' } };
     }
 
