@@ -82,14 +82,15 @@ export const useTextSelection = (): UseTextSelectionResult => {
     const endOffset = range.endOffset;
 
     // Find word boundary at start (look backwards)
+    // Use Unicode-aware pattern to include Polish and other special characters
     let expandedStart = startOffset;
-    while (expandedStart > 0 && /\S/.test(fullText[expandedStart - 1])) {
+    while (expandedStart > 0 && /[\p{L}\p{N}]/u.test(fullText[expandedStart - 1])) {
       expandedStart--;
     }
 
     // Find word boundary at end (look forwards)
     let expandedEnd = endOffset;
-    while (expandedEnd < fullText.length && /\S/.test(fullText[expandedEnd])) {
+    while (expandedEnd < fullText.length && /[\p{L}\p{N}]/u.test(fullText[expandedEnd])) {
       expandedEnd++;
     }
 
@@ -112,8 +113,9 @@ export const useTextSelection = (): UseTextSelectionResult => {
       const startText = startContainer.textContent;
       const startOffset = range.startOffset;
       
+      // Use Unicode-aware pattern to include Polish and other special characters
       let expandedStart = startOffset;
-      while (expandedStart > 0 && /\S/.test(startText[expandedStart - 1])) {
+      while (expandedStart > 0 && /[\p{L}\p{N}]/u.test(startText[expandedStart - 1])) {
         expandedStart--;
       }
       
@@ -128,8 +130,9 @@ export const useTextSelection = (): UseTextSelectionResult => {
       const endText = endContainer.textContent;
       const endOffset = range.endOffset;
       
+      // Use Unicode-aware pattern to include Polish and other special characters
       let expandedEnd = endOffset;
-      while (expandedEnd < endText.length && /\S/.test(endText[expandedEnd])) {
+      while (expandedEnd < endText.length && /[\p{L}\p{N}]/u.test(endText[expandedEnd])) {
         expandedEnd++;
       }
       
