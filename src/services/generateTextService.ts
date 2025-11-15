@@ -227,8 +227,8 @@ export async function processGenerateTextRequest(
           // Get the most recent sentence IDs matching our batch size
           sentenceIds = sentences.map(s => s.id);
         }
-      } catch (_saveErr) {
-        showAlert.warning('Failed to save generated sentence history');
+      } catch (saveErr) {
+        console.error('Failed to save generated sentence history:', saveErr);
       }
     }
 
@@ -255,8 +255,8 @@ export async function processGenerateTextRequest(
       status: 200, 
       body: responseBody
     };
-  } catch (_err) {
-    showAlert.error('Unexpected error in generateText service');
+  } catch (err) {
+    console.error('Unexpected error in generateText service:', err);
     return { status: 500, body: { error: 'Internal server error' } };
   }
 }
