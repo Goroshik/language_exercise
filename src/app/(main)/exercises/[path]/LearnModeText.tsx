@@ -49,14 +49,14 @@ const LearnModeText: React.FC<LearnModeTextProps> = ({ text }) => {
     for (const word of words) {
       const wordEnd = currentOffset + word.length;
       if (clickOffset >= currentOffset && clickOffset <= wordEnd) {
-        // Clean word from punctuation
-        selectedWord = word.replace(/[^\w]/g, '');
+        // Clean word from punctuation but keep Unicode letters (including Polish special characters)
+        selectedWord = word.replace(/[^\p{L}\p{N}]/gu, '');
         break;
       }
       currentOffset = wordEnd + 1; // +1 for space
     }
 
-    if (selectedWord && /^[a-zA-Z]+$/.test(selectedWord)) {
+    if (selectedWord && /^[\p{L}]+$/u.test(selectedWord)) {
       // Get click position for panel placement
       const position = {
         x: event.clientX,
