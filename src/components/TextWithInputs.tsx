@@ -306,9 +306,10 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
       }
     }
 
-    const cleanWord = selectedText.replace(/[^\w]/g, '');
+    // Remove punctuation but keep Unicode letters (including Polish special characters)
+    const cleanWord = selectedText.replace(/[^\p{L}\p{N}]/gu, '');
 
-    if (cleanWord && /^[a-zA-Z]+$/.test(cleanWord)) {
+    if (cleanWord && /^[\p{L}]+$/u.test(cleanWord)) {
       const position = {
         x: event.clientX,
         y: event.clientY + 10
@@ -368,7 +369,7 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
         }
         
         // Одно слово - показываем WordTranslationPanel
-        if (selectedText && /^[a-zA-Z]+$/.test(selectedText)) {
+        if (selectedText && /^[\p{L}]+$/u.test(selectedText)) {
           setDoubleClickTranslationPanel({
             word: selectedText.toLowerCase(),
             position: { x: clientX, y: clientY + 10 }
@@ -390,17 +391,17 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
             const offset = range.startOffset;
             const text = textNode.textContent || '';
             
-            // Находим границы слова вокруг offset
+            // Находим границы слова вокруг offset (Unicode-aware for Polish characters)
             let start = offset;
             let end = offset;
             
             // Ищем начало слова
-            while (start > 0 && /\w/.test(text[start - 1])) {
+            while (start > 0 && /[\p{L}\p{N}]/u.test(text[start - 1])) {
               start--;
             }
             
             // Ищем конец слова
-            while (end < text.length && /\w/.test(text[end])) {
+            while (end < text.length && /[\p{L}\p{N}]/u.test(text[end])) {
               end++;
             }
             
@@ -416,17 +417,17 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
             const offset = caretPos.offset;
             const text = textNode.textContent || '';
             
-            // Находим границы слова вокруг offset
+            // Находим границы слова вокруг offset (Unicode-aware for Polish characters)
             let start = offset;
             let end = offset;
             
             // Ищем начало слова
-            while (start > 0 && /\w/.test(text[start - 1])) {
+            while (start > 0 && /[\p{L}\p{N}]/u.test(text[start - 1])) {
               start--;
             }
             
             // Ищем конец слова
-            while (end < text.length && /\w/.test(text[end])) {
+            while (end < text.length && /[\p{L}\p{N}]/u.test(text[end])) {
               end++;
             }
             
@@ -435,8 +436,9 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
         }
       }
       
-      const cleanWord = wordAtPoint.replace(/[^\w]/g, '');
-      if (cleanWord && /^[a-zA-Z]+$/.test(cleanWord)) {
+      // Remove punctuation but keep Unicode letters (including Polish special characters)
+      const cleanWord = wordAtPoint.replace(/[^\p{L}\p{N}]/gu, '');
+      if (cleanWord && /^[\p{L}]+$/u.test(cleanWord)) {
         setDoubleClickTranslationPanel({
           word: cleanWord.toLowerCase(),
           position: { x: clientX, y: clientY + 10 }
