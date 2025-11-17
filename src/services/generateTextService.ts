@@ -154,7 +154,8 @@ export async function processGenerateTextRequest(
         return { status: 402, body: { error: 'AI service token not configured for user' } };
       }
       console.error('AI service error (generate text):', err);
-      return { status: 502, body: { error: 'Failed to generate text from AI service' } };
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate text from AI service';
+      return { status: 502, body: { error: errorMessage } };
     }
 
     const text =

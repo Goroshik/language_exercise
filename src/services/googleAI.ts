@@ -1,6 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import { userSettingsRepository } from 'src/repository/client';
-import { showAlert } from 'src/utils/alert';
 import { AIResponse, BaseAIService, ParsedWord } from './baseAI';
 
 export class GoogleAIService extends BaseAIService {
@@ -12,15 +11,14 @@ export class GoogleAIService extends BaseAIService {
    * @returns Promise with parsed words array
    */
   async parseWordsFromText(text: string, userId: string): Promise<ParsedWord[]> {
-    try {
-      const token = await this.validateAndGetToken(userId);
-      const genAI = new GoogleGenerativeAI(token);
+    const token = await this.validateAndGetToken(userId);
+    const genAI = new GoogleGenerativeAI(token);
 
-      // Get user's selected model from settings, default to gemini-2.5-flash for parsing
-      const modelName = (await this.getUserModel(userId)) || 'gemini-2.5-flash';
-      const model = genAI.getGenerativeModel({ model: modelName });
+    // Get user's selected model from settings, default to gemini-2.5-flash for parsing
+    const modelName = (await this.getUserModel(userId)) || 'gemini-2.5-flash';
+    const model = genAI.getGenerativeModel({ model: modelName });
 
-      const prompt = `Parse the following text and extract English words or phrases with their Russian translations. 
+    const prompt = `Parse the following text and extract English words or phrases with their Russian translations. 
 Return ONLY a valid JSON array with format: [{"word": "english_word", "translate": "russian_translation"}].
 Do not include any other text, explanations, or formatting.
 If a line contains both English and Russian, extract them as word-translation pairs.
@@ -30,26 +28,21 @@ Skip empty lines and non-word content.
 Text to parse:
 ${text}`;
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const responseText = response.text();
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const responseText = response.text();
 
-      // NOTE: Clean response and extract JSON
-      const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
+    // NOTE: Clean response and extract JSON
+    const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
 
-      try {
-        const parsedWords = JSON.parse(cleanedResponse);
-        if (Array.isArray(parsedWords)) {
-          return parsedWords.filter(item => item.word && typeof item.word === 'string');
-        }
-        return [];
-      } catch (_parseError) {
-        showAlert.error('Failed to parse AI response as JSON');
-        return [];
+    try {
+      const parsedWords = JSON.parse(cleanedResponse);
+      if (Array.isArray(parsedWords)) {
+        return parsedWords.filter(item => item.word && typeof item.word === 'string');
       }
-    } catch (_error) {
-      showAlert.error('Error parsing words with AI');
-      return [];
+      throw new Error('Invalid response format from Google AI');
+    } catch (_parseError) {
+      throw new Error('Failed to parse AI response as JSON');
     }
   }
 
@@ -60,26 +53,18 @@ ${text}`;
    * @returns Promise with generated text or error
    */
   async generateText(prompt: string, userId: string): Promise<AIResponse> {
-    try {
-      const token = await this.validateAndGetToken(userId);
-      const genAI = new GoogleGenerativeAI(token);
+    const token = await this.validateAndGetToken(userId);
+    const genAI = new GoogleGenerativeAI(token);
 
-      // Get user's selected model from settings
-      const modelName = (await this.getUserModel(userId)) || 'gemini-2.5-flash';
-      const model = genAI.getGenerativeModel({ model: modelName });
+    // Get user's selected model from settings
+    const modelName = (await this.getUserModel(userId)) || 'gemini-2.5-flash';
+    const model = genAI.getGenerativeModel({ model: modelName });
 
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
 
-      return { text };
-    } catch (error) {
-      showAlert.error('Google AI API Error');
-      return {
-        text: '',
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
-      };
-    }
+    return { text };
   }
 
   /**
@@ -124,7 +109,7 @@ ${text}`;
 
       return null;
     } catch (_error) {
-      showAlert.error('Error fetching user model settings');
+      // On error, return null to use default model
       return null;
     }
   }
@@ -136,10 +121,9 @@ ${text}`;
    */
   private isGeminiModel(modelName: string): boolean {
     const geminiModels = [
-      'gemini-2.0-flash-exp',
+      'gemini-2.5-pro',
       'gemini-2.5-flash',
-      'gemini-1.5-pro',
-      'gemini-1.0-pro'
+      'gemini-2.0-flash-lite',
     ];
     return geminiModels.includes(modelName);
   }

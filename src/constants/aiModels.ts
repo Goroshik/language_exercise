@@ -22,7 +22,7 @@ export const AI_MODELS: AIModel[] = [
   { value: 'claude-haiku-4.5', label: 'Claude Haiku 4.5', provider: 'anthropic' },
   { value: 'claude-opus-4.5', label: 'Claude Opus 4.5', provider: 'anthropic' },
   { value: 'claude-sonnet-4.5', label: 'Claude Sonnet 4.5', provider: 'anthropic' },
-  { value: 'claude-sonnet-3.5', label: 'Claude Sonnet 3.5', provider: 'anthropic' },
+  { value: 'claude-sonnet-3.5', label: 'Claude Sonnet 3.7', provider: 'anthropic' },
 ];
 
 export const PROVIDER_LABELS: Record<string, string> = {
