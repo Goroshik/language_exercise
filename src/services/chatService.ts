@@ -82,10 +82,6 @@ export class ChatService {
     // Generate AI response
     const aiResponse = await aiService.generateText(prompt, userId);
 
-    if (aiResponse.error) {
-      throw new Error(aiResponse.error);
-    }
-
     // Save assistant response to database with chatId
     await chatMessageRepository.addMessage({
       userId,

@@ -1,6 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { userSettingsRepository } from 'src/repository/client';
-import { showAlert } from 'src/utils/alert';
 import { AIResponse, BaseAIService, ParsedWord } from './baseAI';
 
 export class ClaudeAIService extends BaseAIService {
@@ -13,16 +12,15 @@ export class ClaudeAIService extends BaseAIService {
    * @returns Promise with parsed words array
    */
   async parseWordsFromText(text: string, userId: string): Promise<ParsedWord[]> {
-    try {
-      const token = await this.validateAndGetToken(userId);
-      const anthropic = new Anthropic({ apiKey: token });
+    const token = await this.validateAndGetToken(userId);
+    const anthropic = new Anthropic({ apiKey: token });
 
-      // Get user's selected model from settings, default to claude-3-haiku-20240307 for parsing
-      const model = (await this.getUserModel(userId)) || 'claude-3-haiku-20240307';
+    // Get user's selected model from settings, default to claude-3-haiku-20240307 for parsing
+    const model = (await this.getUserModel(userId)) || 'claude-3-haiku-20240307';
 
-      // Using Claude model ${model} for parsing words`);
+    // Using Claude model ${model} for parsing words`);
 
-      const prompt = `Parse the following text and extract English words or phrases with their Russian translations. 
+    const prompt = `Parse the following text and extract English words or phrases with their Russian translations. 
 Return ONLY a valid JSON array with format: [{"word": "english_word", "translate": "russian_translation"}].
 Do not include any other text, explanations, or formatting.
 If a line contains both English and Russian, extract them as word-translation pairs.
@@ -32,37 +30,32 @@ Skip empty lines and non-word content.
 Text to parse:
 ${text}`;
 
-      const response = await anthropic.messages.create({
-        model: model,
-        max_tokens: 4000,
-        temperature: 0.3,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      });
-
-      const responseText = response.content[0]?.type === 'text' ? response.content[0].text : '';
-      // Claude response:, responseText);
-
-      // Clean response and extract JSON
-      const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
-
-      try {
-        const parsedWords = JSON.parse(cleanedResponse);
-        if (Array.isArray(parsedWords)) {
-          return parsedWords.filter(item => item.word && typeof item.word === 'string');
+    const response = await anthropic.messages.create({
+      model: model,
+      max_tokens: 4000,
+      temperature: 0.3,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
         }
-        return [];
-      } catch (_parseError) {
-        showAlert.error('Failed to parse Claude response as JSON');
-        return [];
+      ]
+    });
+
+    const responseText = response.content[0]?.type === 'text' ? response.content[0].text : '';
+    // Claude response:, responseText);
+
+    // Clean response and extract JSON
+    const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
+
+    try {
+      const parsedWords = JSON.parse(cleanedResponse);
+      if (Array.isArray(parsedWords)) {
+        return parsedWords.filter(item => item.word && typeof item.word === 'string');
       }
-    } catch (_error) {
-      showAlert.error('Error parsing words with Claude');
-      return [];
+      throw new Error('Invalid response format from Claude');
+    } catch (_parseError) {
+      throw new Error('Failed to parse Claude response as JSON');
     }
   }
 
@@ -73,37 +66,29 @@ ${text}`;
    * @returns Promise with generated text or error
    */
   async generateText(prompt: string, userId: string): Promise<AIResponse> {
-    try {
-      const token = await this.validateAndGetToken(userId);
-      const anthropic = new Anthropic({ apiKey: token });
+    const token = await this.validateAndGetToken(userId);
+    const anthropic = new Anthropic({ apiKey: token });
 
-      // Get user's selected model from settings
-      const model = (await this.getUserModel(userId)) || 'claude-3-5-sonnet-20241022';
+    // Get user's selected model from settings
+    const model = (await this.getUserModel(userId)) || 'claude-3-5-sonnet-20241022';
 
-      // Using Claude model ${model} for text generation`);
+    // Using Claude model ${model} for text generation`);
 
-      const response = await anthropic.messages.create({
-        model: model,
-        max_tokens: 4000,
-        temperature: 0.7,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ]
-      });
+    const response = await anthropic.messages.create({
+      model: model,
+      max_tokens: 4000,
+      temperature: 0.7,
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ]
+    });
 
-      const text = response.content[0]?.type === 'text' ? response.content[0].text : '';
+    const text = response.content[0]?.type === 'text' ? response.content[0].text : '';
 
-      return { text };
-    } catch (error) {
-      showAlert.error('Claude API Error');
-      return {
-        text: '',
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
-      };
-    }
+    return { text };
   }
 
   /**
@@ -161,7 +146,7 @@ ${text}`;
 
       return null;
     } catch (_error) {
-      showAlert.error('Error fetching user model settings');
+      // On error, return null to use default model
       return null;
     }
   }

@@ -82,7 +82,8 @@ export async function checkEssayService(
       if (err instanceof Error && err.message.includes('No token found')) {
         return { status: 402, body: { error: 'AI service token not configured for user' } };
       }
-      return { status: 502, body: { error: 'Failed to generate response from AI service' } };
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate response from AI service';
+      return { status: 502, body: { error: errorMessage } };
     }
 
     const text = typeof rawResult === 'string' 
