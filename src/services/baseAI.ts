@@ -2,7 +2,6 @@ import { TokenResult, TokenService } from 'src/utils/tokenService';
 
 export interface AIResponse {
   text: string;
-  error?: string;
 }
 
 export interface ParsedWord {

@@ -81,7 +81,8 @@ export async function processCheckAnswersRequest(
         return { status: 402, body: { error: 'AI service token not configured for user' } };
       }
       console.error('AI service error (check answers)', err);
-      return { status: 502, body: { error: 'Failed to validate answers via AI service' } };
+      const errorMessage = err instanceof Error ? err.message : 'Failed to validate answers via AI service';
+      return { status: 502, body: { error: errorMessage } };
     }
 
     const text =

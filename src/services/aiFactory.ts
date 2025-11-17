@@ -1,5 +1,4 @@
 import { userSettingsRepository } from 'src/repository/client';
-import { showAlert } from 'src/utils/alert';
 import { IAIService } from './baseAI';
 import { ClaudeAIService } from './claudeAI';
 import { GoogleAIService } from './googleAI';
@@ -31,11 +30,9 @@ export class AIFactory {
         return new ClaudeAIService();
       } else {
         // Default to Gemini if model is not recognized
-        showAlert.warning(`Unknown model ${selectedModel}, falling back to Gemini`);
         return new GoogleAIService();
       }
     } catch (_error) {
-      showAlert.error('Error getting AI service');
       // Default to Gemini on error
       return new GoogleAIService();
     }
@@ -51,6 +48,7 @@ export class AIFactory {
         { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', provider: 'gemini' },
         { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', provider: 'gemini' },
         { value: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash-Lite', provider: 'gemini' },
+        { value: 'gemini-1.0-pro', label: 'Gemini 1.0 Pro', provider: 'gemini' },
       ],
       openai: [
         { value: 'gpt-5', label: 'GPT-5', provider: 'openai' },
@@ -60,7 +58,7 @@ export class AIFactory {
         { value: 'claude-haiku-4.5', label: 'Claude Haiku 4.5', provider: 'anthropic' },
         { value: 'claude-opus-4.5', label: 'Claude Opus 4.5', provider: 'anthropic' },
         { value: 'claude-sonnet-4.5', label: 'Claude Sonnet 4.5', provider: 'anthropic' },
-        { value: 'claude-sonnet-3.5', label: 'Claude Sonnet 3.5', provider: 'anthropic' },
+        { value: 'claude-sonnet-3.5', label: 'Claude Sonnet 3.7', provider: 'anthropic' },
       ]
     };
   }

@@ -96,6 +96,13 @@ export class ApiService {
     });
 
     const responseData = await response.json();
+
+    // Check if response indicates an error
+    if (!response.ok || responseData.error) {
+      const errorMessage = responseData.error || `HTTP error! status: ${response.status}`;
+      throw new Error(errorMessage);
+    }
+
     // Для generateText возвращаем весь объект, для остальных - только data
     if (endpoint === '/api/ai/generate-text' || endpoint === '/api/ai/training-exercises') {
       return responseData as T;
@@ -106,6 +113,14 @@ export class ApiService {
   private static async get<T>(endpoint: string): Promise<T> {
     const response = await fetch(endpoint);
 
-    return await response.json().then(({ data }) => data);
+    const responseData = await response.json();
+
+    // Check if response indicates an error
+    if (!response.ok || responseData.error) {
+      const errorMessage = responseData.error || `HTTP error! status: ${response.status}`;
+      throw new Error(errorMessage);
+    }
+
+    return responseData.data;
   }
 }

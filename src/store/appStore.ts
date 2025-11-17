@@ -332,6 +332,11 @@ export const useAppStore = create<AppStore>()(
           };
         } = {};
 
+        // Validate that data is an array before processing
+        if (!Array.isArray(data)) {
+          throw new Error('Некорректный ответ от сервера проверки');
+        }
+
         // Обрабатываем структурированные результаты от AI
         (data as CheckAnswerItem[]).forEach((item, index) => {
           if (item.skipped) return; // Пропускаем пустые ответы

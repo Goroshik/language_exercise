@@ -1,7 +1,11 @@
 import OpenAI from 'openai';
 import { userSettingsRepository } from 'src/repository/client';
-import { showAlert } from 'src/utils/alert';
 import { AIResponse, BaseAIService, ParsedWord } from './baseAI';
+
+interface OpenAIError {
+  status?: number;
+  message?: string;
+}
 
 export class OpenAIService extends BaseAIService {
   serviceName = 'openai';
@@ -59,14 +63,17 @@ ${text}`;
         if (Array.isArray(parsedWords)) {
           return parsedWords.filter(item => item.word && typeof item.word === 'string');
         }
-        return [];
+        throw new Error('Invalid response format from OpenAI');
       } catch (_parseError) {
-        showAlert.error('Failed to parse OpenAI response as JSON');
-        return [];
+        throw new Error('Failed to parse OpenAI response as JSON');
       }
-    } catch (_error) {
-      showAlert.error('Error parsing words with OpenAI');
-      return [];
+    } catch (error: unknown) {
+      const openaiError = error as OpenAIError;
+      // Handle rate limit errors specifically
+      if (openaiError?.status === 429 || openaiError?.message?.includes('429')) {
+        throw new Error('OpenAI rate limit exceeded. Please check your plan and billing details.');
+      }
+      throw error;
     }
   }
 
@@ -77,15 +84,15 @@ ${text}`;
    * @returns Promise with generated text or error
    */
   async generateText(prompt: string, userId: string): Promise<AIResponse> {
+    const token = await this.validateAndGetToken(userId);
+    const openai = new OpenAI({ apiKey: token });
+
+    // Get user's selected model from settings
+    const model = (await this.getUserModel(userId)) || 'gpt-4o-mini';
+
+    // Using OpenAI model ${model} for text generation`);
+
     try {
-      const token = await this.validateAndGetToken(userId);
-      const openai = new OpenAI({ apiKey: token });
-
-      // Get user's selected model from settings
-      const model = (await this.getUserModel(userId)) || 'gpt-4o-mini';
-
-      // Using OpenAI model ${model} for text generation`);
-
       const response = await openai.chat.completions.create({
         model: model,
         messages: [
@@ -100,12 +107,13 @@ ${text}`;
       const text = response.choices[0]?.message?.content || '';
 
       return { text };
-    } catch (error) {
-      showAlert.error('OpenAI API Error');
-      return {
-        text: '',
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
-      };
+    } catch (error: unknown) {
+      const openaiError = error as OpenAIError;
+      // Handle rate limit errors specifically
+      if (openaiError?.status === 429 || openaiError?.message?.includes('429')) {
+        throw new Error('OpenAI rate limit exceeded. Please check your plan and billing details.');
+      }
+      throw error;
     }
   }
 
@@ -124,28 +132,37 @@ ${text}`;
 
     // Using OpenAI model ${model} for streaming text generation`);
 
-    const stream = await openai.chat.completions.create({
-      model: model,
-      messages: [
-        {
-          role: 'user',
-          content: prompt
-        }
-      ],
-      temperature: 0.7,
-      stream: true
-    });
+    try {
+      const stream = await openai.chat.completions.create({
+        model: model,
+        messages: [
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        stream: true
+      });
 
-    async function* textGenerator() {
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || '';
-        if (content) {
-          yield content;
+      async function* textGenerator() {
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content || '';
+          if (content) {
+            yield content;
+          }
         }
       }
-    }
 
-    return textGenerator();
+      return textGenerator();
+    } catch (error: unknown) {
+      const openaiError = error as OpenAIError;
+      // Handle rate limit errors specifically
+      if (openaiError?.status === 429 || openaiError?.message?.includes('429')) {
+        throw new Error('OpenAI rate limit exceeded. Please check your plan and billing details.');
+      }
+      throw error;
+    }
   }
 
   /**
@@ -164,7 +181,7 @@ ${text}`;
 
       return null;
     } catch (_error) {
-      showAlert.error('Error fetching user model settings');
+      // On error, return null to use default model
       return null;
     }
   }
@@ -176,6 +193,8 @@ ${text}`;
    */
   private isOpenAIModel(modelName: string): boolean {
     const openaiModels = [
+      'gpt-5',
+      'gpt-4.1',
       'gpt-4o',
       'gpt-4o-mini',
       'gpt-4-turbo',

@@ -8,7 +8,6 @@ import {
 } from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
 import { DictionaryWord } from 'src/types';
-import { showAlert } from 'src/utils/alert';
 
 export type Mode = 'student' | 'teacher' | string;
 
@@ -154,8 +153,9 @@ export async function processGenerateTextRequest(
       if (err instanceof Error && err.message.includes('No token found')) {
         return { status: 402, body: { error: 'AI service token not configured for user' } };
       }
-      showAlert.error('AI service error');
-      return { status: 502, body: { error: 'Failed to generate text from AI service' } };
+      console.error('AI service error (generate text):', err);
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate text from AI service';
+      return { status: 502, body: { error: errorMessage } };
     }
 
     const text =
@@ -228,8 +228,8 @@ export async function processGenerateTextRequest(
           // Get the most recent sentence IDs matching our batch size
           sentenceIds = sentences.map(s => s.id);
         }
-      } catch (_saveErr) {
-        showAlert.warning('Failed to save generated sentence history');
+      } catch (saveErr) {
+        console.error('Failed to save generated sentence history:', saveErr);
       }
     }
 
@@ -256,8 +256,8 @@ export async function processGenerateTextRequest(
       status: 200, 
       body: responseBody
     };
-  } catch (_err) {
-    showAlert.error('Unexpected error in generateText service');
+  } catch (err) {
+    console.error('Unexpected error in generateText service:', err);
     return { status: 500, body: { error: 'Internal server error' } };
   }
 }
