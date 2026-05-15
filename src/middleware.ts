@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
   let userId: string | null = null;
   if (rawToken) {
     try {
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || '***REMOVED***');
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET);
       const { payload } = await jwtVerify(rawToken, secret);
       // TODO: Fix types - properly type JWT payload instead of using any
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
