@@ -13,7 +13,7 @@ interface TextWithInputsProps {
   text: string;
   exerciseIndex?: string | number;
   sentenceId?: string;
-  hasAnswer?: boolean; // флаг наличия предыдущего ответа
+  hasAnswer?: boolean;
   validationResults?: {
     [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] };
   };
@@ -28,9 +28,8 @@ interface ParsedExerciseContent {
 }
 
 const PLACEHOLDER_REGEX = /\{\{input\}\}/gi;
-// Pattern for bold markdown format (e.g., **word** or **multiple words**)
-// Matches ** followed by any content (including spaces) until closing **
 const BOLD_PATTERN = /\*\*([^*]+)\*\*/g;
+const WORD_CHAR = /[\p{L}\p{N}]/u;
 
 const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
   displaySentence: '',
@@ -43,6 +42,23 @@ const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
 const stripTranslationLabel = (value: string) =>
   value.replace(/^(?:перевод|translation)\s*[:−-]?\s*/i, '').trim();
 
+const extractWordAtOffset = (text: string, offset: number): string => {
+  let start = offset;
+  let end = offset;
+  while (start > 0 && WORD_CHAR.test(text[start - 1])) {
+    start--;
+  }
+  while (end < text.length && WORD_CHAR.test(text[end])) {
+    end++;
+  }
+  return text.substring(start, end);
+};
+
+const cleanWord = (raw: string): string | null => {
+  const cleaned = raw.replace(/[^\p{L}\p{N}]/gu, '');
+  return cleaned && /^[\p{L}]+$/u.test(cleaned) ? cleaned.toLowerCase() : null;
+};
+
 const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
   if (!rawText) {
     return EMPTY_PARSED_CONTENT;
@@ -53,8 +69,6 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     return EMPTY_PARSED_CONTENT;
   }
 
-  // Remove numbering/bullets from start: "1. ", "2) ", "- ", "* " etc.
-  // But preserve ** for markdown bold formatting
   const withoutNumbering = normalized.replace(/^(?:[\d]+[).\s]+|[-*]\s+)/, '').trim();
   const lines = withoutNumbering
     .split('\n')
@@ -68,51 +82,36 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
   let mainLine = lines[0];
   const extraLines = lines.slice(1);
 
-  // Extract hints FIRST (before processing dashes) to avoid false matches
   let hints: string[] = [];
   const hintMatch = mainLine.match(/\s*\(([^)]+)\)\s*$/);
   if (hintMatch) {
     hints = hintMatch[1]
       .split(/[,;]+/)
-      .map(part => part.trim().replace(/\*\*([^*]+)\*\*/g, '$1')) // Remove ** from hints
+      .map(part => part.trim().replace(/\*\*([^*]+)\*\*/g, '$1'))
       .filter(Boolean);
     mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
   }
 
   let translation: string | null = null;
-  // Match dash separator only when preceded by space, punctuation, or at sentence boundary
-  // This prevents matching hyphens within compound words like "break-up"
   const dashMatch = mainLine.match(/^(.*[.!?]\s*)[\s]*[-–—][\s]*(.+)$/);
   if (dashMatch) {
     mainLine = dashMatch[1].trim();
     translation = stripTranslationLabel(dashMatch[2]);
   }
-  
+
+  BOLD_PATTERN.lastIndex = 0;
   const hasBoldFormat = BOLD_PATTERN.test(mainLine);
 
   if (hasBoldFormat) {
-    const boldWords: string[] = [];
-    let match;
-    // Reset regex lastIndex before use to avoid state issues
-    BOLD_PATTERN.lastIndex = 0;
-    while ((match = BOLD_PATTERN.exec(mainLine)) !== null) {
-      boldWords.push(match[1]);
-    }
-
-    // Reset regex lastIndex before use
-    BOLD_PATTERN.lastIndex = 0;
     const displaySentence = mainLine.replace(BOLD_PATTERN, '_____');
-    const prefillSentence = displaySentence;
-
     return {
       displaySentence,
-      prefillSentence,
+      prefillSentence: displaySentence,
       hints,
       translation: translation || null,
       additionalNotes: extraLines
     };
   } else {
-    // For placeholder format {{input}}
     if (!translation) {
       const translationIndex = extraLines.findIndex(line =>
         /^(?:перевод|translation)\b/i.test(line)
@@ -127,11 +126,9 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     }
 
     const displaySentence = mainLine.replace(PLACEHOLDER_REGEX, '_____');
-    const prefillSentence = displaySentence;
-
     return {
       displaySentence,
-      prefillSentence,
+      prefillSentence: displaySentence,
       hints,
       translation: translation || null,
       additionalNotes: extraLines
@@ -149,14 +146,10 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const [textareaValue, setTextareaValue] = useState('');
   const [doubleClickTranslationPanel, setDoubleClickTranslationPanel] =
     useState<TranslationPanelState | null>(null);
-  
-  // Ref for textarea to enable focus and selection
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Get savedAnswers from store
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const savedAnswers = useAppStore(state => state.savedAnswers);
 
-  // Use the text selection hook for multiword translation
   const {
     selectionPopover,
     translationPanel: selectionTranslationPanel,
@@ -173,12 +166,10 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
   const parsedContent = useMemo(() => parseExerciseContent(text), [text]);
   const { displaySentence, prefillSentence, hints, translation, additionalNotes } = parsedContent;
 
-  // Load saved answer from store when component mounts or sentenceId changes
   useEffect(() => {
     if (sentenceId && savedAnswers[sentenceId]) {
       setTextareaValue(savedAnswers[sentenceId]);
     } else if (!sentenceId) {
-      // Reset when there's no sentenceId (new exercise)
       setTextareaValue('');
     }
   }, [sentenceId, savedAnswers]);
@@ -188,16 +179,12 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
       return;
     }
     setTextareaValue(prefillSentence);
-    
-    // Focus and select the first blank (_____)
+
     setTimeout(() => {
       if (textareaRef.current) {
         textareaRef.current.focus();
-        
-        // Find the first occurrence of _____
         const blankIndex = prefillSentence.indexOf('_____');
         if (blankIndex !== -1) {
-          // Select the blank
           textareaRef.current.setSelectionRange(blankIndex, blankIndex + 5);
         }
       }
@@ -220,7 +207,6 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
         setTextareaValue(previousAnswer);
         addAlert('Предыдущий ответ загружен', 'success');
       } else {
-        // No previous answer found
         addAlert('Предыдущий ответ не найден', 'warning');
       }
     } catch (error) {
@@ -231,19 +217,16 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
     }
   }, [sentenceId, isLoadingPreviousAnswer, addAlert]);
 
-  // Use ref to track debounce timeout
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleTextareaChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
     const newValue = event.target.value;
     setTextareaValue(newValue);
-    
-    // Clear previous timeout
+
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
-    
-    // Update savedAnswers in store with debounce for instant switching between blocks
+
     if (sentenceId && typeof window !== 'undefined') {
       saveTimeoutRef.current = setTimeout(() => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -252,25 +235,23 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
           const currentSavedAnswers = store.getState().savedAnswers;
           store.setState({ savedAnswers: { ...currentSavedAnswers, [sentenceId]: newValue } });
         }
-      }, 150); // Debounce 150ms to reduce store updates
+      }, 150);
     }
   }, [sentenceId]);
 
   const handleTextareaBlur = useCallback(() => {
-    // Clear any pending timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
       saveTimeoutRef.current = null;
     }
-    
-    // Save answer to store immediately when textarea loses focus
+
     if (sentenceId && textareaValue.trim() && typeof window !== 'undefined') {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const store = (window as any).__appStore;
       if (store?.setState && store?.getState) {
         const currentSavedAnswers = store.getState().savedAnswers;
         store.setState({ savedAnswers: { ...currentSavedAnswers, [sentenceId]: textareaValue } });
-        
+
         const { saveAnswer } = store.getState();
         if (saveAnswer) {
           saveAnswer(sentenceId, textareaValue);
@@ -286,7 +267,6 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
     if (!selection || selection.rangeCount === 0) return;
 
     const range = selection.getRangeAt(0);
-
     let selectedText = range.toString().trim();
 
     if (!selectedText) {
@@ -306,155 +286,88 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
       }
     }
 
-    // Remove punctuation but keep Unicode letters (including Polish special characters)
-    const cleanWord = selectedText.replace(/[^\p{L}\p{N}]/gu, '');
-
-    if (cleanWord && /^[\p{L}]+$/u.test(cleanWord)) {
-      const position = {
-        x: event.clientX,
-        y: event.clientY + 10
-      };
-
+    const word = cleanWord(selectedText);
+    if (word) {
       setDoubleClickTranslationPanel({
-        word: cleanWord.toLowerCase(),
-        position
+        word,
+        position: { x: event.clientX, y: event.clientY + 10 }
       });
     }
   }, []);
 
-  // Обработка тапов для мобильных устройств
   const lastTapRef = useRef<number>(0);
   const tapTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleMobileTap = useCallback((event: React.MouseEvent | React.TouchEvent) => {
     if (typeof window === 'undefined') return;
-    
-    // Проверяем, это мобильное устройство
+
     const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     if (!isMobile) return;
 
     const now = Date.now();
     const timeSinceLastTap = now - lastTapRef.current;
 
-    // Двойной тап - промежуток менее 300ms
-    if (timeSinceLastTap < 300 && timeSinceLastTap > 0) {
-      if (tapTimeoutRef.current) {
-        clearTimeout(tapTimeoutRef.current);
-        tapTimeoutRef.current = null;
-      }
-
-      // Двойной тап - обрабатываем
-      const selection = window.getSelection();
-      
-      // Получаем координаты клика
-      let clientX: number;
-      let clientY: number;
-      
-      if ('touches' in event) {
-        clientX = event.changedTouches[0]?.clientX || 0;
-        clientY = event.changedTouches[0]?.clientY || 0;
-      } else {
-        clientX = event.clientX;
-        clientY = event.clientY;
-      }
-
-      if (selection && selection.rangeCount > 0) {
-        const selectedText = selection.toString().trim();
-        
-        // Если есть выделенный текст (несколько слов или фраза)
-        if (selectedText && selectedText.split(/\s+/).length > 1) {
-          // Для фразы - используем встроенный механизм useTextSelection
-          // Он автоматически покажет поповер при выделении
-          return;
-        }
-        
-        // Одно слово - показываем WordTranslationPanel
-        if (selectedText && /^[\p{L}]+$/u.test(selectedText)) {
-          setDoubleClickTranslationPanel({
-            word: selectedText.toLowerCase(),
-            position: { x: clientX, y: clientY + 10 }
-          });
-          return;
-        }
-      }
-
-      // Если нет выделения - пытаемся найти слово под тапом
-      let wordAtPoint = '';
-      
-      if (typeof document !== 'undefined') {
-        // Для большинства браузеров (Chrome, Safari)
-        if ('caretRangeFromPoint' in document) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const range = (document as any).caretRangeFromPoint(clientX, clientY);
-          if (range && range.startContainer.nodeType === 3) { // TEXT_NODE = 3
-            const textNode = range.startContainer;
-            const offset = range.startOffset;
-            const text = textNode.textContent || '';
-            
-            // Находим границы слова вокруг offset (Unicode-aware for Polish characters)
-            let start = offset;
-            let end = offset;
-            
-            // Ищем начало слова
-            while (start > 0 && /[\p{L}\p{N}]/u.test(text[start - 1])) {
-              start--;
-            }
-            
-            // Ищем конец слова
-            while (end < text.length && /[\p{L}\p{N}]/u.test(text[end])) {
-              end++;
-            }
-            
-            wordAtPoint = text.substring(start, end);
-          }
-        }
-        // Для Firefox
-        else if ('caretPositionFromPoint' in document) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const caretPos = (document as any).caretPositionFromPoint(clientX, clientY);
-          if (caretPos && caretPos.offsetNode.nodeType === 3) { // TEXT_NODE = 3
-            const textNode = caretPos.offsetNode;
-            const offset = caretPos.offset;
-            const text = textNode.textContent || '';
-            
-            // Находим границы слова вокруг offset (Unicode-aware for Polish characters)
-            let start = offset;
-            let end = offset;
-            
-            // Ищем начало слова
-            while (start > 0 && /[\p{L}\p{N}]/u.test(text[start - 1])) {
-              start--;
-            }
-            
-            // Ищем конец слова
-            while (end < text.length && /[\p{L}\p{N}]/u.test(text[end])) {
-              end++;
-            }
-            
-            wordAtPoint = text.substring(start, end);
-          }
-        }
-      }
-      
-      // Remove punctuation but keep Unicode letters (including Polish special characters)
-      const cleanWord = wordAtPoint.replace(/[^\p{L}\p{N}]/gu, '');
-      if (cleanWord && /^[\p{L}]+$/u.test(cleanWord)) {
-        setDoubleClickTranslationPanel({
-          word: cleanWord.toLowerCase(),
-          position: { x: clientX, y: clientY + 10 }
-        });
-      }
-    } else {
-      // Первый тап
+    if (!(timeSinceLastTap < 300 && timeSinceLastTap > 0)) {
       lastTapRef.current = now;
-      
-      // Устанавливаем таймаут для сброса
       if (tapTimeoutRef.current) {
         clearTimeout(tapTimeoutRef.current);
       }
       tapTimeoutRef.current = setTimeout(() => {
         lastTapRef.current = 0;
       }, 300);
+      return;
+    }
+
+    if (tapTimeoutRef.current) {
+      clearTimeout(tapTimeoutRef.current);
+      tapTimeoutRef.current = null;
+    }
+
+    const clientX = 'touches' in event
+      ? event.changedTouches[0]?.clientX || 0
+      : event.clientX;
+    const clientY = 'touches' in event
+      ? event.changedTouches[0]?.clientY || 0
+      : event.clientY;
+
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const selectedText = selection.toString().trim();
+      if (selectedText && selectedText.split(/\s+/).length > 1) {
+        return;
+      }
+      if (selectedText && /^[\p{L}]+$/u.test(selectedText)) {
+        setDoubleClickTranslationPanel({
+          word: selectedText.toLowerCase(),
+          position: { x: clientX, y: clientY + 10 }
+        });
+        return;
+      }
+    }
+
+    let wordAtPoint = '';
+    if (typeof document !== 'undefined') {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const doc = document as any;
+      if (doc.caretRangeFromPoint) {
+        const range = doc.caretRangeFromPoint(clientX, clientY);
+        if (range && range.startContainer.nodeType === 3) {
+          wordAtPoint = extractWordAtOffset(range.startContainer.textContent || '', range.startOffset);
+        }
+      } else if (doc.caretPositionFromPoint) {
+        const caretPos = doc.caretPositionFromPoint(clientX, clientY);
+        if (caretPos && caretPos.offsetNode.nodeType === 3) {
+          wordAtPoint = extractWordAtOffset(caretPos.offsetNode.textContent || '', caretPos.offset);
+        }
+      }
+    }
+
+    const word = cleanWord(wordAtPoint);
+    if (word) {
+      setDoubleClickTranslationPanel({
+        word,
+        position: { x: clientX, y: clientY + 10 }
+      });
     }
   }, []);
 
@@ -636,7 +549,6 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
         )}
       </Stack>
 
-      {/* Text selection popover - shows "Translate" button for selected text */}
       {selectionPopover && (
         <TextSelectionPopover
           position={selectionPopover.position}
@@ -645,7 +557,6 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
         />
       )}
 
-      {/* Translation panel from text selection */}
       {selectionTranslationPanel && (
         <WordTranslationPanel
           key={selectionTranslationPanel.word}
@@ -655,7 +566,6 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
         />
       )}
 
-      {/* Translation panel from double-click */}
       {doubleClickTranslationPanel && (
         <WordTranslationPanel
           key={doubleClickTranslationPanel.word}

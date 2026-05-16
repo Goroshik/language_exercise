@@ -44,15 +44,12 @@ export const EssayContainer: React.FC = () => {
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Word and character count
   const wordCount = content?.trim() ? content.trim().split(/\s+/).length : 0;
   const charCount = content?.length || 0;
 
-  // Get essay titles
   const essayTitles = essays.map((e) => e.title);
   const allTopics = [...new Set([...defaultTopics, ...essayTitles])];
 
-  // Load default topics
   useEffect(() => {
     const loadDefaultTopics = async () => {
       try {
@@ -65,7 +62,6 @@ export const EssayContainer: React.FC = () => {
     loadDefaultTopics();
   }, [languageCode, setDefaultTopics]);
 
-  // Load user's essays
   useEffect(() => {
     const loadEssays = async () => {
       try {
@@ -78,7 +74,6 @@ export const EssayContainer: React.FC = () => {
     loadEssays();
   }, [languageCode, currentEssayId, setEssays]);
 
-  // Auto-save functionality
   const saveEssay = useCallback(
     async (showSuccessAlert = true) => {
       if (!title.trim() || !content.trim()) {
@@ -112,22 +107,18 @@ export const EssayContainer: React.FC = () => {
   );
 
   useEffect(() => {
-    // Clear existing timeout
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    // Don't save if title or content is empty
     if (!title.trim() || !content.trim()) {
       return;
     }
 
-    // Set new timeout for auto-save
     saveTimeoutRef.current = setTimeout(() => {
       saveEssay(false);
     }, 2000);
 
-    // Cleanup on unmount
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
@@ -135,7 +126,6 @@ export const EssayContainer: React.FC = () => {
     };
   }, [title, content, saveEssay]);
 
-  // Check essay with AI
   const handleCheck = useCallback(async () => {
     if (!content.trim()) {
       showAlert.warning('Пожалуйста, введите текст для проверки');
@@ -144,7 +134,6 @@ export const EssayContainer: React.FC = () => {
 
     let essayIdToCheck = currentEssayId;
 
-    // Save first if not saved
     if (!essayIdToCheck) {
       setSaving(true);
       try {
@@ -174,15 +163,12 @@ export const EssayContainer: React.FC = () => {
     }
   }, [content, currentEssayId, title, languageCode, setSaving, setCurrentEssayId, setLoading, setSelectedErrorIndex, setAiResponse]);
 
-  // Handle title change
   const handleTitleChange = useCallback((newValue: string | null) => {
     if (newValue) {
       setTitle(newValue);
-      // If it's an existing title, load the essay
       if (essayTitles.includes(newValue)) {
         loadEssayByTitle(newValue);
       } else {
-        // New title - reset essay data
         setCurrentEssayId(null);
         setContent('');
         setAiResponse(null);
@@ -191,7 +177,6 @@ export const EssayContainer: React.FC = () => {
     }
   }, [essayTitles, loadEssayByTitle, setTitle, setCurrentEssayId, setContent, setAiResponse, setSelectedErrorIndex]);
 
-  // Memoize content change handler to avoid re-creating on every render
   const handleContentChange = useCallback((newContent: string) => {
     setContent(newContent);
   }, [setContent]);
@@ -206,7 +191,6 @@ export const EssayContainer: React.FC = () => {
         onClear={clearEssay}
       />
 
-      {/* Two column layout: Input and Highlighted Text */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3, flexDirection: { xs: 'column', md: 'row' } }}>
         <EssayInput
           content={content}
@@ -230,7 +214,6 @@ export const EssayContainer: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Bottom section: Results */}
       {aiResponse && (
         <Box>
           <EssayLevel level={aiResponse.level} />

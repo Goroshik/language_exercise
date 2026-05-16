@@ -28,8 +28,8 @@ const MAX_WIDTH = 800;
 const MAX_HEIGHT = 900;
 const DEFAULT_WIDTH = 380;
 const DEFAULT_HEIGHT = 500;
-const MOBILE_BOTTOM_OFFSET = 160; // Bottom offset for mobile chat widget
-const DESKTOP_BOTTOM_OFFSET = 120; // Bottom offset for desktop chat widget
+const MOBILE_BOTTOM_OFFSET = 160;
+const DESKTOP_BOTTOM_OFFSET = 120;
 
 const ChatWidget: React.FC = () => {
   const theme = useTheme();
@@ -57,31 +57,27 @@ const ChatWidget: React.FC = () => {
     startHeight: number;
   } | null>(null);
 
-  // Update current language in chat store when it changes
   useEffect(() => {
     if (settings?.learningLanguage) {
       setCurrentLanguage(settings.learningLanguage);
     }
   }, [settings?.learningLanguage, setCurrentLanguage]);
 
-  // Load history when widget opens
   useEffect(() => {
     if (isOpen) {
       loadHistory();
     }
   }, [isOpen, loadHistory]);
 
-  // Auto-scroll to latest message
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, isOpen]);
 
-  // Handle resize start
   const handleResizeStart = useCallback(
     (e: React.MouseEvent) => {
-      if (isMobile) return; // Disable resize on mobile
+      if (isMobile) return;
       e.preventDefault();
       e.stopPropagation();
       setIsResizing(true);
@@ -95,7 +91,6 @@ const ChatWidget: React.FC = () => {
     [size, isMobile]
   );
 
-  // Handle resize move
   const handleResizeMove = useCallback(
     (e: MouseEvent) => {
       if (!isResizing || !resizeRef.current || isMobile) return;
@@ -117,13 +112,11 @@ const ChatWidget: React.FC = () => {
     [isResizing, isMobile]
   );
 
-  // Handle resize end
   const handleResizeEnd = useCallback(() => {
     setIsResizing(false);
     resizeRef.current = null;
   }, []);
 
-  // Add/remove mouse event listeners for resize
   useEffect(() => {
     if (isResizing) {
       document.addEventListener('mousemove', handleResizeMove);
@@ -171,7 +164,6 @@ const ChatWidget: React.FC = () => {
 
   return (
     <>
-      {/* Floating Action Button */}
       <Fab
         color="primary"
         aria-label="chat"
@@ -187,7 +179,6 @@ const ChatWidget: React.FC = () => {
         <ChatIcon />
       </Fab>
 
-      {/* Chat Widget */}
       <Collapse in={isOpen} timeout={300}>
         <Paper
           elevation={8}
@@ -208,7 +199,6 @@ const ChatWidget: React.FC = () => {
             transition: isResizing ? 'none' : 'opacity 0.3s'
           }}
         >
-          {/* Resize Handle - only on desktop */}
           {!isMobile && (
             <Box
               onMouseDown={handleResizeStart}
@@ -244,7 +234,6 @@ const ChatWidget: React.FC = () => {
             </Box>
           )}
 
-          {/* Header */}
           <Box
             sx={{
               p: { xs: 1.5, sm: 2 },
@@ -268,7 +257,6 @@ const ChatWidget: React.FC = () => {
             </Box>
           </Box>
 
-          {/* Messages area */}
           <Box
             sx={{
               flex: 1,
@@ -311,7 +299,6 @@ const ChatWidget: React.FC = () => {
             <div ref={messagesEndRef} />
           </Box>
 
-          {/* Input area */}
           <Box sx={{ p: 2, backgroundColor: 'white', borderTop: '1px solid #e0e0e0' }}>
             <Box sx={{ display: 'flex', gap: 1 }}>
               <TextField

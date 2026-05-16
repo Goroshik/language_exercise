@@ -4,9 +4,6 @@ import { getUserIdFromRequest } from 'src/utils/auth';
 import { safeJson } from 'src/utils/jsonWrapper';
 import { NextResponseError } from 'src/utils/NextResponseError';
 
-/**
- * POST /api/essays/check - Check essay with AI
- */
 export async function POST(request: NextRequest) {
   try {
     const userId = getUserIdFromRequest(request);

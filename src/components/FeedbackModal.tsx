@@ -39,7 +39,6 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onClose }) => {
 
   const handleClose = () => {
     if (!loading) {
-      // Reset form
       setIssueType('bug');
       setTitle('');
       setDescription('');
@@ -51,9 +50,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onClose }) => {
     setIssueType(event.target.value as IssueType);
   };
 
-
   const handleSubmit = async () => {
-    // Validation
     if (!title.trim()) {
       showAlert.error('Пожалуйста, введите заголовок');
       return;
