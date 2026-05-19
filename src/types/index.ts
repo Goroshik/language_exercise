@@ -2,7 +2,7 @@ export interface Exercise {
   sentence: string;
   correctAnswers: string[];
   sentenceId?: string; // ID from SentenceHistory table
-  hasAnswer?: boolean; // флаг наличия предыдущего ответа
+  hasAnswer?: boolean;
 }
 
 export interface ExerciseBlock {

@@ -171,7 +171,6 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
         </CardContent>
       </Card>
 
-      {/* Контекстное меню */}
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         <MenuItem onClick={handleEditClick} disabled={isDeleting || isUpdating}>
           <EditIcon sx={{ mr: 1 }} fontSize="small" />
@@ -187,7 +186,6 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
         </MenuItem>
       </Menu>
 
-      {/* Диалог редактирования */}
       <Dialog open={editDialogOpen} onClose={handleCancelEdit} maxWidth="sm" fullWidth>
         <DialogTitle>Редактировать слово</DialogTitle>
         <DialogContent>

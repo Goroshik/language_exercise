@@ -23,7 +23,6 @@ export class DeepLTranslateService {
       return { text: '', error: 'Empty text provided for translation' };
     }
 
-    // Получаем токен DeepL из БД через API
     const apiKey = await this.getDeepLToken();
     if (!apiKey) {
       return { text: '', error: 'Токен DeepL не найден' };
@@ -82,7 +81,6 @@ export class DeepLTranslateService {
     return results;
   }
 
-  // NOTE: Получение токена DeepL из API токенов пользователя
   private static async getDeepLToken(): Promise<string | null> {
     try {
       const response = await fetch('/api/tokens');

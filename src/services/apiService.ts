@@ -103,7 +103,6 @@ export class ApiService {
       throw new Error(errorMessage);
     }
 
-    // Для generateText возвращаем весь объект, для остальных - только data
     if (endpoint === '/api/ai/generate-text' || endpoint === '/api/ai/training-exercises') {
       return responseData as T;
     }

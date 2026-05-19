@@ -64,24 +64,23 @@ export async function getTrainingExercisesService(
     });
 
     // Format response similar to generateText service
-    // Восстанавливаем формат с подсказками, если они есть
     const data = sentences.map(s => {
       const hints = s.hints || [];
       if (hints.length > 0) {
-        // Добавляем подсказки в формате (hint1, hint2) в конец предложения
+        // Append hints in (hint1, hint2) format at the end of the sentence
         return `${s.sentence} (${hints.join(', ')})`;
       }
       return s.sentence;
     });
 
-    return { 
-      status: 200, 
-      body: { 
-        success: true, 
-        data,              // предложения напрямую в data
-        sentenceIds,       // ID предложений на верхнем уровне
-        hasAnswers        // информация о наличии ответов на верхнем уровне
-      } 
+    return {
+      status: 200,
+      body: {
+        success: true,
+        data,
+        sentenceIds,
+        hasAnswers
+      }
     };
   } catch (err) {
     console.error('Error in getTrainingExercisesService:', err);

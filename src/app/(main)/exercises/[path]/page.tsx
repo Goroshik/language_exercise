@@ -148,7 +148,6 @@ const Page: React.FC = () => {
       try {
         const topicForApi = selectedTopic.toLowerCase();
         
-        // Собираем ID предложений, которые уже отображаются на странице
         const currentSentenceIds = exerciseBlocks
           .flatMap(block => block.exercises)
           .map(ex => ex.sentenceId)

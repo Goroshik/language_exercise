@@ -176,12 +176,9 @@ export async function processGenerateTextRequest(
 
     if (result.length > 0) {
       try {
-        // Создаем массив словарей для быстрого поиска - используем wordsToUse вместо selectedWords
         const wordMap = new Map(wordsToUse.map(w => [w.word?.toLowerCase(), w.id]));
 
-        // Создаем записи для каждого предложения
         const sentencesToSave = result.map(sentence => {
-          // Извлекаем слова в формате **word** из предложения
           const wordsInSentence = new Set<string>();
           const regex = /\*\*(.*?)\*\*/g;
           let match;
@@ -195,8 +192,7 @@ export async function processGenerateTextRequest(
             }
           }
 
-          // Извлекаем подсказки из предложения
-          // Формат подсказок: (hint1, hint2) в конце предложения
+          // Hints format: (hint1, hint2) at the end of the sentence
           const hintMatch = sentence.match(/\s*\(([^)]+)\)\s*$/);
           const hints: string[] = hintMatch
             ? hintMatch[1]
@@ -205,19 +201,17 @@ export async function processGenerateTextRequest(
                 .filter(Boolean)
             : [];
 
-          // Удаляем подсказки из предложения перед сохранением
           const sentenceWithoutHints = sentence.replace(/\s*\([^)]+\)\s*$/, '').trim();
 
-          // Возвращаем запись даже если нет найденных слов (с пустым массивом)
           return {
             ownerId: userId,
             sentence: sentenceWithoutHints,
             languageId,
             usedWordIds: Array.from(wordsInSentence),
             level,
-            mode, // Сохраняем режим генерации (student/teacher)
-            topic, // Сохраняем топик, под которым были сгенерированы предложения
-            hints // Сохраняем подсказки в отдельном поле
+            mode,
+            topic,
+            hints
           };
         });
 
@@ -233,7 +227,7 @@ export async function processGenerateTextRequest(
       }
     }
 
-    // Check which sentences have previous answers (для новых предложений всегда будет false)
+    // Check which sentences have previous answers
     const hasAnswers: Record<string, boolean> = {};
     if (sentenceIds.length > 0) {
       const answersMap = await userAnswerRepository.checkAnswersExist({
@@ -243,11 +237,11 @@ export async function processGenerateTextRequest(
       Object.assign(hasAnswers, answersMap);
     }
 
-    const responseBody = { 
-      success: true, 
-      data: result,         // предложения напрямую в data
-      sentenceIds,          // ID предложений на верхнем уровне
-      hasAnswers           // информация о наличии ответов на верхнем уровне
+    const responseBody = {
+      success: true,
+      data: result,
+      sentenceIds,
+      hasAnswers
     };
     
     console.log('Final API Response Body:', JSON.stringify(responseBody, null, 2));
