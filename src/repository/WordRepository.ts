@@ -50,12 +50,11 @@ export class WordRepository {
     // Get total count for pagination
     const total = await this.client.count({ where });
 
-    if (sortByUsage) { 
-      // 1. Получаем слова из wordUsageStats отсортированные по count с фильтром по связанной таблице word
+    if (sortByUsage) {
       const usageStats = await this.prisma.wordUsageStats.findMany({
-        where: { 
+        where: {
           userId,
-          word: where // Применяем фильтр через связанную таблицу
+          word: where
         },
         select: {
           wordId: true,
@@ -68,7 +67,6 @@ export class WordRepository {
 
       const usedWordIds = usageStats.map(stat => stat.wordId);
 
-      // 2. Получаем слова которых НЕТ в usageStats (неиспользованные) - они идут в начале
       const unusedWords = await this.client.findMany({
         where: {
           ...where,
@@ -80,10 +78,8 @@ export class WordRepository {
 
       const unusedWordIds = unusedWords.map(w => w.id);
 
-      // 3. Объединяем: сначала неиспользованные, потом используемые (по возрастанию count)
       const finalWordIds = [...unusedWordIds, ...usedWordIds];
 
-      // 4. Применяем пагинацию
       let paginatedIds = finalWordIds;
       if (limit !== undefined && page !== undefined) {
         const skip = (page - 1) * limit;
@@ -92,7 +88,6 @@ export class WordRepository {
         paginatedIds = finalWordIds.slice(0, limit);
       }
 
-      // 5. Получаем слова по ID и восстанавливаем порядок
       const words = await this.client.findMany({
         where: { id: { in: paginatedIds },  },
         include: { usageStats: { select: { count: true}, take: 1},  }
@@ -165,7 +160,6 @@ export class WordRepository {
     }
 
     if (sortByUsage) {
-      // Получаем все слова, подходящие под фильтр
       const allWords = await this.client.findMany({
         where,
         select: { id: true, createdAt: true }
@@ -173,7 +167,6 @@ export class WordRepository {
 
       const wordIds = allWords.map(w => w.id);
 
-      // Получаем статистику использования из wordUsageStats
       const usageStats = await this.prisma.wordUsageStats.findMany({
         where: {
           userId,
@@ -185,42 +178,36 @@ export class WordRepository {
         }
       });
 
-      // Создаем Map для быстрого поиска статистики
       const statsMap = new Map(
         usageStats.map(stat => [stat.wordId, stat.count])
       );
 
-      // Сортируем ID по использованию
       const sortedIds = allWords
         .sort((a, b) => {
           const aCount = statsMap.get(a.id) || 0;
           const bCount = statsMap.get(b.id) || 0;
           
           if (aCount !== bCount) {
-            return aCount - bCount; // ASC: меньше используемые первые
+            return aCount - bCount;
           }
-          
-          // При одинаковом использовании - по дате создания (новые первые)
+
           return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         })
         .map(w => w.id);
 
-      // Запрашиваем слова в нужном порядке
       const words = await this.client.findMany({
         where: {
           id: { in: sortedIds }
         }
       });
 
-      // Восстанавливаем правильный порядок
-      const orderedWords = sortedIds.map(id => 
+      const orderedWords = sortedIds.map(id =>
         words.find(word => word.id === id)
       ).filter(Boolean);
 
       return orderedWords;
     }
 
-    // Обычная сортировка по дате создания
     return this.client.findMany({
       where,
       orderBy: { createdAt: 'desc' }

@@ -1,7 +1,7 @@
 export default {
   /* ====================== ZESTAW TRENINGOWY: PRZYPADKI ====================== */
 
-  /* Rzeczownik  -  существительное */
+  /* Rzeczownik */
   'Rzeczownik (существительное)': {
     noun_mianownik: 'Mianownik  -  rzeczownik (именительный падеж)',
     noun_dopełniacz: 'Dopełniacz  -  rzeczownik (родительный падеж)',
@@ -12,7 +12,7 @@ export default {
     noun_wołacz: 'Wołacz  -  rzeczownik (звательный падеж)'
   },
 
-  /* Przymiotnik  -  прилагательное */
+  /* Przymiotnik */
   'Przymiotnik (прилагательное)': {
     adj_mianownik: 'Mianownik  -  przymiotnik (именительный падеж)',
     adj_dopełniacz: 'Dopełniacz  -  przymiotnik (родительный падеж)',
@@ -23,7 +23,7 @@ export default {
     adj_wołacz: 'Wołacz  -  przymiotnik (звательный падеж)'
   },
 
-  /* Zaimki  -  местоимения */
+  /* Zaimki */
   'Zaimki (местоимения)': {
     pron_mianownik: 'Mianownik  -  zaimki (именительный падеж)',
     pron_dopełniacz: 'Dopełniacz  -  zaimki (родительный падеж)',

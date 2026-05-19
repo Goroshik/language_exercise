@@ -71,7 +71,6 @@ const WordSelector: React.FC<WordSelectorProps> = ({
       const params = new URLSearchParams();
       if (query) params.append('query', query);
       if (limit) params.append('limit', limit.toString());
-      // Всегда сортируем по использованию в WordSelector
       params.append('sortByUsage', 'true');
       
       const url = `/api/dictionary/words?${params.toString()}`;
@@ -81,7 +80,6 @@ const WordSelector: React.FC<WordSelectorProps> = ({
       if (data.success) {
         const loadedWords: DictionaryWordWithUsage[] = data.words;
         setWords(loadedWords);
-        // Собираем уникальные теги из слов
         const tagSet = new Set<string>();
 
         setAllTags(Array.from(tagSet).sort());
@@ -94,8 +92,6 @@ const WordSelector: React.FC<WordSelectorProps> = ({
       setIsSearching(false);
     }
   };
-
-  // Теги вычисляются из загруженных слов, отдельный запрос не нужен
 
   const handleWordToggle = useCallback((word: DictionaryWord) => {
     const currentIndex = selectedWords.indexOf(word);
@@ -136,7 +132,6 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   // Selected words always appear at the top, regardless of search
   const selectedWordsList: DictionaryWordWithUsage[] = selectedWords
     .map(selectedWord => {
-      // Найти соответствующее слово с статистикой использования
       const wordWithStats = words.find(w => w.id === selectedWord.id);
       return wordWithStats || { ...selectedWord, usageStats: [] };
     })

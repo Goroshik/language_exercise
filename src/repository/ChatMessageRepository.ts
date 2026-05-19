@@ -57,7 +57,6 @@ export class ChatMessageRepository {
   }
 
   async getAllChats(userId: string) {
-    // Получаем список всех уникальных chatId для пользователя
     const messages = await this.client.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },

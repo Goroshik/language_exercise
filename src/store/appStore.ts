@@ -52,9 +52,7 @@ export const useAppStore = create<AppStore>()(
       customTopic?: string;
       sentenceCount?: number;
     } = {}) => {
-      // Получаем topic из URL
       const urlPath = window.location.pathname;
-      // Предполагаем, что topic — последний сегмент после /exercises/
       const topicRaw = urlPath.split('/').pop() || '';
       const topic = topicRaw.replace(/_/g, ' ');
       set({
@@ -140,7 +138,6 @@ export const useAppStore = create<AppStore>()(
       customTopic?: string;
       sentenceCount?: number;
     } = {}) => {
-      // Получаем topic из URL
       const urlPath = window.location.pathname;
       const topicRaw = urlPath.split('/').pop() || '';
       const topic = topicRaw.replace(/_/g, ' ');
@@ -217,12 +214,10 @@ export const useAppStore = create<AppStore>()(
       mode?: 'student' | 'teacher';
       limit?: number;
     } = {}) => {
-      // Получаем topic из URL
       const urlPath = window.location.pathname;
       const topicRaw = urlPath.split('/').pop() || '';
       const topic = topicRaw.replace(/_/g, ' ');
-      
-      // Собираем ID всех предложений, которые уже отображаются на странице
+
       const currentBlocks = get().exerciseBlocks;
       const currentSentenceIds = currentBlocks
         .flatMap(block => block.exercises)
@@ -309,7 +304,6 @@ export const useAppStore = create<AppStore>()(
           throw new Error('Block not found');
         }
 
-        // Формируем массив упражнений с ID и ответами студента
         const exercisesWithAnswers = block.exercises.map((exercise, index) => {
           const textareaId = `textarea_${blockId}_${index}`;
           return {
@@ -318,7 +312,6 @@ export const useAppStore = create<AppStore>()(
           };
         });
 
-        // Отправляем на бэк упражнения с ID
         const data = await ApiService.checkAnswers({
           topic: selectedTopic,
           exercises: exercisesWithAnswers
@@ -337,9 +330,8 @@ export const useAppStore = create<AppStore>()(
           throw new Error('Некорректный ответ от сервера проверки');
         }
 
-        // Обрабатываем структурированные результаты от AI
         (data as CheckAnswerItem[]).forEach((item, index) => {
-          if (item.skipped) return; // Пропускаем пустые ответы
+          if (item.skipped) return;
 
           const textareaId = `textarea_${blockId}_${index}`;
           results[textareaId] = {

@@ -22,7 +22,6 @@ export async function GET(request: NextRequest) {
     const userSettings = await userSettingsRepository.findByUserId(userId);
     const languageCode = userSettings?.learningLanguage || undefined;
 
-    // Используем сортировку по использованию если указан параметр sortByUsage=true
     const result = await searchWordsService(userId, query, languageCode, limit, page, sortByUsage);
       
     return NextResponse.json({ success: true, ...result });

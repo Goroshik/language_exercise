@@ -48,21 +48,18 @@ export default function GeneratedHistoryPage() {
   const [languages, setLanguages] = useState<LanguageItem[]>([]);
   const [levels, setLevels] = useState<LevelItem[]>([]);
 
-  // Получение языков
   const fetchLanguages = async () => {
     const res = await fetch('/api/languages');
     const data = await res.json();
     setLanguages(data.data || []);
   };
 
-  // Получение уровней
   const fetchLevels = async () => {
     const res = await fetch('/api/levels');
     const data = await res.json();
     setLevels(data.data || []);
   };
 
-  // Получение истории
   const fetchHistory = async () => {
     setLoading(true);
     const params = new URLSearchParams();
