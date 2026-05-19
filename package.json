@@ -31,8 +31,8 @@
     "joi": "^17.9.2",
     "jose": "^5.9.6",
     "next": "15.5.4",
-    "next-auth": "^4.24.11",
-    "nodemailer": "^6.10.1",
+    "next-auth": "^4.24.12",
+    "nodemailer": "^8.0.5",
     "openai": "^6.3.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
@@ -54,7 +54,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "eslint-plugin-react-refresh": "^0.4.23",
-    "prisma": "6.19.0",
+    "prisma": "6.19.3",
     "standard-version": "^9.5.0",
     "typescript": "5.9.2"
   }
