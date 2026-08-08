@@ -62,7 +62,7 @@ const Page: React.FC = () => {
   // Load settings on mount
   useEffect(() => {
     if (!settings) {
-      loadSettings();
+      void loadSettings();
     }
   }, [settings, loadSettings]);
 
@@ -81,8 +81,8 @@ const Page: React.FC = () => {
         }
       }
     };
-    
-    loadLevelForLanguage();
+
+    void loadLevelForLanguage();
   }, [settings?.learningLanguage]);
 
   // Fetch languages on mount and sync with user's learning language
@@ -112,7 +112,7 @@ const Page: React.FC = () => {
         showAlert.error('Failed to fetch languages');
       }
     };
-    fetchLanguages();
+    void fetchLanguages();
   }, [settings?.learningLanguage]);
 
   // Use app state store
@@ -147,12 +147,12 @@ const Page: React.FC = () => {
 
       try {
         const topicForApi = selectedTopic.toLowerCase();
-        
+
         const currentSentenceIds = exerciseBlocks
           .flatMap(block => block.exercises)
           .map(ex => ex.sentenceId)
           .filter((id): id is string => id !== undefined);
-        
+
         const result = await fetch('/api/ai/check-history-availability', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -173,7 +173,7 @@ const Page: React.FC = () => {
       }
     };
 
-    checkHistory();
+    void checkHistory();
   }, [selectedTopic, selectedLevel, selectedLanguageId, exerciseBlocks]);
 
   // Auto-scroll to the last block when new blocks are added
@@ -194,15 +194,15 @@ const Page: React.FC = () => {
     // Save to localStorage and database
     if (topicPath && typeof window !== 'undefined') {
       localStorage.setItem('lastSelectedTopicPath', topicPath);
-      
+
       // Save topic for current learning language
       if (settings?.learningLanguage) {
         fetch('/api/settings/topic', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            language: settings.learningLanguage, 
-            topic: topicPath 
+          body: JSON.stringify({
+            language: settings.learningLanguage,
+            topic: topicPath
           })
         }).catch(error => {
           console.error('Failed to save topic for language:', error);
@@ -222,7 +222,7 @@ const Page: React.FC = () => {
   };
 
   const handleGenerateMore = () => {
-    generateMoreExercises({
+    void generateMoreExercises({
       languageId: selectedLanguageId,
       level: selectedLevel,
       selectedWords,
@@ -233,7 +233,7 @@ const Page: React.FC = () => {
   };
 
   const handleGenerateInitial = () => {
-    handleTopicSelect({
+    void handleTopicSelect({
       languageId: selectedLanguageId,
       level: selectedLevel,
       selectedWords,
@@ -244,7 +244,7 @@ const Page: React.FC = () => {
   };
 
   const handleTrainFromHistory = () => {
-    loadTrainingExercises({
+    void loadTrainingExercises({
       languageId: selectedLanguageId,
       level: selectedLevel,
       mode: selectedMode,
@@ -254,16 +254,16 @@ const Page: React.FC = () => {
 
   const handleLevelChange = async (level: string) => {
     setSelectedLevel(level);
-    
+
     // Save level for current learning language
     if (settings?.learningLanguage) {
       try {
         await fetch('/api/settings/level', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ 
-            language: settings.learningLanguage, 
-            level 
+          body: JSON.stringify({
+            language: settings.learningLanguage,
+            level
           })
         });
       } catch (error) {
@@ -371,16 +371,11 @@ const Page: React.FC = () => {
 
       {/* Error Display */}
       {error && (
-        <Alert 
-          severity="error" 
+        <Alert
+          severity="error"
           sx={{ mb: 2 }}
           action={
-            <IconButton
-              aria-label="close"
-              color="inherit"
-              size="small"
-              onClick={clearError}
-            >
+            <IconButton aria-label="close" color="inherit" size="small" onClick={clearError}>
               <CloseIcon fontSize="inherit" />
             </IconButton>
           }
@@ -399,8 +394,8 @@ const Page: React.FC = () => {
         {/* Word selector for mobile - before exercises */}
         {isMobile && (
           <Box sx={{ width: '100%' }}>
-            <WordSelector 
-              selectedWords={selectedWords} 
+            <WordSelector
+              selectedWords={selectedWords}
               onWordsChange={setSelectedWords}
               customTopic={customTopic}
               onTopicChange={setCustomTopic}
@@ -427,14 +422,14 @@ const Page: React.FC = () => {
               <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', flexWrap: 'wrap' }}>
                 <Button
                   variant="contained"
-                size={isMobile ? 'medium' : 'large'}
-                onClick={handleGenerateInitial}
-                disabled={isLoading}
-                className="add-more-button"
-                sx={{
-                  fontSize: { xs: '0.95rem', sm: '1.1rem' },
-                  padding: { xs: '10px 24px', sm: '12px 32px' }
-                }}
+                  size={isMobile ? 'medium' : 'large'}
+                  onClick={handleGenerateInitial}
+                  disabled={isLoading}
+                  className="add-more-button"
+                  sx={{
+                    fontSize: { xs: '0.95rem', sm: '1.1rem' },
+                    padding: { xs: '10px 24px', sm: '12px 32px' }
+                  }}
                 >
                   {isLoading ? 'Генерируем...' : 'Создать упражнения'}
                 </Button>
@@ -458,7 +453,10 @@ const Page: React.FC = () => {
             </Box>
           ) : (
             <>
-              <ExerciseCarousel currentIndex={currentBlockIndex} onIndexChange={setCurrentBlockIndex}>
+              <ExerciseCarousel
+                currentIndex={currentBlockIndex}
+                onIndexChange={setCurrentBlockIndex}
+              >
                 {exerciseBlocks.map((block, blockIndex) => (
                   <ExerciseBlock
                     key={block.id}
@@ -523,8 +521,8 @@ const Page: React.FC = () => {
               flexShrink: 0
             }}
           >
-            <WordSelector 
-              selectedWords={selectedWords} 
+            <WordSelector
+              selectedWords={selectedWords}
               onWordsChange={setSelectedWords}
               customTopic={customTopic}
               onTopicChange={setCustomTopic}

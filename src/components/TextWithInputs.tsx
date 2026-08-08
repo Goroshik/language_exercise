@@ -11,12 +11,18 @@ import WordTranslationPanel from './WordTranslationPanel';
 
 interface TextWithInputsProps {
   text: string;
-  exerciseIndex?: string | number;
-  sentenceId?: string;
-  hasAnswer?: boolean;
-  validationResults?: {
-    [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] };
-  };
+  exerciseIndex?: string | number | undefined;
+  sentenceId?: string | undefined;
+  hasAnswer?: boolean | undefined;
+  validationResults?:
+    | {
+        [key: string]: {
+          isCorrect: boolean;
+          error?: string | undefined;
+          incorrectTranslations?: string[] | undefined;
+        };
+      }
+    | undefined;
 }
 
 interface ParsedExerciseContent {
@@ -45,10 +51,10 @@ const stripTranslationLabel = (value: string) =>
 const extractWordAtOffset = (text: string, offset: number): string => {
   let start = offset;
   let end = offset;
-  while (start > 0 && WORD_CHAR.test(text[start - 1])) {
+  while (start > 0 && WORD_CHAR.test(text.charAt(start - 1))) {
     start--;
   }
-  while (end < text.length && WORD_CHAR.test(text[end])) {
+  while (end < text.length && WORD_CHAR.test(text.charAt(end))) {
     end++;
   }
   return text.substring(start, end);
@@ -57,6 +63,22 @@ const extractWordAtOffset = (text: string, offset: number): string => {
 const cleanWord = (raw: string): string | null => {
   const cleaned = raw.replace(/[^\p{L}\p{N}]/gu, '');
   return cleaned && /^[\p{L}]+$/u.test(cleaned) ? cleaned.toLowerCase() : null;
+};
+
+/**
+ * Removes the translation line from `extraLines` and returns it.
+ * Prefers an explicitly labelled line ("Перевод: ..."), otherwise takes the
+ * first remaining line. Returns null when there is nothing left to take.
+ */
+export const takeTranslationLine = (extraLines: string[]): string | null => {
+  const labelled = extraLines.findIndex(line => /^(?:перевод|translation)\b/i.test(line));
+  const index = labelled === -1 ? 0 : labelled;
+  const line = extraLines[index];
+
+  if (line === undefined) return null;
+
+  extraLines.splice(index, 1);
+  return stripTranslationLabel(line);
 };
 
 const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
@@ -75,16 +97,17 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     .map(line => line.trim())
     .filter(Boolean);
 
-  if (lines.length === 0) {
+  const firstLine = lines[0];
+  if (firstLine === undefined) {
     return EMPTY_PARSED_CONTENT;
   }
 
-  let mainLine = lines[0];
+  let mainLine = firstLine;
   const extraLines = lines.slice(1);
 
   let hints: string[] = [];
   const hintMatch = mainLine.match(/\s*\(([^)]+)\)\s*$/);
-  if (hintMatch) {
+  if (hintMatch?.[1]) {
     hints = hintMatch[1]
       .split(/[,;]+/)
       .map(part => part.trim().replace(/\*\*([^*]+)\*\*/g, '$1'))
@@ -94,7 +117,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
 
   let translation: string | null = null;
   const dashMatch = mainLine.match(/^(.*[.!?]\s*)[\s]*[-–—][\s]*(.+)$/);
-  if (dashMatch) {
+  if (dashMatch?.[1] !== undefined && dashMatch[2] !== undefined) {
     mainLine = dashMatch[1].trim();
     translation = stripTranslationLabel(dashMatch[2]);
   }
@@ -113,16 +136,7 @@ const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
     };
   } else {
     if (!translation) {
-      const translationIndex = extraLines.findIndex(line =>
-        /^(?:перевод|translation)\b/i.test(line)
-      );
-      if (translationIndex !== -1) {
-        translation = stripTranslationLabel(extraLines[translationIndex]);
-        extraLines.splice(translationIndex, 1);
-      } else if (extraLines.length > 0) {
-        translation = stripTranslationLabel(extraLines[0]);
-        extraLines.shift();
-      }
+      translation = takeTranslationLine(extraLines);
     }
 
     const displaySentence = mainLine.replace(PLACEHOLDER_REGEX, '_____');

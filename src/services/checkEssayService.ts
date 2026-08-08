@@ -23,13 +23,13 @@ export interface EssayCheckResponse {
   summary: string;
 }
 
-export type ServiceResponse = { 
-  status: number; 
-  body: { 
-    success?: boolean; 
-    data?: EssayCheckResponse; 
-    error?: string 
-  } 
+export type ServiceResponse = {
+  status: number;
+  body: {
+    success?: boolean;
+    data?: EssayCheckResponse;
+    error?: string;
+  };
 };
 
 const schema = Joi.object({
@@ -44,10 +44,13 @@ export async function checkEssayService(
 ): Promise<ServiceResponse> {
   try {
     const validation = schema.validate(rawBody, { abortEarly: false, stripUnknown: true });
-    const { error, value } = validation as { error?: Joi.ValidationError; value: CheckEssayRequest };
-    
+    const { error, value } = validation as {
+      error?: Joi.ValidationError;
+      value: CheckEssayRequest;
+    };
+
     if (error) {
-      const messages: string[] = (error.details || []).map((d: Joi.ValidationErrorItem) => 
+      const messages: string[] = (error.details || []).map((d: Joi.ValidationErrorItem) =>
         String(d.message)
       );
       return { status: 400, body: { error: messages.join('; ') } };
@@ -82,28 +85,30 @@ export async function checkEssayService(
       if (err instanceof Error && err.message.includes('No token found')) {
         return { status: 402, body: { error: 'AI service token not configured for user' } };
       }
-      const errorMessage = err instanceof Error ? err.message : 'Failed to generate response from AI service';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to generate response from AI service';
       return { status: 502, body: { error: errorMessage } };
     }
 
-    const text = typeof rawResult === 'string' 
-      ? rawResult 
-      : rawResult && typeof rawResult === 'object'
-        ? (rawResult as { text?: string }).text ?? ''
-        : '';
+    const text =
+      typeof rawResult === 'string'
+        ? rawResult
+        : rawResult && typeof rawResult === 'object'
+          ? ((rawResult as { text?: string }).text ?? '')
+          : '';
 
     // Parse AI response
     let aiResponse: EssayCheckResponse;
     try {
       // Try to extract JSON from potential markdown code blocks
       const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
-      const jsonText = jsonMatch ? jsonMatch[1] : text;
+      const jsonText = jsonMatch?.[1] ?? text;
       aiResponse = JSON.parse(jsonText.trim());
     } catch (_parseErr) {
       console.error('Failed to parse AI response:', text);
-      return { 
-        status: 500, 
-        body: { error: 'Failed to parse AI response. Please try again.' } 
+      return {
+        status: 500,
+        body: { error: 'Failed to parse AI response. Please try again.' }
       };
     }
 
@@ -113,12 +118,12 @@ export async function checkEssayService(
       level: aiResponse.level
     });
 
-    return { 
-      status: 200, 
-      body: { 
-        success: true, 
-        data: aiResponse 
-      } 
+    return {
+      status: 200,
+      body: {
+        success: true,
+        data: aiResponse
+      }
     };
   } catch (err) {
     if (err instanceof NextResponseError) {

@@ -14,6 +14,8 @@ export default [
       'dist',
       'build',
       'node_modules',
+      // Separate git worktrees checked out by tooling - not this project's sources.
+      '.claude/**',
       '.react-router',
       '.next',
       'out',
@@ -48,7 +50,9 @@ export default [
         ecmaFeatures: {
           jsx: true
         },
-        project: null // Disable project-based linting for performance
+        // Type-aware linting: required by rules like no-floating-promises.
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname
       },
       globals: {
         // Browser globals
@@ -134,21 +138,29 @@ export default [
 
       // TypeScript rules
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_'
         }
       ],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      // Type-aware: catches unawaited promises that silently swallow rejections.
+      '@typescript-eslint/no-floating-promises': 'error',
+
+      // Complexity budget - the quality gate proper.
+      complexity: ['error', 8],
+      'max-depth': ['error', 3],
+      'max-lines-per-function': ['error', { max: 50, skipBlankLines: true, skipComments: true }],
+      'max-params': ['error', 4],
 
       // General rules
       'no-console': 'off',
       'no-undef': 'error',
-      'prefer-const': 'warn',
+      'prefer-const': 'error',
       'no-var': 'error'
     },
     settings: {

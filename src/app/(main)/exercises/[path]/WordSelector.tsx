@@ -54,14 +54,14 @@ const WordSelector: React.FC<WordSelectorProps> = ({
 
   // Load initial words on mount (limited to 20)
   useEffect(() => {
-    loadWords('', 20);
+    void loadWords('', 20);
   }, []);
 
   // Load words when debounced search query changes
   useEffect(() => {
     if (isInitialized) {
       // When searching, don't limit results
-      loadWords(debouncedSearchQuery, debouncedSearchQuery.trim() ? undefined : 20);
+      void loadWords(debouncedSearchQuery, debouncedSearchQuery.trim() ? undefined : 20);
     }
   }, [debouncedSearchQuery]);
 

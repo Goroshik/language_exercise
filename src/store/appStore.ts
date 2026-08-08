@@ -2,7 +2,13 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
 import { ApiService } from 'src/services/apiService';
-import { AppStore, CheckAnswerItem, DictionaryWord, ExerciseBlock } from 'src/types';
+import {
+  AppStore,
+  CheckAnswerItem,
+  DictionaryWord,
+  ExerciseBlock,
+  ValidationResult
+} from 'src/types';
 import { showAlert } from 'src/utils/alert';
 
 export const useAppStore = create<AppStore>()(
@@ -111,7 +117,7 @@ export const useAppStore = create<AppStore>()(
 
         // Load saved answers for these sentences
         if (mode === 'student') {
-          get().loadSavedAnswers(sentenceIds);
+          void get().loadSavedAnswers(sentenceIds);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
@@ -191,7 +197,7 @@ export const useAppStore = create<AppStore>()(
 
         // Load saved answers for these sentences
         if (mode === 'student') {
-          get().loadSavedAnswers(sentenceIds);
+          void get().loadSavedAnswers(sentenceIds);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
@@ -223,7 +229,7 @@ export const useAppStore = create<AppStore>()(
         .flatMap(block => block.exercises)
         .map(ex => ex.sentenceId)
         .filter((id): id is string => id !== undefined);
-      
+
       set({
         selectedTopic: topic,
         state: 'loading-exercises',
@@ -274,7 +280,7 @@ export const useAppStore = create<AppStore>()(
 
         // Load saved answers for these sentences
         if (mode === 'student') {
-          get().loadSavedAnswers(sentenceIds);
+          void get().loadSavedAnswers(sentenceIds);
         }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Неизвестная ошибка';
@@ -317,13 +323,7 @@ export const useAppStore = create<AppStore>()(
           exercises: exercisesWithAnswers
         });
 
-        const results: {
-          [key: string]: {
-            isCorrect: boolean;
-            error?: string;
-            incorrectTranslations?: string[];
-          };
-        } = {};
+        const results: { [key: string]: ValidationResult } = {};
 
         // Validate that data is an array before processing
         if (!Array.isArray(data)) {

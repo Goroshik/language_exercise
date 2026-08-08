@@ -4,7 +4,7 @@ interface FeedbackData {
   type: 'bug' | 'feature';
   title: string;
   description: string;
-  imageUrl?: string;
+  imageUrl?: string | undefined;
 }
 
 interface GitHubConfig {
@@ -41,11 +41,11 @@ export class FeedbackService {
 
     // Build issue body with optional image
     let body = description;
-    
+
     if (imageUrl) {
       body += `\n\n### Screenshot\n\n![screenshot](${imageUrl})`;
     }
-    
+
     body += '\n\n---\n\n@Goroshik';
 
     // Create the issue

@@ -1,4 +1,38 @@
-import { PrismaClient } from '../generated/prisma';
+import { omitUndefined } from 'src/utils/omitUndefined';
+import { Prisma, PrismaClient } from '../generated/prisma';
+
+export interface SearchWordsOptions {
+  query?: string | undefined;
+  languageCode?: string | undefined;
+  limit?: number | undefined;
+  page?: number | undefined;
+  sortByUsage?: boolean | undefined;
+}
+
+function buildWordWhere(
+  userId: string,
+  query: string,
+  languageCode: string | undefined
+): Prisma.WordWhereInput {
+  return {
+    ownerId: userId,
+    ...omitUndefined({ languageCode }),
+    ...(query
+      ? {
+          OR: [
+            { word: { contains: query, mode: Prisma.QueryMode.insensitive } },
+            { translate: { contains: query, mode: Prisma.QueryMode.insensitive } }
+          ]
+        }
+      : {})
+  };
+}
+
+function paginateIds(ids: string[], limit: number | undefined, page: number | undefined): string[] {
+  if (limit === undefined) return ids;
+  const skip = page === undefined ? 0 : (page - 1) * limit;
+  return ids.slice(skip, skip + limit);
+}
 
 export class WordRepository {
   private client: PrismaClient['word'];
@@ -21,101 +55,65 @@ export class WordRepository {
     return this.client.delete({ where: { id } });
   }
 
-  async searchWords(
-    userId: string, 
-    query: string, 
-    languageCode?: string, 
-    limit?: number,
-    page?: number,
-    sortByUsage: boolean = false
-  ) {
-    // TODO: Fix types - create proper Prisma where clause type instead of using any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
-      ownerId: userId
-    };
-
-    // Filter by language if provided
-    if (languageCode) {
-      where.languageCode = languageCode;
-    }
-
-    if (query) {
-      where.OR = [
-        { word: { contains: query, mode: 'insensitive' } },
-        { translate: { contains: query, mode: 'insensitive' } }
-      ];
-    }
+  async searchWords(userId: string, options: SearchWordsOptions = {}) {
+    const { query = '', languageCode, limit, page, sortByUsage = false } = options;
+    const where = buildWordWhere(userId, query, languageCode);
 
     // Get total count for pagination
     const total = await this.client.count({ where });
 
-    if (sortByUsage) {
-      const usageStats = await this.prisma.wordUsageStats.findMany({
-        where: {
-          userId,
-          word: where
-        },
-        select: {
-          wordId: true,
-          count: true
-        },
-        orderBy: {
-          count: 'asc',
-        }
-      });
-
-      const usedWordIds = usageStats.map(stat => stat.wordId);
-
-      const unusedWords = await this.client.findMany({
-        where: {
-          ...where,
-          id: { notIn: usedWordIds }
-        },
-        select: { id: true, createdAt: true },
-        orderBy: { createdAt: 'desc' }
-      });
-
-      const unusedWordIds = unusedWords.map(w => w.id);
-
-      const finalWordIds = [...unusedWordIds, ...usedWordIds];
-
-      let paginatedIds = finalWordIds;
-      if (limit !== undefined && page !== undefined) {
-        const skip = (page - 1) * limit;
-        paginatedIds = finalWordIds.slice(skip, skip + limit);
-      } else if (limit !== undefined) {
-        paginatedIds = finalWordIds.slice(0, limit);
-      }
-
-      const words = await this.client.findMany({
-        where: { id: { in: paginatedIds },  },
-        include: { usageStats: { select: { count: true}, take: 1},  }
-      });
-
-      const orderedWords = paginatedIds.map(id => 
-        words.find(word => word.id === id)
-      ).filter(Boolean);
-
-      return { words: orderedWords, total };
-    }
-
-    const findOptions = {
-      where,
-      orderBy: { createdAt: 'desc' as const },
-      skip: 0,
-      take: undefined as number | undefined
-    };
-
-
-    if(limit !== undefined && page !== undefined) {
-      findOptions.skip = (page - 1) * limit;
-      findOptions.take = limit;
-    }
-
-    const words = await this.client.findMany({ ...findOptions, include: { usageStats: { select: { count: true}, take: 1},  } });
+    const words = sortByUsage
+      ? await this.findSortedByUsage(userId, where, limit, page)
+      : await this.findSortedByDate(where, limit, page);
 
     return { words, total };
+  }
+
+  /** Least-used words first, then words that have never been used. */
+  private async findSortedByUsage(
+    userId: string,
+    where: Prisma.WordWhereInput,
+    limit: number | undefined,
+    page: number | undefined
+  ) {
+    const usageStats = await this.prisma.wordUsageStats.findMany({
+      where: { userId, word: where },
+      select: { wordId: true, count: true },
+      orderBy: { count: 'asc' }
+    });
+
+    const usedWordIds = usageStats.map(stat => stat.wordId);
+
+    const unusedWords = await this.client.findMany({
+      where: { ...where, id: { notIn: usedWordIds } },
+      select: { id: true, createdAt: true },
+      orderBy: { createdAt: 'desc' }
+    });
+
+    const orderedIds = paginateIds([...unusedWords.map(w => w.id), ...usedWordIds], limit, page);
+
+    const words = await this.client.findMany({
+      where: { id: { in: orderedIds } },
+      include: { usageStats: { select: { count: true }, take: 1 } }
+    });
+
+    return orderedIds.map(id => words.find(word => word.id === id)).filter(Boolean);
+  }
+
+  private async findSortedByDate(
+    where: Prisma.WordWhereInput,
+    limit: number | undefined,
+    page: number | undefined
+  ) {
+    const isPaged = limit !== undefined && page !== undefined;
+
+    return this.client.findMany({
+      where,
+      orderBy: { createdAt: 'desc' as const },
+      skip: isPaged ? (page - 1) * limit : 0,
+      ...omitUndefined({ take: isPaged ? limit : undefined }),
+      include: { usageStats: { select: { count: true }, take: 1 } }
+    });
   }
 
   async addWord(
@@ -178,15 +176,13 @@ export class WordRepository {
         }
       });
 
-      const statsMap = new Map(
-        usageStats.map(stat => [stat.wordId, stat.count])
-      );
+      const statsMap = new Map(usageStats.map(stat => [stat.wordId, stat.count]));
 
       const sortedIds = allWords
         .sort((a, b) => {
           const aCount = statsMap.get(a.id) || 0;
           const bCount = statsMap.get(b.id) || 0;
-          
+
           if (aCount !== bCount) {
             return aCount - bCount;
           }
@@ -201,9 +197,7 @@ export class WordRepository {
         }
       });
 
-      const orderedWords = sortedIds.map(id =>
-        words.find(word => word.id === id)
-      ).filter(Boolean);
+      const orderedWords = sortedIds.map(id => words.find(word => word.id === id)).filter(Boolean);
 
       return orderedWords;
     }
@@ -229,7 +223,7 @@ export class WordRepository {
       data: {
         word: word.word,
         translate: word.translate,
-        shared: word.shared
+        ...omitUndefined({ shared: word.shared })
       }
     });
   }
@@ -306,20 +300,20 @@ export class WordRepository {
     const sortedWords = allWords.sort((a, b) => {
       const aStats = statsMap.get(a.id);
       const bStats = statsMap.get(b.id);
-      
+
       // Priority 1: Words never used (no stats record)
       if (!aStats && !bStats) {
         // Both never used - sort by creation date (older first)
         return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
       }
       if (!aStats) return -1; // a has no stats, prioritize it
-      if (!bStats) return 1;  // b has no stats, prioritize it
-      
+      if (!bStats) return 1; // b has no stats, prioritize it
+
       // Priority 2: Words with lower usage count
       if (aStats.count !== bStats.count) {
         return aStats.count - bStats.count; // ASC: lower count first
       }
-      
+
       // Priority 3: Words not used recently (older lastUsedAt)
       return new Date(aStats.lastUsedAt).getTime() - new Date(bStats.lastUsedAt).getTime();
     });

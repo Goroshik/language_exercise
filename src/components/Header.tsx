@@ -34,6 +34,27 @@ import FeedbackModal from './FeedbackModal';
 import LanguageSelector from './LanguageSelector';
 import SettingsModal from './SettingsModal';
 
+/**
+ * Where to send the user after the learning language changed.
+ * Returns null when the current page should be left alone.
+ */
+export function resolveLanguageSwitchRedirect(
+  pathname: string | null,
+  newTopic: string | null
+): string | null {
+  if (!pathname?.startsWith('/exercises/')) return null;
+
+  const currentPath = pathname.split('/').pop();
+  // The history page is language-agnostic, never redirect away from it.
+  if (currentPath === 'generated-history') return null;
+
+  // No saved topic for the new language - fall back to the topic list.
+  if (!newTopic) return '/topics';
+
+  const newPath = newTopic.toLowerCase().replace(/ /g, '_');
+  return currentPath === newPath ? null : `/exercises/${newPath}`;
+}
+
 const Header: React.FC = () => {
   const route = useRouter();
   const pathname = usePathname();
@@ -67,58 +88,37 @@ const Header: React.FC = () => {
   };
 
   useEffect(() => {
-    loadLastSelectedTopic();
-    loadSettings();
+    void loadLastSelectedTopic();
+    void loadSettings();
   }, [loadLastSelectedTopic, loadSettings]);
 
   // Load last topic for current learning language and redirect if on exercises page
   useEffect(() => {
     const loadTopicForLanguage = async () => {
-      if (settings?.learningLanguage) {
-        try {
-          const response = await fetch(`/api/settings/topic?language=${settings.learningLanguage}`);
-          const data = await response.json();
-          const newTopic = data.topic || null;
-          setLastTopicForLanguage(newTopic);
+      const language = settings?.learningLanguage;
+      if (!language) return;
 
-          // Check if language actually changed (not initial load)
-          const languageChanged =
-            previousLanguage !== null && previousLanguage !== settings.learningLanguage;
+      try {
+        const response = await fetch(`/api/settings/topic?language=${language}`);
+        const data = await response.json();
+        const newTopic = data.topic || null;
+        setLastTopicForLanguage(newTopic);
 
-          if (languageChanged) {
-            // If we're on an exercises page, redirect to the topic for new language
-            if (pathname && pathname.startsWith('/exercises/')) {
-              const currentPath = pathname.split('/').pop();
-
-              // Don't redirect from history page
-              if (currentPath === 'generated-history') {
-                return;
-              }
-
-              if (newTopic) {
-                const newPath = newTopic.toLowerCase().replace(/ /g, '_');
-
-                // Only redirect if the topic is different
-                if (currentPath !== newPath) {
-                  route.push(`/exercises/${newPath}`);
-                }
-              } else {
-                // If there's no saved topic for this language, redirect to topics page
-                route.push('/topics');
-              }
-            }
-          }
-
-          // Update previous language
-          setPreviousLanguage(settings.learningLanguage);
-        } catch (error) {
-          console.error('Failed to load topic for language:', error);
-          setLastTopicForLanguage(null);
+        // Redirect only when the language actually changed (not on initial load)
+        const languageChanged = previousLanguage !== null && previousLanguage !== language;
+        const target = languageChanged ? resolveLanguageSwitchRedirect(pathname, newTopic) : null;
+        if (target !== null) {
+          route.push(target);
         }
+
+        setPreviousLanguage(language);
+      } catch (error) {
+        console.error('Failed to load topic for language:', error);
+        setLastTopicForLanguage(null);
       }
     };
 
-    loadTopicForLanguage();
+    void loadTopicForLanguage();
   }, [settings?.learningLanguage, pathname, route, previousLanguage]);
 
   const handleSettingsOpen = () => {

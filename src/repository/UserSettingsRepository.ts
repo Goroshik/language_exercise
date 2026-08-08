@@ -1,3 +1,4 @@
+import { omitUndefined } from 'src/utils/omitUndefined';
 import { PrismaClient } from '../generated/prisma';
 
 export class UserSettingsRepository {
@@ -64,7 +65,7 @@ export class UserSettingsRepository {
       lastSelectedLevel?: string;
     }
   ) {
-    const settings = {
+    const settings = omitUndefined({
       theme: data.theme,
       aiModel: data.aiModel,
       language: data.language,
@@ -72,7 +73,7 @@ export class UserSettingsRepository {
       learningLanguage: data.learningLanguage,
       lastSelectedTopic: data.lastSelectedTopic,
       lastSelectedLevel: data.lastSelectedLevel
-    };
+    });
 
     return this.client.upsert({
       where: { userId },

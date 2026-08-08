@@ -21,6 +21,40 @@ const MIN_TEXT_LENGTH = 2;
 const SELECTION_DEBOUNCE_DELAY = 300;
 const WORD_CHAR = /[\p{L}\p{N}]/u;
 
+const expandMultiNodeSelection = (range: globalThis.Range, selectedText: string): string => {
+  const startContainer = range.startContainer;
+  const endContainer = range.endContainer;
+  let result = selectedText;
+
+  if (startContainer.nodeType === globalThis.Node.TEXT_NODE && startContainer.textContent) {
+    const startText = startContainer.textContent;
+    const startOffset = range.startOffset;
+    let expandedStart = startOffset;
+    while (expandedStart > 0 && WORD_CHAR.test(startText.charAt(expandedStart - 1))) {
+      expandedStart--;
+    }
+    const startPrefix = startText.substring(expandedStart, startOffset);
+    if (startPrefix) {
+      result = startPrefix + result;
+    }
+  }
+
+  if (endContainer.nodeType === globalThis.Node.TEXT_NODE && endContainer.textContent) {
+    const endText = endContainer.textContent;
+    const endOffset = range.endOffset;
+    let expandedEnd = endOffset;
+    while (expandedEnd < endText.length && WORD_CHAR.test(endText.charAt(expandedEnd))) {
+      expandedEnd++;
+    }
+    const endSuffix = endText.substring(endOffset, expandedEnd);
+    if (endSuffix) {
+      result = result + endSuffix;
+    }
+  }
+
+  return result.trim();
+};
+
 export const useTextSelection = (): UseTextSelectionResult => {
   const [selectionPopover, setSelectionPopover] = useState<SelectionState | null>(null);
   const [translationPanel, setTranslationPanel] = useState<TranslationPanelState | null>(null);
@@ -47,9 +81,7 @@ export const useTextSelection = (): UseTextSelectionResult => {
       return expandMultiNodeSelection(range, selectedText);
     }
 
-    const textNode = startContainer.nodeType === globalThis.Node.TEXT_NODE
-      ? startContainer
-      : null;
+    const textNode = startContainer.nodeType === globalThis.Node.TEXT_NODE ? startContainer : null;
 
     if (!textNode || !textNode.textContent) {
       return selectedText.trim();
@@ -57,51 +89,17 @@ export const useTextSelection = (): UseTextSelectionResult => {
 
     const fullText = textNode.textContent;
     let expandedStart = range.startOffset;
-    while (expandedStart > 0 && WORD_CHAR.test(fullText[expandedStart - 1])) {
+    while (expandedStart > 0 && WORD_CHAR.test(fullText.charAt(expandedStart - 1))) {
       expandedStart--;
     }
 
     let expandedEnd = range.endOffset;
-    while (expandedEnd < fullText.length && WORD_CHAR.test(fullText[expandedEnd])) {
+    while (expandedEnd < fullText.length && WORD_CHAR.test(fullText.charAt(expandedEnd))) {
       expandedEnd++;
     }
 
     return fullText.substring(expandedStart, expandedEnd).trim();
   }, []);
-
-  const expandMultiNodeSelection = (range: globalThis.Range, selectedText: string): string => {
-    const startContainer = range.startContainer;
-    const endContainer = range.endContainer;
-    let result = selectedText;
-
-    if (startContainer.nodeType === globalThis.Node.TEXT_NODE && startContainer.textContent) {
-      const startText = startContainer.textContent;
-      const startOffset = range.startOffset;
-      let expandedStart = startOffset;
-      while (expandedStart > 0 && WORD_CHAR.test(startText[expandedStart - 1])) {
-        expandedStart--;
-      }
-      const startPrefix = startText.substring(expandedStart, startOffset);
-      if (startPrefix) {
-        result = startPrefix + result;
-      }
-    }
-
-    if (endContainer.nodeType === globalThis.Node.TEXT_NODE && endContainer.textContent) {
-      const endText = endContainer.textContent;
-      const endOffset = range.endOffset;
-      let expandedEnd = endOffset;
-      while (expandedEnd < endText.length && WORD_CHAR.test(endText[expandedEnd])) {
-        expandedEnd++;
-      }
-      const endSuffix = endText.substring(endOffset, expandedEnd);
-      if (endSuffix) {
-        result = result + endSuffix;
-      }
-    }
-
-    return result.trim();
-  };
 
   const handleTextSelection = useCallback(() => {
     if (typeof window === 'undefined') return;

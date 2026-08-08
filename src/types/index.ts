@@ -1,8 +1,8 @@
 export interface Exercise {
   sentence: string;
   correctAnswers: string[];
-  sentenceId?: string; // ID from SentenceHistory table
-  hasAnswer?: boolean;
+  sentenceId?: string | undefined; // ID from SentenceHistory table
+  hasAnswer?: boolean | undefined;
 }
 
 export interface ExerciseBlock {
@@ -22,8 +22,8 @@ export type AppState =
 
 export interface ValidationResult {
   isCorrect: boolean;
-  error?: string;
-  incorrectTranslations?: string[];
+  error?: string | undefined;
+  incorrectTranslations?: string[] | undefined;
 }
 
 export interface ValidationResults {

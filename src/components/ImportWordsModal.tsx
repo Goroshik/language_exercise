@@ -94,7 +94,7 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
         };
         setParsedWords([preFilledParsedWord]);
         // NOTE: Check for duplicates on server side
-        checkPrefilledWordDuplicate(preFilledParsedWord);
+        void checkPrefilledWordDuplicate(preFilledParsedWord);
         setStep('review');
       }
     }

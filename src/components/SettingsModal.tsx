@@ -49,7 +49,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   // Load user data when modal opens
   useEffect(() => {
     if (open) {
-      loadUserTokens();
+      void loadUserTokens();
     }
   }, [open]);
 

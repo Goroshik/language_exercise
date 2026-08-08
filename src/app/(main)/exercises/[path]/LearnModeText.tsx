@@ -88,7 +88,7 @@ const LearnModeText: React.FC<LearnModeTextProps> = ({ text }) => {
       }
 
       // Add the bold part
-      parts.push({ type: 'bold', text: match[1] });
+      parts.push({ type: 'bold', text: match[1] ?? '' });
 
       lastIndex = regex.lastIndex;
     }

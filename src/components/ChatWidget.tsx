@@ -65,7 +65,7 @@ const ChatWidget: React.FC = () => {
 
   useEffect(() => {
     if (isOpen) {
-      loadHistory();
+      void loadHistory();
     }
   }, [isOpen, loadHistory]);
 
@@ -145,7 +145,7 @@ const ChatWidget: React.FC = () => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      void handleSendMessage();
     }
   };
 

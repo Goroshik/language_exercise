@@ -16,14 +16,70 @@ export interface GenerateTextRequest {
   topic: string;
   languageId: string;
   level: string;
-  selectedWords?: DictionaryWord[];
-  customTopic?: string;
-  sentenceCount?: number;
+  selectedWords?: DictionaryWord[] | undefined;
+  customTopic?: string | undefined;
+  sentenceCount?: number | undefined;
 }
 
-// TODO: Fix types - properly type ServiceResponse body instead of using any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ServiceResponse = { status: number; body: any };
+export type ServiceResponse = { status: number; body: unknown };
+
+const BOLD_WORD_PATTERN = /\*\*(.*?)\*\*/g;
+const TRAILING_HINTS_PATTERN = /\s*\(([^)]+)\)\s*$/;
+
+interface SentenceContext {
+  ownerId: string;
+  languageId: string;
+  level: string;
+  mode: Mode;
+  topic: string;
+}
+
+/** Lower-cased word -> dictionary word id, skipping entries without a word. */
+export function buildWordIdIndex(words: DictionaryWord[]): Map<string, string> {
+  const index = new Map<string, string>();
+  for (const entry of words) {
+    if (entry.word) {
+      index.set(entry.word.toLowerCase(), entry.id);
+    }
+  }
+  return index;
+}
+
+/** Hints are written as "(hint1, hint2)" at the very end of a sentence. */
+export function extractHints(sentence: string): string[] {
+  return (
+    sentence
+      .match(TRAILING_HINTS_PATTERN)?.[1]
+      ?.split(/[,;]+/)
+      .map(hint => hint.trim())
+      .filter(Boolean) ?? []
+  );
+}
+
+/** Ids of the dictionary words the sentence marked up with **bold**. */
+export function collectUsedWordIds(sentence: string, wordIds: Map<string, string>): string[] {
+  const used = new Set<string>();
+  for (const match of sentence.matchAll(BOLD_WORD_PATTERN)) {
+    const wordId = wordIds.get((match[1] ?? '').toLowerCase());
+    if (wordId !== undefined) {
+      used.add(wordId);
+    }
+  }
+  return Array.from(used);
+}
+
+export function buildSentenceRecords(
+  sentences: string[],
+  wordIds: Map<string, string>,
+  context: SentenceContext
+) {
+  return sentences.map(sentence => ({
+    ...context,
+    sentence: sentence.replace(TRAILING_HINTS_PATTERN, '').trim(),
+    usedWordIds: collectUsedWordIds(sentence, wordIds),
+    hints: extractHints(sentence)
+  }));
+}
 
 const schema = Joi.object({
   mode: Joi.string().required(),
@@ -56,17 +112,17 @@ export function formatAIResponse(text: string): string[] {
       // Simplified approach: Find everything between ** and **
       // First, normalize multiple asterisks (3+) to double asterisks
       line = line.replace(/\*{3,}/g, '**');
-      
+
       // Check if line already has valid **word** format
       const boldPattern = /\*\*([^*]+)\*\*/g;
       if (boldPattern.test(line)) {
         // Already has valid format, return as is
         return line;
       }
-      
+
       // Fix simple case: word** -> **word**
       line = line.replace(/([^\s*]+)\*\*/g, '**$1**');
-      
+
       return line;
     });
 }
@@ -98,20 +154,22 @@ export async function processGenerateTextRequest(
     // Auto-select words if user hasn't provided any or provided fewer than 5
     let wordsToUse: DictionaryWord[] = [...selectedWords];
     const targetWordCount = 5;
-    
+
     if (wordsToUse.length < targetWordCount) {
       try {
         // Get words we need to fill up to 5
         const wordsNeeded = targetWordCount - wordsToUse.length;
-        
+
         // Get least used words, excluding already selected words
-        const selectedWordIds = wordsToUse.map(w => w.id).filter((id): id is string => id !== undefined && id !== null);
+        const selectedWordIds = wordsToUse
+          .map(w => w.id)
+          .filter((id): id is string => id !== undefined && id !== null);
         const leastUsedWords = await wordRepository.getLeastUsedWords(
           userId,
           language.code,
           wordsNeeded + selectedWordIds.length // Get extra in case some are already selected
         );
-        
+
         // Filter out already selected words and take only what we need
         const additionalWords = leastUsedWords
           .filter(word => !selectedWordIds.includes(word.id))
@@ -123,10 +181,12 @@ export async function processGenerateTextRequest(
             languageCode: word.languageCode,
             createdAt: word.createdAt
           }));
-        
+
         wordsToUse = [...wordsToUse, ...additionalWords];
-        
-        console.log(`Auto-selected ${additionalWords.length} words to fill up to ${wordsToUse.length} total words`);
+
+        console.log(
+          `Auto-selected ${additionalWords.length} words to fill up to ${wordsToUse.length} total words`
+        );
       } catch (err) {
         console.error('Failed to auto-select words:', err);
         // Continue with whatever words we have
@@ -136,8 +196,21 @@ export async function processGenerateTextRequest(
     const words = wordsToUse.map(w => w.word || '');
     const prompt =
       mode === 'student'
-        ? GRAMMAR_PROMPTS.generateStudentExercises(topic, language.name, words, customTopic, sentenceCount)
-        : GRAMMAR_PROMPTS.generateTeacherExamples(topic, level, language.name, words, customTopic, sentenceCount);
+        ? GRAMMAR_PROMPTS.generateStudentExercises({
+            topic,
+            languageName: language.name,
+            selectedWords: words,
+            customTopic,
+            sentenceCount
+          })
+        : GRAMMAR_PROMPTS.generateTeacherExamples({
+            topic,
+            level,
+            languageName: language.name,
+            selectedWords: words,
+            customTopic,
+            sentenceCount
+          });
 
     const aiService = await AIFactory.getAIService(userId);
     if (!aiService || typeof aiService.generateText !== 'function') {
@@ -154,7 +227,8 @@ export async function processGenerateTextRequest(
         return { status: 402, body: { error: 'AI service token not configured for user' } };
       }
       console.error('AI service error (generate text):', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to generate text from AI service';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to generate text from AI service';
       return { status: 502, body: { error: errorMessage } };
     }
 
@@ -162,11 +236,11 @@ export async function processGenerateTextRequest(
       typeof rawResult === 'string'
         ? rawResult
         : rawResult && typeof rawResult === 'object'
-          // TODO: Fix types - properly type AI result instead of using any
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          ? ((rawResult as any).text ?? '')
+          ? // TODO: Fix types - properly type AI result instead of using any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            ((rawResult as any).text ?? '')
           : '';
-    
+
     console.log('AI Text Before Formatting:', text);
     const result = formatAIResponse(text);
     console.log('AI Text After Formatting:', result);
@@ -176,52 +250,16 @@ export async function processGenerateTextRequest(
 
     if (result.length > 0) {
       try {
-        const wordMap = new Map(wordsToUse.map(w => [w.word?.toLowerCase(), w.id]));
-
-        const sentencesToSave = result.map(sentence => {
-          const wordsInSentence = new Set<string>();
-          const regex = /\*\*(.*?)\*\*/g;
-          let match;
-
-          while ((match = regex.exec(sentence)) !== null) {
-            const word = match[1].toLowerCase();
-            if (wordMap.has(word)) {
-              // TODO: Fix type - use proper null handling instead of non-null assertion
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              wordsInSentence.add(wordMap.get(word)!);
-            }
-          }
-
-          // Hints format: (hint1, hint2) at the end of the sentence
-          const hintMatch = sentence.match(/\s*\(([^)]+)\)\s*$/);
-          const hints: string[] = hintMatch
-            ? hintMatch[1]
-                .split(/[,;]+/)
-                .map(h => h.trim())
-                .filter(Boolean)
-            : [];
-
-          const sentenceWithoutHints = sentence.replace(/\s*\([^)]+\)\s*$/, '').trim();
-
-          return {
-            ownerId: userId,
-            sentence: sentenceWithoutHints,
-            languageId,
-            usedWordIds: Array.from(wordsInSentence),
-            level,
-            mode,
-            topic,
-            hints
-          };
+        const sentencesToSave = buildSentenceRecords(result, buildWordIdIndex(wordsToUse), {
+          ownerId: userId,
+          languageId,
+          level,
+          mode,
+          topic
         });
 
-        if (sentencesToSave.length > 0) {
-
-          const sentences = await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
-
-          // Get the most recent sentence IDs matching our batch size
-          sentenceIds = sentences.map(s => s.id);
-        }
+        const sentences = await sentenceHistoryRepository.addHistoryBatch(sentencesToSave);
+        sentenceIds = sentences.map(s => s.id);
       } catch (saveErr) {
         console.error('Failed to save generated sentence history:', saveErr);
       }
@@ -243,11 +281,11 @@ export async function processGenerateTextRequest(
       sentenceIds,
       hasAnswers
     };
-    
+
     console.log('Final API Response Body:', JSON.stringify(responseBody, null, 2));
-    
-    return { 
-      status: 200, 
+
+    return {
+      status: 200,
       body: responseBody
     };
   } catch (err) {

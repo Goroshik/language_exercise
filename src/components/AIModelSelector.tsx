@@ -43,6 +43,17 @@ interface FormData {
   model: string;
 }
 
+type Provider = 'gemini' | 'openai' | 'anthropic';
+
+/** First available provider together with its first model, if any. */
+function pickDefaultSelection(providers: Provider[]): { provider: Provider; model: string } | null {
+  const provider = providers[0];
+  if (!provider) return null;
+
+  const model = getModelsByProvider(provider)[0];
+  return model ? { provider, model: model.value } : null;
+}
+
 const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -75,7 +86,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
   // Load available models and current settings
   useEffect(() => {
     if (open) {
-      loadData();
+      void loadData();
     }
   }, [open]);
 
@@ -83,8 +94,9 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
   useEffect(() => {
     if (selectedProvider) {
       const providerModels = getModelsByProvider(selectedProvider);
-      if (providerModels.length > 0 && !providerModels.find(m => m.value === selectedModel)) {
-        setValue('model', providerModels[0].value);
+      const firstModel = providerModels[0];
+      if (firstModel && !providerModels.find(m => m.value === selectedModel)) {
+        setValue('model', firstModel.value);
       }
     }
   }, [selectedProvider, selectedModel, setValue]);
@@ -115,16 +127,14 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
 
         // Initialize form with current or default provider/model
         const provider = getProviderFromModel(currentAiModel);
-        if (provider && modelsData.providers.includes(provider)) {
-          setValue('provider', provider);
-          setValue('model', currentAiModel);
-        } else if (modelsData.providers.length > 0) {
-          const defaultProvider = modelsData.providers[0];
-          setValue('provider', defaultProvider);
-          const providerModels = getModelsByProvider(defaultProvider);
-          if (providerModels.length > 0) {
-            setValue('model', providerModels[0].value);
-          }
+        const isKnownProvider = provider !== null && modelsData.providers.includes(provider);
+        const selection = isKnownProvider
+          ? { provider, model: currentAiModel }
+          : pickDefaultSelection(modelsData.providers);
+
+        if (selection) {
+          setValue('provider', selection.provider);
+          setValue('model', selection.model);
         }
       }
     } catch (_error) {

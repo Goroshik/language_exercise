@@ -90,7 +90,7 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
       }
     };
 
-    getTranslation(word);
+    void getTranslation(word);
 
     return () => {
       isSubscribed = false; // Cleanup: prevent state updates after unmount

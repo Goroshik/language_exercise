@@ -81,13 +81,13 @@ export const useChatStore = create<ChatStore>()(
             set({ messages: [], chatId: null });
             // Use setTimeout to ensure state is updated before loading
             setTimeout(() => {
-              get().loadHistory();
+              void get().loadHistory();
             }, 0);
           } else if (!previousLanguage) {
             // First time initialization - load history for current language
             console.log('[ChatStore] First initialization, loading history');
             setTimeout(() => {
-              get().loadHistory();
+              void get().loadHistory();
             }, 0);
           }
         },

@@ -1,4 +1,5 @@
 import { Prisma, PrismaClient } from 'src/generated/prisma/client';
+import { omitUndefined } from 'src/utils/omitUndefined';
 import { prisma } from './client';
 
 export class SentenceHistoryRepository {
@@ -35,8 +36,8 @@ export class SentenceHistoryRepository {
         usedWordIds,
         level,
         mode,
-        topic,
-        hints
+        hints,
+        ...omitUndefined({ topic })
       }
     });
   }
@@ -53,9 +54,11 @@ export class SentenceHistoryRepository {
       hints?: string[];
     }[]
   ) {
-    return prisma.$transaction(sentences.map(sentenceData => 
-      this.client.create({ data: sentenceData, select: { id: true } })
-    ));
+    return prisma.$transaction(
+      sentences.map(sentenceData =>
+        this.client.create({ data: sentenceData, select: { id: true } })
+      )
+    );
   }
 
   async getHistory({
@@ -66,10 +69,10 @@ export class SentenceHistoryRepository {
     searchText
   }: {
     ownerId: string;
-    languageId?: string;
-    level?: string;
-    usedWordIds?: string[];
-    searchText?: string;
+    languageId?: string | undefined;
+    level?: string | undefined;
+    usedWordIds?: string[] | undefined;
+    searchText?: string | undefined;
   }) {
     const where: Prisma.SentenceHistoryWhereInput = {
       ownerId

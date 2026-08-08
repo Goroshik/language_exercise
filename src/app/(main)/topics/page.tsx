@@ -40,13 +40,13 @@ const Page: React.FC = () => {
     // Reset navigation state when this page loads
     setIsNavigating(false);
     if (!settings) {
-      loadSettings();
+      void loadSettings();
     }
   }, [settings, loadSettings, setIsNavigating]);
 
   useEffect(() => {
     if (settings?.learningLanguage) {
-      loadTopics(settings.learningLanguage);
+      void loadTopics(settings.learningLanguage);
       setState('topics-loaded');
     }
   }, [settings?.learningLanguage, loadTopics, setState]);
