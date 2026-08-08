@@ -129,14 +129,23 @@ const DictionaryPage: React.FC = () => {
       }}
     >
       <Box
-        display="flex"
-        flexDirection={{ xs: 'column', sm: 'row' }}
-        justifyContent="space-between"
-        alignItems={{ xs: 'stretch', sm: 'center' }}
-        mb={3}
-        gap={{ xs: 2, sm: 0 }}
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'stretch', sm: 'center' },
+          mb: 3,
+          gap: { xs: 2, sm: 0 }
+        }}
       >
-        <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 2 }} flexWrap="wrap">
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: { xs: 1, sm: 2 },
+            flexWrap: 'wrap'
+          }}
+        >
           <Typography
             variant="h4"
             component="h1"
@@ -160,10 +169,12 @@ const DictionaryPage: React.FC = () => {
           />
         </Box>
         <Box
-          display="flex"
-          gap={{ xs: 1, sm: 2 }}
-          flexDirection={{ xs: 'column', sm: 'row' }}
-          width={{ xs: '100%', sm: 'auto' }}
+          sx={{
+            display: 'flex',
+            gap: { xs: 1, sm: 2 },
+            flexDirection: { xs: 'column', sm: 'row' },
+            width: { xs: '100%', sm: 'auto' }
+          }}
         >
           <Button
             variant="outlined"
@@ -192,24 +203,30 @@ const DictionaryPage: React.FC = () => {
         </Box>
       </Box>
 
-      <Box mb={3}>
+      <Box
+        sx={{
+          mb: 3
+        }}
+      >
         <TextField
           fullWidth
           placeholder="Поиск по слову или переводу..."
           value={searchQuery}
           onChange={e => handleSearchChange(e.target.value)}
           size={isMobile ? 'small' : 'medium'}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-            endAdornment: isLoading ? (
-              <InputAdornment position="end">
-                <CircularProgress size={20} />
-              </InputAdornment>
-            ) : null
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+              endAdornment: isLoading ? (
+                <InputAdornment position="end">
+                  <CircularProgress size={20} />
+                </InputAdornment>
+              ) : null
+            }
           }}
         />
       </Box>
@@ -223,9 +240,9 @@ const DictionaryPage: React.FC = () => {
           <LanguageIcon sx={{ fontSize: { xs: 36, sm: 48 }, color: 'text.secondary', mb: 2 }} />
           <Typography
             variant="h6"
-            color="text.secondary"
             gutterBottom
             sx={{
+              color: 'text.secondary',
               fontSize: { xs: '1rem', sm: '1.25rem' }
             }}
           >
@@ -235,8 +252,8 @@ const DictionaryPage: React.FC = () => {
           </Typography>
           <Typography
             variant="body2"
-            color="text.secondary"
             sx={{
+              color: 'text.secondary',
               fontSize: { xs: '0.8rem', sm: '0.875rem' }
             }}
           >
@@ -249,9 +266,10 @@ const DictionaryPage: React.FC = () => {
         <>
           <Stack
             direction="row"
-            flexWrap="wrap"
-            gap={{ xs: 1, sm: 2 }}
             sx={{
+              flexWrap: 'wrap',
+              gap: { xs: 1, sm: 2 },
+
               '& > *': {
                 minWidth: { xs: '100%', sm: 250 },
                 flex: {
@@ -278,7 +296,13 @@ const DictionaryPage: React.FC = () => {
           </Stack>
 
           {totalPages > 1 && (
-            <Box display="flex" justifyContent="center" mt={4}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                mt: 4
+              }}
+            >
               <Pagination
                 count={totalPages}
                 page={currentPage}

@@ -219,25 +219,28 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleTextareaChange = useCallback((event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newValue = event.target.value;
-    setTextareaValue(newValue);
+  const handleTextareaChange = useCallback(
+    (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const newValue = event.target.value;
+      setTextareaValue(newValue);
 
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
 
-    if (sentenceId && typeof window !== 'undefined') {
-      saveTimeoutRef.current = setTimeout(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const store = (window as any).__appStore;
-        if (store?.setState) {
-          const currentSavedAnswers = store.getState().savedAnswers;
-          store.setState({ savedAnswers: { ...currentSavedAnswers, [sentenceId]: newValue } });
-        }
-      }, 150);
-    }
-  }, [sentenceId]);
+      if (sentenceId && typeof window !== 'undefined') {
+        saveTimeoutRef.current = setTimeout(() => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const store = (window as any).__appStore;
+          if (store?.setState) {
+            const currentSavedAnswers = store.getState().savedAnswers;
+            store.setState({ savedAnswers: { ...currentSavedAnswers, [sentenceId]: newValue } });
+          }
+        }, 150);
+      }
+    },
+    [sentenceId]
+  );
 
   const handleTextareaBlur = useCallback(() => {
     if (saveTimeoutRef.current) {
@@ -323,12 +326,8 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
       tapTimeoutRef.current = null;
     }
 
-    const clientX = 'touches' in event
-      ? event.changedTouches[0]?.clientX || 0
-      : event.clientX;
-    const clientY = 'touches' in event
-      ? event.changedTouches[0]?.clientY || 0
-      : event.clientY;
+    const clientX = 'touches' in event ? event.changedTouches[0]?.clientX || 0 : event.clientX;
+    const clientY = 'touches' in event ? event.changedTouches[0]?.clientY || 0 : event.clientY;
 
     const selection = window.getSelection();
     if (selection && selection.rangeCount > 0) {
@@ -352,7 +351,10 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
       if (doc.caretRangeFromPoint) {
         const range = doc.caretRangeFromPoint(clientX, clientY);
         if (range && range.startContainer.nodeType === 3) {
-          wordAtPoint = extractWordAtOffset(range.startContainer.textContent || '', range.startOffset);
+          wordAtPoint = extractWordAtOffset(
+            range.startContainer.textContent || '',
+            range.startOffset
+          );
         }
       } else if (doc.caretPositionFromPoint) {
         const caretPos = doc.caretPositionFromPoint(clientX, clientY);
@@ -385,13 +387,20 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
 
   return (
     <>
-      <Stack gap={2} sx={{ width: '100%' }}>
-        <Stack 
-          gap={1} 
-          sx={{ color: '#333' }} 
+      <Stack
+        sx={{
+          gap: 2,
+          width: '100%'
+        }}
+      >
+        <Stack
           onDoubleClick={handleTextDoubleClick}
           onTouchEnd={handleMobileTap}
           onClick={handleMobileTap}
+          sx={{
+            gap: 1,
+            color: '#333'
+          }}
         >
           {displaySentence && (
             <Typography
@@ -414,10 +423,7 @@ const TextWithInputs: React.FC<TextWithInputsProps> = ({
 
           {hints.length > 0 && (
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5, alignItems: 'center' }}>
-              <Typography
-                variant="caption"
-                sx={{ color: '#777', fontWeight: 500 }}
-              >
+              <Typography variant="caption" sx={{ color: '#777', fontWeight: 500 }}>
                 Подсказка:
               </Typography>
               {hints.map((hint, index) => (

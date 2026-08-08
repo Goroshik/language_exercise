@@ -32,8 +32,10 @@ const BaseInput = (props: Omit<TextFieldProps, 'variant'>) => {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
-    if (props.type === 'number' && props.inputProps) {
-      const { min, max } = props.inputProps as { min?: number; max?: number };
+    const htmlInput = props.slotProps?.htmlInput;
+
+    if (props.type === 'number' && htmlInput && typeof htmlInput !== 'function') {
+      const { min, max } = htmlInput as { min?: number; max?: number };
       const { value } = target;
 
       // TODO: Fix types - properly type onChange handler instead of using any
@@ -53,7 +55,12 @@ const BaseInput = (props: Omit<TextFieldProps, 'variant'>) => {
   };
 
   return (
-    <Stack direction="row" alignItems="center">
+    <Stack
+      direction="row"
+      sx={{
+        alignItems: 'center'
+      }}
+    >
       <TextField
         label={props.label}
         type={typeSwitcher(props.type, showPassword)}

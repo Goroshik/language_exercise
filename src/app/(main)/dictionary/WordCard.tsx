@@ -140,9 +140,26 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
     <>
       <Card sx={{ mb: 2, position: 'relative' }}>
         <CardContent>
-          <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-            <Box flexGrow={1}>
-              <Box display="flex" alignItems="center" gap={1} mb={1}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start'
+            }}
+          >
+            <Box
+              sx={{
+                flexGrow: 1
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  mb: 1
+                }}
+              >
                 <Typography variant="h6" component="h3">
                   {word.word}
                 </Typography>
@@ -155,11 +172,24 @@ const WordCard: React.FC<WordCardProps> = ({ word, onWordUpdate, onWordDelete })
                   />
                 )}
               </Box>
-              <Typography variant="body1" color="text.secondary" paragraph>
+              <Typography
+                variant="body1"
+                sx={{
+                  color: 'text.secondary',
+                  marginBottom: '16px'
+                }}
+              >
                 {word.translate}
               </Typography>
 
-              <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  color: 'text.secondary',
+                  mt: 1,
+                  display: 'block'
+                }}
+              >
                 {new Date(word.createdAt).toLocaleDateString('ru-RU')}
               </Typography>
             </Box>

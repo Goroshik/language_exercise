@@ -48,7 +48,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  
+
   // Debounce search query for server requests
   const debouncedSearchQuery = useDebounce(filterText, 500);
 
@@ -72,7 +72,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
       if (query) params.append('query', query);
       if (limit) params.append('limit', limit.toString());
       params.append('sortByUsage', 'true');
-      
+
       const url = `/api/dictionary/words?${params.toString()}`;
       const response = await fetch(url);
       const data = await response.json();
@@ -93,34 +93,43 @@ const WordSelector: React.FC<WordSelectorProps> = ({
     }
   };
 
-  const handleWordToggle = useCallback((word: DictionaryWord) => {
-    const currentIndex = selectedWords.indexOf(word);
-    const newSelectedWords = [...selectedWords];
+  const handleWordToggle = useCallback(
+    (word: DictionaryWord) => {
+      const currentIndex = selectedWords.indexOf(word);
+      const newSelectedWords = [...selectedWords];
 
-    if (currentIndex === -1) {
-      // Add word if not selected and under limit
-      if (selectedWords.length < maxWords) {
-        newSelectedWords.push(word);
+      if (currentIndex === -1) {
+        // Add word if not selected and under limit
+        if (selectedWords.length < maxWords) {
+          newSelectedWords.push(word);
+        }
+      } else {
+        // Remove word if already selected
+        newSelectedWords.splice(currentIndex, 1);
       }
-    } else {
-      // Remove word if already selected
-      newSelectedWords.splice(currentIndex, 1);
-    }
 
-    onWordsChange(newSelectedWords);
-  }, [selectedWords, maxWords, onWordsChange]);
+      onWordsChange(newSelectedWords);
+    },
+    [selectedWords, maxWords, onWordsChange]
+  );
 
-  const isWordDisabled = useCallback((wordText: string) => {
-    return selectedWords.length >= maxWords && !selectedWords.some(w => w.word === wordText);
-  }, [selectedWords, maxWords]);
+  const isWordDisabled = useCallback(
+    (wordText: string) => {
+      return selectedWords.length >= maxWords && !selectedWords.some(w => w.word === wordText);
+    },
+    [selectedWords, maxWords]
+  );
 
   // NOTE: Handle tag selection for filtering
-  const handleTagToggle = useCallback((tag: string) => {
-    const newSelectedTags = selectedTags.includes(tag)
-      ? selectedTags.filter(t => t !== tag)
-      : [...selectedTags, tag];
-    setSelectedTags(newSelectedTags);
-  }, [selectedTags]);
+  const handleTagToggle = useCallback(
+    (tag: string) => {
+      const newSelectedTags = selectedTags.includes(tag)
+        ? selectedTags.filter(t => t !== tag)
+        : [...selectedTags, tag];
+      setSelectedTags(newSelectedTags);
+    },
+    [selectedTags]
+  );
 
   // NOTE: Clear all tag filters
   const handleClearFilters = useCallback(() => {
@@ -136,7 +145,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
       return wordWithStats || { ...selectedWord, usageStats: [] };
     })
     .filter(word => words.some(w => w.id === word.id) || filterText.trim() === ''); // Keep selected words visible even if not in search results
-  
+
   const unselectedWords = words.filter(word => !selectedWords.some(w => w.id === word.id));
 
   // Combine for display count check
@@ -189,8 +198,10 @@ const WordSelector: React.FC<WordSelectorProps> = ({
               onSentenceCountChange?.(value);
             }
           }}
-          inputProps={{ min: 1, max: 20 }}
           helperText="От 1 до 20 предложений"
+          slotProps={{
+            htmlInput: { min: 1, max: 20 }
+          }}
         />
       </Paper>
 
@@ -217,7 +228,14 @@ const WordSelector: React.FC<WordSelectorProps> = ({
             <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
               Фильтр по тегам:
             </Typography>
-            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <Stack
+              direction="row"
+              spacing={1}
+              useFlexGap
+              sx={{
+                flexWrap: 'wrap'
+              }}
+            >
               {allTags.map(tag => (
                 <Chip
                   key={tag}
@@ -254,12 +272,14 @@ const WordSelector: React.FC<WordSelectorProps> = ({
           value={filterText}
           onChange={e => setFilterText(e.target.value)}
           sx={{ mb: 2 }}
-          InputProps={{
-            endAdornment: isSearching ? (
-              <InputAdornment position="end">
-                <CircularProgress size={20} />
-              </InputAdornment>
-            ) : null
+          slotProps={{
+            input: {
+              endAdornment: isSearching ? (
+                <InputAdornment position="end">
+                  <CircularProgress size={20} />
+                </InputAdornment>
+              ) : null
+            }
           }}
         />
 
@@ -271,7 +291,7 @@ const WordSelector: React.FC<WordSelectorProps> = ({
             gap: 0,
             maxHeight: {
               xs: 'calc(3 * (80px))', // 3 items visible on mobile
-              sm: 'calc(5 * (80px))'  // 5 items visible on desktop
+              sm: 'calc(5 * (80px))' // 5 items visible on desktop
             },
             overflowY: 'auto',
             overflowX: 'hidden',
@@ -397,10 +417,9 @@ const WordSelector: React.FC<WordSelectorProps> = ({
                       mb: 1
                     }}
                   >
-                    {filterText.trim() 
+                    {filterText.trim()
                       ? 'Результаты поиска'
-                      : 'Доступные слова (показано до 20, используйте поиск для остальных)'
-                    }
+                      : 'Доступные слова (показано до 20, используйте поиск для остальных)'}
                   </Typography>
                   <Box
                     sx={{
@@ -510,7 +529,13 @@ const WordSelector: React.FC<WordSelectorProps> = ({
 
         {/* NOTE: Show message when no words found */}
         {displayWords.length === 0 && isInitialized && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+              mt: 2
+            }}
+          >
             {words.length === 0 ? 'Словарь пуст' : 'Слова не найдены'}
           </Typography>
         )}

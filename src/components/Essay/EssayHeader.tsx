@@ -23,7 +23,13 @@ export const EssayHeader: React.FC<EssayHeaderProps> = ({
         Написание текстов на {languageCode === 'en' ? 'английском' : 'польском'} языке
       </Typography>
 
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+      <Typography
+        variant="body2"
+        sx={{
+          color: 'text.secondary',
+          mb: 2
+        }}
+      >
         💾 Введенный текст сохраняется автоматически и будет доступен с любого устройства
       </Typography>
 
@@ -34,12 +40,8 @@ export const EssayHeader: React.FC<EssayHeaderProps> = ({
           value={title}
           onChange={(_, newValue) => onTitleChange(newValue)}
           onInputChange={(_, newValue) => onTitleChange(newValue)}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="Тема"
-              placeholder="Выберите или введите тему"
-            />
+          renderInput={params => (
+            <TextField {...params} label="Тема" placeholder="Выберите или введите тему" />
           )}
           sx={{ flex: 1 }}
         />

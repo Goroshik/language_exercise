@@ -72,7 +72,7 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onClose }) => {
         body: JSON.stringify({
           type: issueType,
           title: title.trim(),
-          description: description.trim(),
+          description: description.trim()
         })
       });
 
@@ -101,12 +101,14 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onClose }) => {
       maxWidth="sm"
       fullWidth
       fullScreen={isMobile}
-      PaperProps={{
-        sx: {
-          ...(isMobile && {
-            m: 0,
-            maxHeight: '100%'
-          })
+      slotProps={{
+        paper: {
+          sx: {
+            ...(isMobile && {
+              m: 0,
+              maxHeight: '100%'
+            })
+          }
         }
       }}
     >
@@ -142,17 +144,19 @@ const FeedbackModal: React.FC<FeedbackModalProps> = ({ open, onClose }) => {
             fullWidth
             label="Заголовок"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={e => setTitle(e.target.value)}
             disabled={loading}
             placeholder="Краткое описание проблемы или предложения"
-            inputProps={{ maxLength: 200 }}
+            slotProps={{
+              htmlInput: { maxLength: 200 }
+            }}
           />
 
           <TextField
             fullWidth
             label="Описание"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={e => setDescription(e.target.value)}
             disabled={loading}
             multiline
             rows={6}
