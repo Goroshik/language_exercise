@@ -19,7 +19,7 @@ export async function middleware(request: NextRequest) {
   let userId: string | null = null;
   if (rawToken) {
     try {
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || '***REMOVED***');
+      const secret = new TextEncoder().encode(process.env.JWT_SECRET);
       const { payload } = await jwtVerify(rawToken, secret);
       const id = (payload as { id?: unknown }).id;
       userId = typeof id === 'string' ? id : null;
