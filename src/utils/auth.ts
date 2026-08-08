@@ -7,10 +7,10 @@ export interface AuthResult {
 }
 
 /**
- * Извлекает userId из JWT токена через заголовок x-user-id
- * который устанавливается middleware после проверки аутентификации
- * @throws {UnauthorizedError} если пользователь не авторизован
- * @returns userId авторизованного пользователя
+ * Extracts userId from the x-user-id header, which is set by the middleware
+ * after the JWT token has been verified.
+ * @throws {NextResponseError} if the user is not authenticated
+ * @returns userId of the authenticated user
  */
 export function getUserIdFromRequest(request: NextRequest): string {
   const userId = request.headers.get('x-user-id');
