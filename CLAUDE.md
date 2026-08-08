@@ -29,20 +29,20 @@ quietly adjust it.
 
 ### Thresholds in force
 
-| Gate | Threshold | Where |
-|---|---|---|
-| TypeScript | `strict` + `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `noFallthroughCasesInSwitch` | `tsconfig.json` |
-| Cyclomatic complexity | 8 | `eslint.config.mjs` |
-| Nesting depth | 3 | `eslint.config.mjs` |
-| Function length | 50 lines (blank lines and comments excluded) | `eslint.config.mjs` |
-| Parameters | 4 | `eslint.config.mjs` |
-| Floating promises, `any`, non-null assertions | error | `eslint.config.mjs` |
-| CRAP score | 8 | `npm run crap` |
-| Mutation score | 82% break | `stryker.config.json` |
+| Gate                                          | Threshold                                                                                                               | Where                 |
+| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| TypeScript                                    | `strict` + `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`, `noImplicitOverride`, `noFallthroughCasesInSwitch` | `tsconfig.json`       |
+| Cyclomatic complexity                         | 8                                                                                                                       | `eslint.config.mjs`   |
+| Nesting depth                                 | 3                                                                                                                       | `eslint.config.mjs`   |
+| Function length                               | 50 lines (blank lines and comments excluded)                                                                            | `eslint.config.mjs`   |
+| Parameters                                    | 4                                                                                                                       | `eslint.config.mjs`   |
+| Floating promises, `any`, non-null assertions | error                                                                                                                   | `eslint.config.mjs`   |
+| CRAP score                                    | 8                                                                                                                       | `npm run crap`        |
+| Mutation score                                | 89% break                                                                                                               | `stryker.config.json` |
 
 ### The ratchet
 
-The codebase predates these gates, so 85 lint violations and 130 CRAP violations
+The codebase predates these gates, so 84 lint violations and 129 CRAP violations
 already exist. `quality-baseline.json` records those counts and
 `scripts/ratchet.mjs` fails the build if either **grows**.
 

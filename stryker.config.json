@@ -14,8 +14,8 @@
   ],
   "thresholds": {
     "high": 90,
-    "low": 82,
-    "break": 82
+    "low": 89,
+    "break": 89
   },
   "timeoutMS": 20000
 }

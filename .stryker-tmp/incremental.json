@@ -76,10 +76,13 @@
           "id": "3",
           "mutatorName": "Regex",
           "replacement": "/\\s\\(([^)]+)\\)\\s*$/",
-          "status": "Survived",
-          "testsCompleted": 37,
+          "statusReason": "expected { line: 'Zdanie.(a)', hints: [] } to deeply equal { line: 'Zdanie.', hints: [ 'a' ] }",
+          "status": "Killed",
+          "testsCompleted": 28,
           "static": true,
-          "killedBy": [],
+          "killedBy": [
+            "40"
+          ],
           "coveredBy": [],
           "location": {
             "end": {
@@ -96,10 +99,13 @@
           "id": "4",
           "mutatorName": "Regex",
           "replacement": "/\\S*\\(([^)]+)\\)\\s*$/",
-          "status": "Survived",
-          "testsCompleted": 37,
+          "statusReason": "Property failed after 75 tests\n{ seed: -1903982300, path: \"74:13:14:13:12:14:15:24\", endOnFailure: true }\nCounterexample: [[\"z0 z\",3]]\nShrunk 7 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run",
+          "status": "Killed",
+          "testsCompleted": 9,
           "static": true,
-          "killedBy": [],
+          "killedBy": [
+            "8"
+          ],
           "coveredBy": [],
           "location": {
             "end": {
@@ -164,7 +170,7 @@
           "replacement": "/\\s*\\(([^)]+)\\)\\s$/",
           "statusReason": "expected { …(2) } to deeply equal { Object (line, hints) }",
           "status": "Killed",
-          "testsCompleted": 19,
+          "testsCompleted": 32,
           "static": true,
           "killedBy": [
             "31"
@@ -185,10 +191,13 @@
           "id": "8",
           "mutatorName": "Regex",
           "replacement": "/\\s*\\(([^)]+)\\)\\S*$/",
-          "status": "Survived",
-          "testsCompleted": 37,
+          "statusReason": "expected { line: 'Zdanie. (a)   ', hints: [] } to deeply equal { line: 'Zdanie.', hints: [ 'a' ] }",
+          "status": "Killed",
+          "testsCompleted": 29,
           "static": true,
-          "killedBy": [],
+          "killedBy": [
+            "41"
+          ],
           "coveredBy": [],
           "location": {
             "end": {
@@ -274,10 +283,13 @@
           "id": "12",
           "mutatorName": "Regex",
           "replacement": "/^(?:перевод|translation)\\s*[:−-]\\s*/i",
-          "status": "Survived",
-          "testsCompleted": 37,
+          "statusReason": "expected 'Перевод я читаю' to be 'я читаю' // Object.is equality",
+          "status": "Killed",
+          "testsCompleted": 7,
           "static": true,
-          "killedBy": [],
+          "killedBy": [
+            "19"
+          ],
           "coveredBy": [],
           "location": {
             "end": {
@@ -317,10 +329,13 @@
           "id": "14",
           "mutatorName": "Regex",
           "replacement": "/^(?:перевод|translation)\\s*[:−-]?\\s/i",
-          "status": "Survived",
-          "testsCompleted": 37,
+          "statusReason": "expected 'Перевод:я читаю' to be 'я читаю' // Object.is equality",
+          "status": "Killed",
+          "testsCompleted": 8,
           "static": true,
-          "killedBy": [],
+          "killedBy": [
+            "20"
+          ],
           "coveredBy": [],
           "location": {
             "end": {
@@ -337,10 +352,13 @@
           "id": "15",
           "mutatorName": "Regex",
           "replacement": "/^(?:перевод|translation)\\s*[:−-]?\\S*/i",
-          "status": "Survived",
-          "testsCompleted": 37,
+          "statusReason": "expected 'читаю' to be 'я читаю' // Object.is equality",
+          "status": "Killed",
+          "testsCompleted": 20,
           "static": true,
-          "killedBy": [],
+          "killedBy": [
+            "19"
+          ],
           "coveredBy": [],
           "location": {
             "end": {
@@ -357,10 +375,13 @@
           "id": "16",
           "mutatorName": "Regex",
           "replacement": "/(?:перевод|translation)(?![\\p{L}\\p{N}])/iu",
-          "status": "Survived",
-          "testsCompleted": 37,
+          "statusReason": "expected 'см. перевод ниже' to be 'Note' // Object.is equality",
+          "status": "Killed",
+          "testsCompleted": 45,
           "static": true,
-          "killedBy": [],
+          "killedBy": [
+            "57"
+          ],
           "coveredBy": [],
           "location": {
             "end": {
@@ -492,10 +513,13 @@
           "id": "22",
           "mutatorName": "Regex",
           "replacement": "/^(?:[\\d][).\\s]+|[-*]\\s+)/",
-          "status": "Survived",
-          "testsCompleted": 37,
+          "statusReason": "expected '12. Ona _____ książkę.' to be 'Ona _____ książkę.' // Object.is equality",
+          "status": "Killed",
+          "testsCompleted": 52,
           "static": true,
-          "killedBy": [],
+          "killedBy": [
+            "64"
+          ],
           "coveredBy": [],
           "location": {
             "end": {
@@ -559,7 +583,7 @@
           "mutatorName": "Regex",
           "replacement": "/^(?:[\\d]+[).\\s]|[-*]\\s+)/",
           "status": "Survived",
-          "testsCompleted": 37,
+          "testsCompleted": 80,
           "static": true,
           "killedBy": [],
           "coveredBy": [],
@@ -602,7 +626,7 @@
           "mutatorName": "Regex",
           "replacement": "/^(?:[\\d]+[).\\S]+|[-*]\\s+)/",
           "status": "Survived",
-          "testsCompleted": 37,
+          "testsCompleted": 80,
           "static": true,
           "killedBy": [],
           "coveredBy": [],
@@ -645,7 +669,7 @@
           "mutatorName": "Regex",
           "replacement": "/^(?:[\\d]+[).\\s]+|[-*]\\s)/",
           "status": "Survived",
-          "testsCompleted": 37,
+          "testsCompleted": 80,
           "static": true,
           "killedBy": [],
           "coveredBy": [],
@@ -688,7 +712,7 @@
           "mutatorName": "Regex",
           "replacement": "/(.*[.!?]\\s*)[\\s]*[-–—][\\s]*(\\S.*)$/",
           "status": "Survived",
-          "testsCompleted": 58,
+          "testsCompleted": 80,
           "static": true,
           "killedBy": [],
           "coveredBy": [],
@@ -708,7 +732,7 @@
           "mutatorName": "Regex",
           "replacement": "/^(.*[.!?]\\s*)[\\s]*[-–—][\\s]*(\\S.*)/",
           "status": "Survived",
-          "testsCompleted": 58,
+          "testsCompleted": 80,
           "static": true,
           "killedBy": [],
           "coveredBy": [],
@@ -773,10 +797,13 @@
           "id": "35",
           "mutatorName": "Regex",
           "replacement": "/^(.*[.!?]\\s)[\\s]*[-–—][\\s]*(\\S.*)$/",
-          "status": "Survived",
-          "testsCompleted": 58,
+          "statusReason": "expected { Object (line, translation) } to deeply equal { line: 'Ona czyta.', …(1) }",
+          "status": "Killed",
+          "testsCompleted": 39,
           "static": true,
-          "killedBy": [],
+          "killedBy": [
+            "51"
+          ],
           "coveredBy": [],
           "location": {
             "end": {
@@ -794,7 +821,7 @@
           "mutatorName": "Regex",
           "replacement": "/^(.*[.!?]\\S*)[\\s]*[-–—][\\s]*(\\S.*)$/",
           "status": "Survived",
-          "testsCompleted": 58,
+          "testsCompleted": 80,
           "static": true,
           "killedBy": [],
           "coveredBy": [],
@@ -813,10 +840,13 @@
           "id": "37",
           "mutatorName": "Regex",
           "replacement": "/^(.*[.!?]\\s*)[\\s][-–—][\\s]*(\\S.*)$/",
-          "status": "Survived",
-          "testsCompleted": 58,
+          "statusReason": "expected { Object (line, translation) } to deeply equal { line: 'Ona czyta.', …(1) }",
+          "status": "Killed",
+          "testsCompleted": 39,
           "static": true,
-          "killedBy": [],
+          "killedBy": [
+            "51"
+          ],
           "coveredBy": [],
           "location": {
             "end": {
@@ -834,7 +864,7 @@
           "mutatorName": "Regex",
           "replacement": "/^(.*[.!?]\\s*)[^\\s]*[-–—][\\s]*(\\S.*)$/",
           "status": "Survived",
-          "testsCompleted": 58,
+          "testsCompleted": 80,
           "static": true,
           "killedBy": [],
           "coveredBy": [],
@@ -854,7 +884,7 @@
           "mutatorName": "Regex",
           "replacement": "/^(.*[.!?]\\s*)[\\S]*[-–—][\\s]*(\\S.*)$/",
           "status": "Survived",
-          "testsCompleted": 58,
+          "testsCompleted": 80,
           "static": true,
           "killedBy": [],
           "coveredBy": [],
@@ -944,7 +974,7 @@
           "replacement": "/^(.*[.!?]\\s*)[\\s]*[-–—][\\S]*(\\S.*)$/",
           "statusReason": "expected { …(2) } to deeply equal { line: 'Ona czyta.', …(1) }",
           "status": "Killed",
-          "testsCompleted": 31,
+          "testsCompleted": 44,
           "static": true,
           "killedBy": [
             "43"
@@ -967,7 +997,7 @@
           "replacement": "/^(.*[.!?]\\s*)[\\s]*[-–—][\\s]*(\\s.*)$/",
           "statusReason": "expected 'Перевод: Она читает' to be 'Она читает' // Object.is equality",
           "status": "Killed",
-          "testsCompleted": 33,
+          "testsCompleted": 46,
           "static": true,
           "killedBy": [
             "45"
@@ -1011,12 +1041,12 @@
           "id": "46",
           "mutatorName": "Regex",
           "replacement": "/[^\\p{L}\\p{N}]/u",
-          "statusReason": "expected '' to be 'książkę' // Object.is equality",
+          "statusReason": "Property failed after 2 tests\n{ seed: 1471187649, path: \"1:1:0:1\", endOnFailure: true }\nCounterexample: [[\" \",0]]\nShrunk 3 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run",
           "status": "Killed",
-          "testsCompleted": 9,
+          "testsCompleted": 10,
           "static": true,
           "killedBy": [
-            "21"
+            "9"
           ],
           "coveredBy": [],
           "location": {
@@ -1034,12 +1064,12 @@
           "id": "47",
           "mutatorName": "Regex",
           "replacement": "/[\\P{L}\\p{N}]/u",
-          "statusReason": "expected '' to be 'książkę' // Object.is equality",
+          "statusReason": "Property failed after 2 tests\n{ seed: -273189757, path: \"1:1:0:1\", endOnFailure: true }\nCounterexample: [[\" \",0]]\nShrunk 3 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run",
           "status": "Killed",
-          "testsCompleted": 9,
+          "testsCompleted": 10,
           "static": true,
           "killedBy": [
-            "21"
+            "9"
           ],
           "coveredBy": [],
           "location": {
@@ -1105,7 +1135,7 @@
           "replacement": "\"Stryker was here!\"",
           "statusReason": "expected { …(5) } to deeply equal { displaySentence: '', …(4) }",
           "status": "Killed",
-          "testsCompleted": 47,
+          "testsCompleted": 60,
           "static": true,
           "killedBy": [
             "59"
@@ -1128,7 +1158,7 @@
           "replacement": "\"Stryker was here!\"",
           "statusReason": "expected { displaySentence: '', …(4) } to deeply equal { displaySentence: '', …(4) }",
           "status": "Killed",
-          "testsCompleted": 47,
+          "testsCompleted": 60,
           "static": true,
           "killedBy": [
             "59"
@@ -1149,12 +1179,12 @@
           "id": "52",
           "mutatorName": "ArrayDeclaration",
           "replacement": "[\"Stryker was here\"]",
-          "statusReason": "expected { displaySentence: '', …(4) } to deeply equal { displaySentence: '', …(4) }",
+          "statusReason": "Property failed after 50 tests\n{ seed: -52762970, path: \"49:78\", endOnFailure: true }\nCounterexample: [[\")}JzhR\\\")z\",8]]\nShrunk 1 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run",
           "status": "Killed",
-          "testsCompleted": 47,
+          "testsCompleted": 9,
           "static": true,
           "killedBy": [
-            "59"
+            "8"
           ],
           "coveredBy": [],
           "location": {
@@ -1195,12 +1225,12 @@
           "id": "54",
           "mutatorName": "ArrowFunction",
           "replacement": "() => undefined",
-          "statusReason": "expected undefined to be 'я читаю' // Object.is equality",
+          "statusReason": "Property failed after 10 tests\n{ seed: -37452911, path: \"9:4:7:12:11:13:11:11:22:1:16:19:28\", endOnFailure: true }\nCounterexample: [[\" 0Y  Y\",5]]\nShrunk 12 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run",
           "status": "Killed",
-          "testsCompleted": 1,
+          "testsCompleted": 9,
           "static": true,
           "killedBy": [
-            "13"
+            "8"
           ],
           "coveredBy": [],
           "location": {
@@ -1273,7 +1303,7 @@
           "replacement": "\"Stryker was here!\"",
           "statusReason": "expected 'Stryker was here!я читаю' to be 'я читаю' // Object.is equality",
           "status": "Killed",
-          "testsCompleted": 1,
+          "testsCompleted": 4,
           "static": false,
           "killedBy": [
             "13"
@@ -1324,12 +1354,12 @@
           "id": "57",
           "mutatorName": "BlockStatement",
           "replacement": "{}",
-          "statusReason": "expected undefined to be 'książkę' // Object.is equality",
+          "statusReason": "Property failed after 1 tests\n{ seed: -251377644, path: \"0:0\", endOnFailure: true }\nCounterexample: [[\"\",0]]\nShrunk 1 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run",
           "status": "Killed",
           "testsCompleted": 1,
           "static": false,
           "killedBy": [
-            "21"
+            "7"
           ],
           "coveredBy": [
             "7",
@@ -1359,7 +1389,7 @@
           "replacement": "false",
           "statusReason": "expected 'ążkę' to be 'książkę' // Object.is equality",
           "status": "Killed",
-          "testsCompleted": 1,
+          "testsCompleted": 4,
           "static": false,
           "killedBy": [
             "21"
@@ -1382,6 +1412,36 @@
             },
             "start": {
               "column": 10,
+              "line": 53
+            }
+          }
+        },
+        {
+          "id": "59",
+          "mutatorName": "MethodExpression",
+          "replacement": "text",
+          "statusReason": "Hit limit reached (58101/58100)",
+          "status": "Timeout",
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "7",
+            "8",
+            "9",
+            "21",
+            "22",
+            "23",
+            "24",
+            "25",
+            "26"
+          ],
+          "location": {
+            "end": {
+              "column": 47,
+              "line": 53
+            },
+            "start": {
+              "column": 25,
               "line": 53
             }
           }
@@ -1415,6 +1475,34 @@
             },
             "start": {
               "column": 37,
+              "line": 53
+            }
+          }
+        },
+        {
+          "id": "61",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Hit limit reached (21104/21100)",
+          "status": "Timeout",
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "7",
+            "8",
+            "9",
+            "21",
+            "23",
+            "25",
+            "26"
+          ],
+          "location": {
+            "end": {
+              "column": 4,
+              "line": 55
+            },
+            "start": {
+              "column": 50,
               "line": 53
             }
           }
@@ -1484,15 +1572,72 @@
           }
         },
         {
+          "id": "64",
+          "mutatorName": "MethodExpression",
+          "replacement": "text",
+          "statusReason": "Hit limit reached (84101/84100)",
+          "status": "Timeout",
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "7",
+            "8",
+            "9",
+            "21",
+            "22",
+            "23",
+            "24",
+            "25",
+            "26"
+          ],
+          "location": {
+            "end": {
+              "column": 41,
+              "line": 56
+            },
+            "start": {
+              "column": 25,
+              "line": 56
+            }
+          }
+        },
+        {
+          "id": "65",
+          "mutatorName": "BlockStatement",
+          "replacement": "{}",
+          "statusReason": "Hit limit reached (47101/47100)",
+          "status": "Timeout",
+          "static": false,
+          "killedBy": [],
+          "coveredBy": [
+            "7",
+            "8",
+            "9",
+            "21",
+            "22",
+            "26"
+          ],
+          "location": {
+            "end": {
+              "column": 4,
+              "line": 58
+            },
+            "start": {
+              "column": 44,
+              "line": 56
+            }
+          }
+        },
+        {
           "id": "66",
           "mutatorName": "UpdateOperator",
           "replacement": "end--",
-          "statusReason": "expected ' ' to be 'książkę' // Object.is equality",
+          "statusReason": "Property failed after 2 tests\n{ seed: -70694634, path: \"1:1:0:2:2:3\", endOnFailure: true }\nCounterexample: [[\"0\",1]]\nShrunk 5 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run",
           "status": "Killed",
-          "testsCompleted": 1,
+          "testsCompleted": 2,
           "static": false,
           "killedBy": [
-            "21"
+            "8"
           ],
           "coveredBy": [
             "7",
@@ -1934,12 +2079,12 @@
           "id": "82",
           "mutatorName": "BlockStatement",
           "replacement": "{}",
-          "statusReason": "expected undefined to be 'Она читает' // Object.is equality",
+          "statusReason": "Property failed after 1 tests\n{ seed: 1167576981, path: \"0\", endOnFailure: true }\nCounterexample: [[]]\nShrunk 0 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run",
           "status": "Killed",
           "testsCompleted": 1,
           "static": false,
           "killedBy": [
-            "52"
+            "10"
           ],
           "coveredBy": [
             "10",
@@ -2060,12 +2205,12 @@
           "id": "85",
           "mutatorName": "ConditionalExpression",
           "replacement": "false",
-          "statusReason": "expected null to be 'Она читает' // Object.is equality",
+          "statusReason": "Property failed after 1 tests\n{ seed: -844793019, path: \"0:1:0\", endOnFailure: true }\nCounterexample: [[\"\"]]\nShrunk 2 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run",
           "status": "Killed",
           "testsCompleted": 2,
           "static": false,
           "killedBy": [
-            "53"
+            "11"
           ],
           "coveredBy": [
             "10",
@@ -2144,12 +2289,12 @@
           "id": "87",
           "mutatorName": "UnaryOperator",
           "replacement": "+1",
-          "statusReason": "expected 'Uwaga: czas przeszły' to be 'Она читает' // Object.is equality",
+          "statusReason": "Property failed after 1 tests\n{ seed: -1065441348, path: \"0:1\", endOnFailure: true }\nCounterexample: [[\"\"]]\nShrunk 1 time(s)\n\nHint: Enable verbose mode in order to have the list of all failing values encountered during the run",
           "status": "Killed",
-          "testsCompleted": 1,
+          "testsCompleted": 2,
           "static": false,
           "killedBy": [
-            "52"
+            "11"
           ],
           "coveredBy": [
             "10",
@@ -3336,7 +3481,7 @@
           "replacement": "() => undefined",
           "statusReason": "Cannot read properties of undefined (reading '0')",
           "status": "Killed",
-          "testsCompleted": 47,
+          "testsCompleted": 60,
           "static": true,
           "killedBy": [
             "59"
@@ -4118,127 +4263,16 @@
               "line": 142
             }
           }
-        },
-        {
-          "id": "61",
-          "mutatorName": "BlockStatement",
-          "replacement": "{}",
-          "statusReason": "Hit limit reached (23401/23400)",
-          "status": "Timeout",
-          "static": false,
-          "coveredBy": [
-            "7",
-            "8",
-            "9",
-            "21",
-            "23",
-            "25",
-            "26"
-          ],
-          "location": {
-            "end": {
-              "column": 4,
-              "line": 55
-            },
-            "start": {
-              "column": 50,
-              "line": 53
-            }
-          }
-        },
-        {
-          "id": "59",
-          "mutatorName": "MethodExpression",
-          "replacement": "text",
-          "statusReason": "Hit limit reached (60802/60800)",
-          "status": "Timeout",
-          "static": false,
-          "coveredBy": [
-            "7",
-            "8",
-            "9",
-            "21",
-            "22",
-            "23",
-            "24",
-            "25",
-            "26"
-          ],
-          "location": {
-            "end": {
-              "column": 47,
-              "line": 53
-            },
-            "start": {
-              "column": 25,
-              "line": 53
-            }
-          }
-        },
-        {
-          "id": "65",
-          "mutatorName": "BlockStatement",
-          "replacement": "{}",
-          "statusReason": "Hit limit reached (40504/40500)",
-          "status": "Timeout",
-          "static": false,
-          "coveredBy": [
-            "7",
-            "8",
-            "9",
-            "21",
-            "22",
-            "26"
-          ],
-          "location": {
-            "end": {
-              "column": 4,
-              "line": 58
-            },
-            "start": {
-              "column": 44,
-              "line": 56
-            }
-          }
-        },
-        {
-          "id": "64",
-          "mutatorName": "MethodExpression",
-          "replacement": "text",
-          "statusReason": "Hit limit reached (77902/77900)",
-          "status": "Timeout",
-          "static": false,
-          "coveredBy": [
-            "7",
-            "8",
-            "9",
-            "21",
-            "22",
-            "23",
-            "24",
-            "25",
-            "26"
-          ],
-          "location": {
-            "end": {
-              "column": 41,
-              "line": 56
-            },
-            "start": {
-              "column": 25,
-              "line": 56
-            }
-          }
         }
       ],
-      "source": "/**\n * Parsing of the raw exercise text produced by the AI providers.\n *\n * The AI returns one exercise per line, optionally followed by extra lines with\n * a translation or notes. A line may carry hints in trailing parentheses and\n * marks the target word either with `**bold**` or a `{{input}}` placeholder.\n *\n * Kept free of React so it can be unit- and mutation-tested on its own.\n */\n\nexport interface ParsedExerciseContent {\n  displaySentence: string;\n  prefillSentence: string;\n  hints: string[];\n  translation: string | null;\n  additionalNotes: string[];\n}\n\nconst PLACEHOLDER_REGEX = /\\{\\{input\\}\\}/gi;\nconst BOLD_PATTERN = /\\*\\*([^*]+)\\*\\*/g;\nconst TRAILING_HINTS = /\\s*\\(([^)]+)\\)\\s*$/;\nconst TRANSLATION_LABEL = /^(?:перевод|translation)\\s*[:−-]?\\s*/i;\n// `\\b` is ASCII-only in JS, so it never fires after a Cyrillic word - a\n// Unicode-aware \"not followed by a letter or digit\" lookahead is required for\n// \"Перевод:\" to be recognised at all.\nconst TRANSLATION_LINE = /^(?:перевод|translation)(?![\\p{L}\\p{N}])/iu;\nconst LEADING_NUMBERING = /^(?:[\\d]+[).\\s]+|[-*]\\s+)/;\n// `(\\S.*)` rather than `(.+)`: a dangling dash with nothing but spaces after it\n// is not a translation, and must leave the sentence untouched.\nconst INLINE_DASH_TRANSLATION = /^(.*[.!?]\\s*)[\\s]*[-–—][\\s]*(\\S.*)$/;\nconst WORD_CHAR = /[\\p{L}\\p{N}]/u;\n\nexport const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {\n  displaySentence: '',\n  prefillSentence: '',\n  hints: [],\n  translation: null,\n  additionalNotes: []\n};\n\nexport const stripTranslationLabel = (value: string): string =>\n  value.replace(TRANSLATION_LABEL, '').trim();\n\n/**\n * Widens `offset` to the whole word it sits inside.\n * No bounds checks are needed: `charAt` returns '' outside the string, which\n * never matches WORD_CHAR and therefore stops the scan on its own.\n */\nexport const extractWordAtOffset = (text: string, offset: number): string => {\n  let start = offset;\n  let end = offset;\n\n  while (WORD_CHAR.test(text.charAt(start - 1))) {\n    start--;\n  }\n  while (WORD_CHAR.test(text.charAt(end))) {\n    end++;\n  }\n\n  return text.substring(start, end);\n};\n\n/** Normalises a selected token, or null when it is not a plain word. */\nexport const cleanWord = (raw: string): string | null => {\n  const cleaned = raw.replace(/[^\\p{L}\\p{N}]/gu, '');\n  return cleaned && /^[\\p{L}]+$/u.test(cleaned) ? cleaned.toLowerCase() : null;\n};\n\n/**\n * Removes the translation line from `extraLines` and returns it.\n * Prefers an explicitly labelled line (\"Перевод: ...\"), otherwise takes the\n * first remaining line. Returns null when there is nothing left to take.\n */\nexport const takeTranslationLine = (extraLines: string[]): string | null => {\n  const labelled = extraLines.findIndex(line => TRANSLATION_LINE.test(line));\n  const index = labelled === -1 ? 0 : labelled;\n  const line = extraLines[index];\n\n  if (line === undefined) return null;\n\n  extraLines.splice(index, 1);\n  return stripTranslationLabel(line);\n};\n\n/** Splits trailing \"(hint1, hint2)\" off a sentence. */\nexport const takeHints = (line: string): { line: string; hints: string[] } => {\n  const match = line.match(TRAILING_HINTS);\n  if (!match?.[1]) return { line, hints: [] };\n\n  const hints = match[1]\n    .split(/[,;]+/)\n    .map(part => part.trim().replace(BOLD_PATTERN, '$1'))\n    .filter(Boolean);\n\n  return { line: line.replace(TRAILING_HINTS, '').trim(), hints };\n};\n\n/** Splits an inline \"Sentence. - translation\" pair. */\nexport const takeInlineTranslation = (\n  line: string\n): { line: string; translation: string | null } => {\n  const match = line.match(INLINE_DASH_TRANSLATION);\n  if (!match) return { line, translation: null };\n\n  const [, sentence = '', translation = ''] = match;\n  return { line: sentence.trim(), translation: stripTranslationLabel(translation) };\n};\n\n// `split` on '\\n' plus a per-line trim already handles CRLF and indentation,\n// so no separate newline normalisation or outer trim is needed here.\nconst splitLines = (rawText: string): string[] =>\n  rawText\n    .trim()\n    .replace(LEADING_NUMBERING, '')\n    .split('\\n')\n    .map(line => line.trim())\n    .filter(Boolean);\n\nexport const parseExerciseContent = (rawText: string): ParsedExerciseContent => {\n  const lines = splitLines(rawText);\n  const firstLine = lines[0];\n  if (firstLine === undefined) return EMPTY_PARSED_CONTENT;\n\n  const additionalNotes = lines.slice(1);\n  const withoutHints = takeHints(firstLine);\n  const withoutInline = takeInlineTranslation(withoutHints.line);\n\n  BOLD_PATTERN.lastIndex = 0;\n  const hasBoldFormat = BOLD_PATTERN.test(withoutInline.line);\n\n  const translation =\n    withoutInline.translation ?? (hasBoldFormat ? null : takeTranslationLine(additionalNotes));\n\n  const displaySentence = hasBoldFormat\n    ? withoutInline.line.replace(BOLD_PATTERN, '_____')\n    : withoutInline.line.replace(PLACEHOLDER_REGEX, '_____');\n\n  return {\n    displaySentence,\n    prefillSentence: displaySentence,\n    hints: withoutHints.hints,\n    translation: translation || null,\n    additionalNotes\n  };\n};\n"
+      "source": "/**\r\n * Parsing of the raw exercise text produced by the AI providers.\r\n *\r\n * The AI returns one exercise per line, optionally followed by extra lines with\r\n * a translation or notes. A line may carry hints in trailing parentheses and\r\n * marks the target word either with `**bold**` or a `{{input}}` placeholder.\r\n *\r\n * Kept free of React so it can be unit- and mutation-tested on its own.\r\n */\r\n\r\nexport interface ParsedExerciseContent {\r\n  displaySentence: string;\r\n  prefillSentence: string;\r\n  hints: string[];\r\n  translation: string | null;\r\n  additionalNotes: string[];\r\n}\r\n\r\nconst PLACEHOLDER_REGEX = /\\{\\{input\\}\\}/gi;\r\nconst BOLD_PATTERN = /\\*\\*([^*]+)\\*\\*/g;\r\nconst TRAILING_HINTS = /\\s*\\(([^)]+)\\)\\s*$/;\r\nconst TRANSLATION_LABEL = /^(?:перевод|translation)\\s*[:−-]?\\s*/i;\r\n// `\\b` is ASCII-only in JS, so it never fires after a Cyrillic word - a\r\n// Unicode-aware \"not followed by a letter or digit\" lookahead is required for\r\n// \"Перевод:\" to be recognised at all.\r\nconst TRANSLATION_LINE = /^(?:перевод|translation)(?![\\p{L}\\p{N}])/iu;\r\nconst LEADING_NUMBERING = /^(?:[\\d]+[).\\s]+|[-*]\\s+)/;\r\n// `(\\S.*)` rather than `(.+)`: a dangling dash with nothing but spaces after it\r\n// is not a translation, and must leave the sentence untouched.\r\nconst INLINE_DASH_TRANSLATION = /^(.*[.!?]\\s*)[\\s]*[-–—][\\s]*(\\S.*)$/;\r\nconst WORD_CHAR = /[\\p{L}\\p{N}]/u;\r\n\r\nexport const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {\r\n  displaySentence: '',\r\n  prefillSentence: '',\r\n  hints: [],\r\n  translation: null,\r\n  additionalNotes: []\r\n};\r\n\r\nexport const stripTranslationLabel = (value: string): string =>\r\n  value.replace(TRANSLATION_LABEL, '').trim();\r\n\r\n/**\r\n * Widens `offset` to the whole word it sits inside.\r\n * No bounds checks are needed: `charAt` returns '' outside the string, which\r\n * never matches WORD_CHAR and therefore stops the scan on its own.\r\n */\r\nexport const extractWordAtOffset = (text: string, offset: number): string => {\r\n  let start = offset;\r\n  let end = offset;\r\n\r\n  while (WORD_CHAR.test(text.charAt(start - 1))) {\r\n    start--;\r\n  }\r\n  while (WORD_CHAR.test(text.charAt(end))) {\r\n    end++;\r\n  }\r\n\r\n  return text.substring(start, end);\r\n};\r\n\r\n/** Normalises a selected token, or null when it is not a plain word. */\r\nexport const cleanWord = (raw: string): string | null => {\r\n  const cleaned = raw.replace(/[^\\p{L}\\p{N}]/gu, '');\r\n  return cleaned && /^[\\p{L}]+$/u.test(cleaned) ? cleaned.toLowerCase() : null;\r\n};\r\n\r\n/**\r\n * Removes the translation line from `extraLines` and returns it.\r\n * Prefers an explicitly labelled line (\"Перевод: ...\"), otherwise takes the\r\n * first remaining line. Returns null when there is nothing left to take.\r\n */\r\nexport const takeTranslationLine = (extraLines: string[]): string | null => {\r\n  const labelled = extraLines.findIndex(line => TRANSLATION_LINE.test(line));\r\n  const index = labelled === -1 ? 0 : labelled;\r\n  const line = extraLines[index];\r\n\r\n  if (line === undefined) return null;\r\n\r\n  extraLines.splice(index, 1);\r\n  return stripTranslationLabel(line);\r\n};\r\n\r\n/** Splits trailing \"(hint1, hint2)\" off a sentence. */\r\nexport const takeHints = (line: string): { line: string; hints: string[] } => {\r\n  const match = line.match(TRAILING_HINTS);\r\n  if (!match?.[1]) return { line, hints: [] };\r\n\r\n  const hints = match[1]\r\n    .split(/[,;]+/)\r\n    .map(part => part.trim().replace(BOLD_PATTERN, '$1'))\r\n    .filter(Boolean);\r\n\r\n  return { line: line.replace(TRAILING_HINTS, '').trim(), hints };\r\n};\r\n\r\n/** Splits an inline \"Sentence. - translation\" pair. */\r\nexport const takeInlineTranslation = (\r\n  line: string\r\n): { line: string; translation: string | null } => {\r\n  const match = line.match(INLINE_DASH_TRANSLATION);\r\n  if (!match) return { line, translation: null };\r\n\r\n  const [, sentence = '', translation = ''] = match;\r\n  return { line: sentence.trim(), translation: stripTranslationLabel(translation) };\r\n};\r\n\r\n// `split` on '\\n' plus a per-line trim already handles CRLF and indentation,\r\n// so no separate newline normalisation or outer trim is needed here.\r\nconst splitLines = (rawText: string): string[] =>\r\n  rawText\r\n    .trim()\r\n    .replace(LEADING_NUMBERING, '')\r\n    .split('\\n')\r\n    .map(line => line.trim())\r\n    .filter(Boolean);\r\n\r\nexport const parseExerciseContent = (rawText: string): ParsedExerciseContent => {\r\n  const lines = splitLines(rawText);\r\n  const firstLine = lines[0];\r\n  if (firstLine === undefined) return EMPTY_PARSED_CONTENT;\r\n\r\n  const additionalNotes = lines.slice(1);\r\n  const withoutHints = takeHints(firstLine);\r\n  const withoutInline = takeInlineTranslation(withoutHints.line);\r\n\r\n  BOLD_PATTERN.lastIndex = 0;\r\n  const hasBoldFormat = BOLD_PATTERN.test(withoutInline.line);\r\n\r\n  const translation =\r\n    withoutInline.translation ?? (hasBoldFormat ? null : takeTranslationLine(additionalNotes));\r\n\r\n  const displaySentence = hasBoldFormat\r\n    ? withoutInline.line.replace(BOLD_PATTERN, '_____')\r\n    : withoutInline.line.replace(PLACEHOLDER_REGEX, '_____');\r\n\r\n  return {\r\n    displaySentence,\r\n    prefillSentence: displaySentence,\r\n    hints: withoutHints.hints,\r\n    translation: translation || null,\r\n    additionalNotes\r\n  };\r\n};\r\n"
     }
   },
   "schemaVersion": "1.0",
   "thresholds": {
     "high": 90,
-    "low": 82,
-    "break": 82
+    "low": 89,
+    "break": 89
   },
   "testFiles": {
     "src/utils/properties.test.ts": {
@@ -4593,8 +4627,8 @@
     ],
     "thresholds": {
       "high": 90,
-      "low": 82,
-      "break": 82
+      "low": 89,
+      "break": 89
     },
     "timeoutMS": 20000,
     "allowConsoleColors": true,
