@@ -147,8 +147,8 @@ export async function processCheckAnswersRequest(
 }
 
 /**
- * Отслеживает использование слов в фоновом режиме
- * Сопоставляет слова из предложений пользователя со словарем и увеличивает счетчики
+ * Tracks word usage in the background.
+ * Matches words from the user's sentences against the dictionary and increments counters.
  */
 async function trackWordUsage(userId: string, userWords: string[]): Promise<void> {
   const userSettings = await getUserSettingsService(userId);
