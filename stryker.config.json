@@ -4,10 +4,14 @@
   "testRunner": "vitest",
   "reporters": ["html", "clear-text", "progress"],
   "coverageAnalysis": "perTest",
-  "incremental": true,
-  "incrementalFile": ".stryker-tmp/incremental.json",
+  "incremental": false,
+  "cleanTempDir": "always",
   "mutate": [
     "src/utils/exerciseContent.ts",
+    "src/utils/omitUndefined.ts",
+    "src/utils/languageRedirect.ts",
+    "src/utils/crypto.ts",
+    "src/services/translateService.ts",
     "!src/**/*.test.ts",
     "!src/**/*.test.tsx",
     "!src/generated/**"

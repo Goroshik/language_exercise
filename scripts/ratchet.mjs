@@ -15,7 +15,7 @@
  *   node scripts/ratchet.mjs --update    # record current counts (only if lower)
  */
 import { execFileSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { globSync, readFileSync, writeFileSync } from 'node:fs';
 
 const BASELINE_FILE = 'quality-baseline.json';
 const CRAP_THRESHOLD = 8;
@@ -68,7 +68,21 @@ function countCrapViolations() {
   return report.summary.exceedingThreshold;
 }
 
-const current = { lintErrors: countLintErrors() };
+const SUPPRESSION_PATTERN =
+  /eslint-disable|@ts-ignore|@ts-expect-error|@ts-nocheck|\.only\(|\.skip\(/;
+
+/** Counts suppressions in src/, which quietly bypass the rules above. */
+function countSuppressions() {
+  const files = globSync('src/**/*.{ts,tsx}', {
+    ignore: ['src/generated/**', 'src/gateContract.test.ts']
+  });
+  return files.reduce((total, file) => {
+    const lines = readFileSync(file, 'utf8').split(/\r?\n/);
+    return total + lines.filter(line => SUPPRESSION_PATTERN.test(line)).length;
+  }, 0);
+}
+
+const current = { lintErrors: countLintErrors(), suppressions: countSuppressions() };
 if (!lintOnly) current.crapViolations = countCrapViolations();
 
 const baseline = JSON.parse(readFileSync(BASELINE_FILE, 'utf8'));

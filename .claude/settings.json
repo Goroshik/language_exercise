@@ -49,6 +49,8 @@
       "Write(./src/utils/crypto.test.ts)",
       "Edit(./src/utils/languageRedirect.test.ts)",
       "Write(./src/utils/languageRedirect.test.ts)",
+      "Edit(./src/gateContract.test.ts)",
+      "Write(./src/gateContract.test.ts)",
       "Edit(./src/services/generateTextService.test.ts)",
       "Write(./src/services/generateTextService.test.ts)",
       "Bash(npx eslint:* --no-eslintrc)",

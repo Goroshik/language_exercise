@@ -42,9 +42,11 @@ quietly adjust it.
 
 ### The ratchet
 
-The codebase predates these gates, so 84 lint violations and 129 CRAP violations
-already exist. `quality-baseline.json` records those counts and
-`scripts/ratchet.mjs` fails the build if either **grows**.
+The codebase predates these gates, so 84 lint violations, 122 CRAP violations
+and 32 `eslint-disable` suppressions already exist. `quality-baseline.json`
+records those counts and `scripts/ratchet.mjs` fails the build if any of them
+**grows**. The suppression counter matters most: an `eslint-disable` makes the
+lint counter go down while hiding the very violation it was meant to catch.
 
 This is not a lowered threshold. New and modified code must meet the full
 thresholds immediately. The recorded counts may only go down; the target is 0.
@@ -74,12 +76,15 @@ run `npm run coverage` first or the numbers will be stale and wrong.
   only — reversibility, idempotence, size preservation. Do not invent artificial
   properties to pad the file.
 - Contract tests and gate configs are write-protected in `.claude/settings.json`.
+- `src/gateContract.test.ts` asserts the gates themselves — thresholds, hooks,
+  the deny list and the baseline ceilings. `.claude/settings.json` cannot protect
+  itself, so this test is the backstop: weaken a gate and the suite goes red.
 
 ## Gotchas
 
-- `postinstall` runs `prisma db push`, so a plain `npm install` writes to the
-  database in `DATABASE_URL`. Use `npm ci --ignore-scripts` plus a separate
-  `npx prisma generate` when you only need dependencies.
+- `postinstall` only runs `prisma generate`. Pushing the schema is a deliberate
+  act: `npm run db:push`. It used to run on every install, which meant a plain
+  `npm install` wrote to whatever database `DATABASE_URL` pointed at.
 - Prisma is pinned to 6.x: version 7 has no MongoDB support yet.
 - ESLint stays on 9.x (eslint-plugin-react rejects 10) and TypeScript on 5.x
   (`@typescript-eslint` peer range excludes 7).

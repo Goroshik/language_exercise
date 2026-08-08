@@ -16,6 +16,9 @@ export default [
       'node_modules',
       // Separate git worktrees checked out by tooling - not this project's sources.
       '.claude/**',
+      // Stryker copies the whole project into its sandbox while mutating.
+      '.stryker-tmp/**',
+      'reports/**',
       '.react-router',
       '.next',
       'out',
@@ -125,7 +128,7 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-      
+
       // React Hooks rules - relaxed to allow manual dependency management
       'react-hooks/rules-of-hooks': 'error', // Still enforce hooks rules
       'react-hooks/exhaustive-deps': 'off', // Allow manual control of dependencies
