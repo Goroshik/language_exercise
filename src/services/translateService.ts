@@ -47,12 +47,14 @@ export async function translateWordService(userId: string, word: string) {
       source_lang: sourceLang
     }).toString()
   });
-  
+
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(`DeepL API error: ${response.status} - ${errorData.message || response.statusText}`);
+    throw new Error(
+      `DeepL API error: ${response.status} - ${errorData.message || response.statusText}`
+    );
   }
-  
+
   const data = await response.json();
   if (data.translations && data.translations[0]?.text) {
     return { text: data.translations[0].text, exists: false };

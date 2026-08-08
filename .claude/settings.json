@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm run gate:fast",
+            "timeout": 180
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npm run gate",
+            "timeout": 900
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "deny": [
+      "Edit(./eslint.config.mjs)",
+      "Write(./eslint.config.mjs)",
+      "Edit(./tsconfig.json)",
+      "Write(./tsconfig.json)",
+      "Edit(./stryker.config.json)",
+      "Write(./stryker.config.json)",
+      "Edit(./vitest.config.ts)",
+      "Write(./vitest.config.ts)",
+      "Edit(./quality-baseline.json)",
+      "Write(./quality-baseline.json)",
+      "Edit(./scripts/ratchet.mjs)",
+      "Write(./scripts/ratchet.mjs)",
+      "Edit(./src/utils/exerciseContent.test.ts)",
+      "Write(./src/utils/exerciseContent.test.ts)",
+      "Edit(./src/utils/properties.test.ts)",
+      "Write(./src/utils/properties.test.ts)",
+      "Edit(./src/utils/omitUndefined.test.ts)",
+      "Write(./src/utils/omitUndefined.test.ts)",
+      "Edit(./src/utils/crypto.test.ts)",
+      "Write(./src/utils/crypto.test.ts)",
+      "Edit(./src/utils/languageRedirect.test.ts)",
+      "Write(./src/utils/languageRedirect.test.ts)",
+      "Edit(./src/services/generateTextService.test.ts)",
+      "Write(./src/services/generateTextService.test.ts)",
+      "Bash(npx eslint:* --no-eslintrc)",
+      "Bash(git commit:*--no-verify*)"
+    ]
+  }
+}

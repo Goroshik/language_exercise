@@ -1,7 +1,11 @@
 import Joi from 'joi';
 
 import { GRAMMAR_PROMPTS } from 'src/prompts/grammarPrompts';
-import { languageRepository, wordRepository, wordUsageStatsRepository } from 'src/repository/client';
+import {
+  languageRepository,
+  wordRepository,
+  wordUsageStatsRepository
+} from 'src/repository/client';
 import { AIFactory } from 'src/services/aiFactory';
 import { ServiceResponse } from 'src/services/generateTextService';
 import { getUserSettingsService } from 'src/services/userSettingsService';
@@ -20,12 +24,14 @@ interface CheckAnswersRequest {
 
 const schema = Joi.object<CheckAnswersRequest>({
   topic: Joi.string().required(),
-  exercises: Joi.array().items(
-    Joi.object({
-      id: Joi.string().required(),
-      sentence: Joi.string().allow('').required()
-    })
-  ).required(),
+  exercises: Joi.array()
+    .items(
+      Joi.object({
+        id: Joi.string().required(),
+        sentence: Joi.string().allow('').required()
+      })
+    )
+    .required(),
   languageName: Joi.string().optional()
 });
 
@@ -77,7 +83,8 @@ export async function processCheckAnswersRequest(
         return { status: 402, body: { error: 'AI service token not configured for user' } };
       }
       console.error('AI service error (check answers)', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to validate answers via AI service';
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to validate answers via AI service';
       return { status: 502, body: { error: errorMessage } };
     }
 
@@ -99,8 +106,8 @@ export async function processCheckAnswersRequest(
       console.error('Failed to parse AI response as JSON:', parseError);
       console.error('AI response:', text);
       return {
-        status: 502, 
-        body: { error: 'Failed to parse AI validation response. Please try again.' } 
+        status: 502,
+        body: { error: 'Failed to parse AI validation response. Please try again.' }
       };
     }
 
@@ -158,7 +165,7 @@ async function trackWordUsage(userId: string, userWords: string[]): Promise<void
 
   const wordMap = new Map<string, string>();
   dictionaryWords.forEach(word => {
-    if(word) wordMap.set(word.word.toLowerCase(), word.id);
+    if (word) wordMap.set(word.word.toLowerCase(), word.id);
   });
 
   const matchedWordIds = new Set<string>();
@@ -170,9 +177,6 @@ async function trackWordUsage(userId: string, userWords: string[]): Promise<void
   });
 
   if (matchedWordIds.size > 0) {
-    await wordUsageStatsRepository.incrementUsageForWords(
-      userId,
-      Array.from(matchedWordIds)
-    );
+    await wordUsageStatsRepository.incrementUsageForWords(userId, Array.from(matchedWordIds));
   }
 }

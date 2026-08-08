@@ -67,9 +67,19 @@ export class EssayRepository {
   async findByUser(
     userId: string,
     languageCode?: string
-  ): Promise<Array<{ id: string; title: string; content: string; aiResponse: string | null; languageCode: string; level: string | null; updatedAt: Date }>> {
+  ): Promise<
+    Array<{
+      id: string;
+      title: string;
+      content: string;
+      aiResponse: string | null;
+      languageCode: string;
+      level: string | null;
+      updatedAt: Date;
+    }>
+  > {
     const where = languageCode ? { userId, languageCode } : { userId };
-    
+
     return this.prisma.essay.findMany({
       where,
       select: {

@@ -168,5 +168,26 @@ export default [
         version: 'detect'
       }
     }
+  },
+  // Node scripts: same rules, but they run in Node rather than the browser.
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        URL: 'readonly'
+      }
+    }
+  },
+  // Test files keep every correctness rule. Only the function-size budget is
+  // lifted: a `describe` callback is a namespace holding many small cases, not
+  // a 200-line function, and counting it would punish adding test cases.
+  // Complexity, depth and param limits still apply.
+  {
+    files: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'max-lines-per-function': 'off'
+    }
   }
 ];

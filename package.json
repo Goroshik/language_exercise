@@ -10,6 +10,16 @@
     "lint": "eslint . --cache --cache-location .eslintcache",
     "lint:fix": "eslint . --fix --cache --cache-location .eslintcache",
     "format": "prettier --write .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "coverage": "vitest run --coverage",
+    "crap": "crap4ts --coverage coverage/coverage-final.json --src src --exclude \"**/*.test.ts\" \"**/*.test.tsx\" \"src/generated/**\" -t 8 --top 10",
+    "mutation": "stryker run",
+    "ratchet": "node scripts/ratchet.mjs",
+    "ratchet:update": "node scripts/ratchet.mjs --update",
+    "gate:fast": "npm run typecheck && node scripts/ratchet.mjs --lint-only",
+    "gate": "npm run typecheck && npm run coverage && npm run ratchet && npm run mutation",
     "postinstall": "prisma db push && prisma generate",
     "docker:build": "docker build -t language-exercise .",
     "docker:prod": "docker-compose -f docker-compose.production.yml up -d",
@@ -44,6 +54,8 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.6",
     "@eslint/js": "^9.39.5",
+    "@stryker-mutator/core": "^9.6.1",
+    "@stryker-mutator/vitest-runner": "^9.6.1",
     "@types/node": "^26.2.0",
     "@types/nodemailer": "^8.0.1",
     "@types/react": "^19.2.18",
@@ -51,6 +63,9 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@typescript-eslint/eslint-plugin": "^8.66.0",
     "@typescript-eslint/parser": "^8.66.0",
+    "@vitest/coverage-istanbul": "^4.1.10",
+    "@vitest/coverage-v8": "^4.1.10",
+    "crap4ts": "^1.0.1",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.0",
     "eslint-config-prettier": "^10.1.8",
@@ -58,8 +73,10 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.3",
+    "fast-check": "^4.9.0",
     "prettier": "^3.9.6",
     "prisma": "^6.19.3",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10"
   }
 }

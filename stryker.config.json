@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "packageManager": "npm",
+  "testRunner": "vitest",
+  "reporters": ["html", "clear-text", "progress"],
+  "coverageAnalysis": "perTest",
+  "incremental": true,
+  "incrementalFile": ".stryker-tmp/incremental.json",
+  "mutate": [
+    "src/utils/exerciseContent.ts",
+    "!src/**/*.test.ts",
+    "!src/**/*.test.tsx",
+    "!src/generated/**"
+  ],
+  "thresholds": {
+    "high": 90,
+    "low": 82,
+    "break": 82
+  },
+  "timeoutMS": 20000
+}

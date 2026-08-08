@@ -31,10 +31,7 @@ export async function POST(request: NextRequest) {
     const { language, level } = body;
 
     if (!language || !level) {
-      return NextResponse.json(
-        { error: 'Language and level are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Language and level are required' }, { status: 400 });
     }
 
     await userSettingsRepository.setLevelForLanguage(userId, language, level);

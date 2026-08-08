@@ -88,8 +88,8 @@ export class DeepLTranslateService {
       const tokens = await response.json();
       // TODO: Fix types - create proper Token interface instead of using any
       const deeplTokenObj = Array.isArray(tokens)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ? tokens.find((t: any) => t.service === 'deepl')
+        ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          tokens.find((t: any) => t.service === 'deepl')
         : null;
       return deeplTokenObj?.token || null;
     } catch {

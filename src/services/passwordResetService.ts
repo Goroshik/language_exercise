@@ -9,7 +9,10 @@ export async function requestPasswordResetService(email: string, baseUrl?: strin
 
   if (!user) {
     // Don't reveal if user exists for security reasons
-    return { success: true, message: 'Если пользователь с таким email существует, письмо будет отправлено' };
+    return {
+      success: true,
+      message: 'Если пользователь с таким email существует, письмо будет отправлено'
+    };
   }
 
   // Generate secure random token

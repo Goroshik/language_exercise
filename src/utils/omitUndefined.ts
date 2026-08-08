@@ -13,7 +13,14 @@ export function omitUndefined<T extends object>(source: T): WithoutUndefined<T> 
   for (const key of Object.keys(source) as (keyof T)[]) {
     const value = source[key];
     if (value !== undefined) {
-      result[key] = value as Exclude<T[typeof key], undefined>;
+      // defineProperty, not assignment: `result['__proto__'] = v` mutates the
+      // prototype instead of creating an own property, silently losing the key.
+      Object.defineProperty(result, key, {
+        value,
+        enumerable: true,
+        writable: true,
+        configurable: true
+      });
     }
   }
 
