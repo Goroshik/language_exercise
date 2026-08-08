@@ -27,12 +27,17 @@ const EssayInputComponent: React.FC<EssayInputProps> = ({
         rows={20}
         fullWidth
         value={content}
-        onChange={(e) => onContentChange(e.target.value)}
+        onChange={e => onContentChange(e.target.value)}
         placeholder="Введите ваш текст здесь..."
         sx={{ mb: 1 }}
       />
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="body2" color="text.secondary">
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'text.secondary'
+          }}
+        >
           Слов: {wordCount} | Символов: {charCount}
           {saving && <> • Сохранение...</>}
         </Typography>

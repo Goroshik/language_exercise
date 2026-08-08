@@ -80,23 +80,24 @@ const Header: React.FC = () => {
           const data = await response.json();
           const newTopic = data.topic || null;
           setLastTopicForLanguage(newTopic);
-          
+
           // Check if language actually changed (not initial load)
-          const languageChanged = previousLanguage !== null && previousLanguage !== settings.learningLanguage;
-          
+          const languageChanged =
+            previousLanguage !== null && previousLanguage !== settings.learningLanguage;
+
           if (languageChanged) {
             // If we're on an exercises page, redirect to the topic for new language
             if (pathname && pathname.startsWith('/exercises/')) {
               const currentPath = pathname.split('/').pop();
-              
+
               // Don't redirect from history page
               if (currentPath === 'generated-history') {
                 return;
               }
-              
+
               if (newTopic) {
                 const newPath = newTopic.toLowerCase().replace(/ /g, '_');
-                
+
                 // Only redirect if the topic is different
                 if (currentPath !== newPath) {
                   route.push(`/exercises/${newPath}`);
@@ -107,7 +108,7 @@ const Header: React.FC = () => {
               }
             }
           }
-          
+
           // Update previous language
           setPreviousLanguage(settings.learningLanguage);
         } catch (error) {
@@ -116,7 +117,7 @@ const Header: React.FC = () => {
         }
       }
     };
-    
+
     loadTopicForLanguage();
   }, [settings?.learningLanguage, pathname, route, previousLanguage]);
 
@@ -146,12 +147,12 @@ const Header: React.FC = () => {
 
   const handleNavigation = (path: string) => {
     if (isLoading) return;
-    
+
     // Don't navigate if already on this page
     if (pathname === path) {
       return;
     }
-    
+
     setIsNavigating(true);
     route.push(path);
   };
@@ -166,16 +167,16 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <AppBar 
-        position="static" 
+      <AppBar
+        position="static"
         color="primary"
-        sx={{ 
+        sx={{
           width: '100%',
           boxSizing: 'border-box'
         }}
       >
-        <Toolbar 
-          sx={{ 
+        <Toolbar
+          sx={{
             minHeight: { xs: 56, sm: 64 },
             px: { xs: 1, sm: 2 },
             width: '100%',
@@ -201,7 +202,7 @@ const Header: React.FC = () => {
             ) : (
               // Desktop/Tablet: Full title
               <>
-                Изучение {getLanguageDisplayName()} языка
+                Изучение {getLanguageDisplayName()}языка
                 {selectedTopic && !isTablet && (
                   <Typography component="span" variant="subtitle1" sx={{ ml: 2, opacity: 0.9 }}>
                     - {selectedTopic}
@@ -210,16 +211,16 @@ const Header: React.FC = () => {
               </>
             )}
           </Typography>
-          <Box 
-            sx={{ 
-              display: 'flex', 
-              gap: { xs: 0.5, sm: 1 }, 
+          <Box
+            sx={{
+              display: 'flex',
+              gap: { xs: 0.5, sm: 1 },
               alignItems: 'center',
               flexShrink: 0
             }}
           >
             {!isMobile && <LanguageSelector />}
-            
+
             {isMobile ? (
               // Mobile: Show only hamburger menu
               <Tooltip title="Меню">
@@ -248,12 +249,22 @@ const Header: React.FC = () => {
                       color="inherit"
                       onClick={() => {
                         if (lastTopicForLanguage) {
-                          handleNavigation(`/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}`);
+                          handleNavigation(
+                            `/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}`
+                          );
                         } else {
                           handleNavigation('/topics');
                         }
                       }}
-                      disabled={isLoading || isActivePath(['/topics', lastTopicForLanguage ? `/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}` : ''])}
+                      disabled={
+                        isLoading ||
+                        isActivePath([
+                          '/topics',
+                          lastTopicForLanguage
+                            ? `/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}`
+                            : ''
+                        ])
+                      }
                       size="medium"
                       sx={{
                         backgroundColor: 'white',
@@ -397,8 +408,10 @@ const Header: React.FC = () => {
         anchor="right"
         open={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
-        PaperProps={{
-          sx: { width: 250 }
+        slotProps={{
+          paper: {
+            sx: { width: 250 }
+          }
         }}
       >
         <List>
@@ -408,7 +421,12 @@ const Header: React.FC = () => {
               <ListItemIcon sx={{ minWidth: 40 }}>
                 <LanguageIcon color="primary" />
               </ListItemIcon>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary'
+                }}
+              >
                 Язык изучения
               </Typography>
             </Box>
@@ -416,18 +434,28 @@ const Header: React.FC = () => {
               <LanguageSelector />
             </Box>
           </ListItem>
-          
+
           <ListItem disablePadding>
             <ListItemButton
               onClick={() => {
                 if (lastTopicForLanguage) {
-                  handleNavigation(`/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}`);
+                  handleNavigation(
+                    `/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}`
+                  );
                 } else {
                   handleNavigation('/topics');
                 }
                 setMobileMenuOpen(false);
               }}
-              disabled={isLoading || isActivePath(['/topics', lastTopicForLanguage ? `/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}` : ''])}
+              disabled={
+                isLoading ||
+                isActivePath([
+                  '/topics',
+                  lastTopicForLanguage
+                    ? `/exercises/${lastTopicForLanguage.toLowerCase().replace(/ /g, '_')}`
+                    : ''
+                ])
+              }
             >
               <ListItemIcon>
                 <FitnessCenterIcon color="primary" />

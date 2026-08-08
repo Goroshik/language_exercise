@@ -147,7 +147,12 @@ const WordTranslationPanel: React.FC<WordTranslationPanelProps> = ({ word, posit
             {isLoading ? (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <CircularProgress size={16} />
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary'
+                  }}
+                >
                   Переводится...
                 </Typography>
               </Box>

@@ -32,7 +32,9 @@ function ResetPasswordForm() {
               setEmail(data.email);
             }
           } else {
-            setError('Ссылка недействительна или истекла. Запросите новую ссылку для сброса пароля.');
+            setError(
+              'Ссылка недействительна или истекла. Запросите новую ссылку для сброса пароля.'
+            );
           }
         })
         .catch(() => {
@@ -110,22 +112,47 @@ function ResetPasswordForm() {
 
   if (checkingToken) {
     return (
-      <Box maxWidth={400} mx="auto" mt={8} display="flex" justifyContent="center">
+      <Box
+        sx={{
+          maxWidth: 400,
+          mx: 'auto',
+          mt: 8,
+          display: 'flex',
+          justifyContent: 'center'
+        }}
+      >
         <CircularProgress />
       </Box>
     );
   }
 
   return (
-    <Box maxWidth={400} mx="auto" mt={8}>
-      <Typography variant="h5" mb={2}>
+    <Box
+      sx={{
+        maxWidth: 400,
+        mx: 'auto',
+        mt: 8
+      }}
+    >
+      <Typography
+        variant="h5"
+        sx={{
+          mb: 2
+        }}
+      >
         Сброс пароля
       </Typography>
 
       {!token ? (
         // Step 1: Request password reset
         <form onSubmit={handleRequestReset}>
-          <Typography variant="body2" color="text.secondary" mb={2}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+              mb: 2
+            }}
+          >
             Введите ваш email, и мы отправим вам ссылку для сброса пароля
           </Typography>
           <TextField
@@ -169,7 +196,13 @@ function ResetPasswordForm() {
       ) : tokenValid ? (
         // Step 2: Reset password with token
         <form onSubmit={handleResetPassword}>
-          <Typography variant="body2" color="text.secondary" mb={2}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'text.secondary',
+              mb: 2
+            }}
+          >
             Введите новый пароль для вашей учетной записи
           </Typography>
           <PasswordInput
@@ -224,11 +257,7 @@ function ResetPasswordForm() {
           <Alert severity="error" sx={{ mb: 2 }}>
             {error || 'Ссылка недействительна или истекла'}
           </Alert>
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={() => router.push('/auth/reset')}
-          >
+          <Button variant="contained" fullWidth onClick={() => router.push('/auth/reset')}>
             Запросить новую ссылку
           </Button>
           <Button
@@ -249,7 +278,15 @@ export default function ResetPassword() {
   return (
     <Suspense
       fallback={
-        <Box maxWidth={400} mx="auto" mt={8} display="flex" justifyContent="center">
+        <Box
+          sx={{
+            maxWidth: 400,
+            mx: 'auto',
+            mt: 8,
+            display: 'flex',
+            justifyContent: 'center'
+          }}
+        >
           <CircularProgress />
         </Box>
       }

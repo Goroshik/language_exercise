@@ -1,14 +1,6 @@
 'use client';
 
-import {
-  Box,
-  Button,
-  Chip,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography
-} from '@mui/material';
+import { Box, Button, Chip, MenuItem, Stack, TextField, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
 import LearnModeText from 'src/app/(main)/exercises/[path]/LearnModeText';
 
@@ -92,11 +84,7 @@ export default function GeneratedHistoryPage() {
           fullWidth
           placeholder="Введите текст для поиска в предложениях"
         />
-        <Stack 
-          direction={{ xs: 'column', sm: 'row' }} 
-          spacing={2} 
-          sx={{ width: '100%' }}
-        >
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ width: '100%' }}>
           <TextField
             select
             label="Язык"
@@ -131,9 +119,9 @@ export default function GeneratedHistoryPage() {
               </MenuItem>
             ))}
           </TextField>
-          <Button 
-            variant="contained" 
-            onClick={fetchHistory} 
+          <Button
+            variant="contained"
+            onClick={fetchHistory}
             disabled={loading}
             sx={{ flex: { xs: 1, sm: '0 0 auto' } }}
           >
@@ -146,14 +134,26 @@ export default function GeneratedHistoryPage() {
       ) : (
         <Stack spacing={2}>
           {history.length === 0 ? (
-            <Typography color="text.secondary">Нет данных</Typography>
+            <Typography
+              sx={{
+                color: 'text.secondary'
+              }}
+            >
+              Нет данных
+            </Typography>
           ) : (
             history.map(item => (
               <Box key={item.id} sx={{ p: 2, border: '1px solid #eee', borderRadius: 2 }}>
                 <Box sx={{ mb: 1 }}>
                   <LearnModeText text={item.sentence} />
                 </Box>
-                <Stack direction="row" spacing={1} flexWrap="wrap">
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{
+                    flexWrap: 'wrap'
+                  }}
+                >
                   <Chip label={`Язык: ${item.language.nativeName}`} size="small" />
                   <Chip label={`Уровень: ${item.level}`} size="small" />
                   <Chip label={`Дата: ${new Date(item.createdAt).toLocaleString()}`} size="small" />

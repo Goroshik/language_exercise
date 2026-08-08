@@ -51,9 +51,7 @@ export const ErrorsList: React.FC<ErrorsListProps> = ({
                   },
                   fontWeight: isActive ? 'bold' : 'normal',
                   border:
-                    selectedErrorIndex === index
-                      ? '2px solid #1976d2'
-                      : '2px solid transparent'
+                    selectedErrorIndex === index ? '2px solid #1976d2' : '2px solid transparent'
                 }}
                 onMouseEnter={() => onErrorHover(index)}
                 onMouseLeave={() => onErrorHover(null)}
@@ -106,7 +104,12 @@ export const ErrorsList: React.FC<ErrorsListProps> = ({
           })}
         </Box>
       ) : (
-        <Typography variant="body2" color="success.main">
+        <Typography
+          variant="body2"
+          sx={{
+            color: 'success.main'
+          }}
+        >
           Ошибок не найдено! 🎉
         </Typography>
       )}

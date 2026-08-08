@@ -106,24 +106,28 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
   };
 
   return (
-    <Dialog 
-      open={open} 
-      onClose={onClose} 
-      maxWidth="md" 
-      fullWidth 
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
       fullScreen={isMobile}
-      PaperProps={{
-        sx: {
-          ...(isMobile ? {
-            margin: 0,
-            maxHeight: '100vh',
-            height: '100vh',
-            borderRadius: 0,
-            display: 'flex',
-            flexDirection: 'column'
-          } : {
-            maxHeight: '90vh'
-          })
+      slotProps={{
+        paper: {
+          sx: {
+            ...(isMobile
+              ? {
+                  margin: 0,
+                  maxHeight: '100vh',
+                  height: '100vh',
+                  borderRadius: 0,
+                  display: 'flex',
+                  flexDirection: 'column'
+                }
+              : {
+                  maxHeight: '90vh'
+                })
+          }
         }
       }}
     >
@@ -131,9 +135,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
         API Tokens
       </DialogTitle>
 
-      <DialogContent 
-        sx={{ 
-          px: isMobile ? 2 : 3, 
+      <DialogContent
+        sx={{
+          px: isMobile ? 2 : 3,
           pt: isMobile ? 1 : 2,
           pb: isMobile ? 2 : 2,
           flex: 1,
@@ -157,11 +161,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
           <Typography variant="h6" gutterBottom sx={{ fontSize: isMobile ? '1rem' : '1.25rem' }}>
             API Tokens
           </Typography>
-          <Typography 
-            variant="body2" 
-            color="textSecondary" 
-            paragraph
-            sx={{ fontSize: isMobile ? '0.875rem' : '0.875rem' }}
+          <Typography
+            variant="body2"
+            color="textSecondary"
+            sx={{
+              fontSize: isMobile ? '0.875rem' : '0.875rem',
+              marginBottom: '16px'
+            }}
           >
             Enter your API tokens for different services. These will be encrypted and stored
             securely.
@@ -294,11 +300,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ open, onClose }) => {
       </DialogContent>
 
       <DialogActions sx={{ px: isMobile ? 2 : 3, pb: isMobile ? 2 : 2, flexShrink: 0 }}>
-        <Button 
-          onClick={onClose} 
-          disabled={loading}
-          size={isMobile ? 'small' : 'medium'}
-        >
+        <Button onClick={onClose} disabled={loading} size={isMobile ? 'small' : 'medium'}>
           Cancel
         </Button>
         <Button
