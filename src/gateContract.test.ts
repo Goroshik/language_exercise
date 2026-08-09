@@ -119,8 +119,8 @@ describe('the ratchet only moves down', () => {
   // Ceilings recorded when the gates were introduced. Lowering these is the
   // whole point; raising one means the debt grew and must not be accepted.
   it.each([
-    ['lintErrors', 84],
-    ['crapViolations', 122],
+    ['lintErrors', 82],
+    ['crapViolations', 119],
     ['suppressions', 32]
   ])('%s never exceeds %i', (counter, ceiling) => {
     expect(baseline[counter as string]).toBeLessThanOrEqual(ceiling as number);

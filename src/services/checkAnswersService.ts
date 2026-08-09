@@ -35,118 +35,144 @@ const schema = Joi.object<CheckAnswersRequest>({
   languageName: Joi.string().optional()
 });
 
+/** AI providers return either a bare string or an object carrying `text`. */
+export function extractResponseText(rawResult: unknown): string {
+  if (typeof rawResult === 'string') return rawResult;
+  if (rawResult && typeof rawResult === 'object') {
+    return (rawResult as { text?: string }).text ?? '';
+  }
+  return '';
+}
+
+/**
+ * Pulls the JSON array out of an AI response, which may be wrapped in prose or
+ * a markdown fence. Throws when there is nothing array-shaped to parse.
+ */
+export function parseAiResults(text: string): Array<CheckAnswerItem & { id: string }> {
+  const jsonMatch = text.match(/\[[\s\S]*\]/);
+  if (!jsonMatch) {
+    throw new Error('No JSON array found in AI response');
+  }
+  return JSON.parse(jsonMatch[0]);
+}
+
+/** Keyed by the exercise id the AI was asked to echo back. */
+export function indexResultsById(
+  aiResults: Array<CheckAnswerItem & { id: string }>
+): Map<string, CheckAnswerItem> {
+  const byId = new Map<string, CheckAnswerItem>();
+  for (const { id, ...checkResult } of aiResults) {
+    byId.set(id, checkResult);
+  }
+  return byId;
+}
+
+/** Words the learner actually wrote, for the dictionary usage counters. */
+export function extractUserWords(exercises: ExerciseAnswer[]): string[] {
+  return exercises.flatMap(exercise =>
+    exercise.sentence
+      .toLowerCase()
+      .replace(/[^\p{Letter}\p{Mark}\s]/gu, '')
+      .split(/\s+/)
+      .filter(word => word.length > 1)
+  );
+}
+
+/**
+ * One result per submitted exercise: skipped for blanks, the AI verdict when it
+ * came back, and a pass for anything the AI silently dropped.
+ */
+export function buildFullResults(
+  exercises: ExerciseAnswer[],
+  resultsById: Map<string, CheckAnswerItem>
+): CheckAnswerItem[] {
+  return exercises.map(exercise => {
+    if (exercise.sentence.trim().length === 0) {
+      return { isCorrect: true, skipped: true };
+    }
+    return resultsById.get(exercise.id) ?? { isCorrect: true };
+  });
+}
+
+async function resolveLanguageName(userId: string, provided: string | undefined): Promise<string> {
+  if (provided) return provided;
+
+  const userSettings = await getUserSettingsService(userId);
+  const language = await languageRepository.findByCode(userSettings.learningLanguage || 'en');
+  return language?.name || 'English';
+}
+
+async function requestValidation(
+  userId: string,
+  prompt: string
+): Promise<{ text: string } | { failure: ServiceResponse }> {
+  const aiService = await AIFactory.getAIService(userId);
+  if (!aiService || typeof aiService.generateText !== 'function') {
+    return { failure: { status: 502, body: { error: 'AI service not available for user' } } };
+  }
+
+  try {
+    return { text: extractResponseText(await aiService.generateText(prompt, userId)) };
+  } catch (err) {
+    if (err instanceof Error && err.message.includes('No token found')) {
+      return {
+        failure: { status: 402, body: { error: 'AI service token not configured for user' } }
+      };
+    }
+    console.error('AI service error (check answers)', err);
+    const error = err instanceof Error ? err.message : 'Failed to validate answers via AI service';
+    return { failure: { status: 502, body: { error } } };
+  }
+}
+
 export async function processCheckAnswersRequest(
   rawBody: unknown,
   userId: string
 ): Promise<ServiceResponse> {
   try {
-    const { error, value } = schema.validate(rawBody, {
-      abortEarly: false,
-      stripUnknown: true
-    });
+    const { error, value } = schema.validate(rawBody, { abortEarly: false, stripUnknown: true });
 
     if (error) {
       const messages = (error.details || []).map(detail => String(detail.message));
       return { status: 400, body: { error: messages.join('; ') } };
     }
 
-    const { topic, exercises } = value as CheckAnswersRequest;
-    let { languageName } = value as CheckAnswersRequest;
-
-    if (!languageName) {
-      const userSettings = await getUserSettingsService(userId);
-      const learningLanguageCode = userSettings.learningLanguage || 'en';
-      const language = await languageRepository.findByCode(learningLanguageCode);
-      languageName = language?.name || 'English';
-    }
-
-    const aiService = await AIFactory.getAIService(userId);
-    if (!aiService || typeof aiService.generateText !== 'function') {
-      return { status: 502, body: { error: 'AI service not available for user' } };
-    }
-
+    const { topic, exercises, languageName } = value as CheckAnswersRequest;
     const nonEmptyExercises = exercises.filter(ex => ex.sentence.trim().length > 0);
 
     if (nonEmptyExercises.length === 0) {
       return { status: 400, body: { error: 'No sentences to check' } };
     }
 
-    const exercisesJson = JSON.stringify(nonEmptyExercises, null, 2);
+    const prompt = GRAMMAR_PROMPTS.validateAnswers(
+      topic,
+      JSON.stringify(nonEmptyExercises, null, 2),
+      await resolveLanguageName(userId, languageName)
+    );
 
-    const prompt = GRAMMAR_PROMPTS.validateAnswers(topic, exercisesJson, languageName);
+    const validation = await requestValidation(userId, prompt);
+    if ('failure' in validation) return validation.failure;
 
-    let rawResult: unknown;
+    let resultsById: Map<string, CheckAnswerItem>;
     try {
-      rawResult = await aiService.generateText(prompt, userId);
-    } catch (err) {
-      if (err instanceof Error && err.message.includes('No token found')) {
-        return { status: 402, body: { error: 'AI service token not configured for user' } };
-      }
-      console.error('AI service error (check answers)', err);
-      const errorMessage =
-        err instanceof Error ? err.message : 'Failed to validate answers via AI service';
-      return { status: 502, body: { error: errorMessage } };
-    }
-
-    const text =
-      typeof rawResult === 'string'
-        ? rawResult
-        : rawResult && typeof rawResult === 'object'
-          ? ((rawResult as { text?: string }).text ?? '')
-          : '';
-
-    let aiResults: Array<CheckAnswerItem & { id: string }>;
-    try {
-      const jsonMatch = text.match(/\[[\s\S]*\]/);
-      if (!jsonMatch) {
-        throw new Error('No JSON array found in AI response');
-      }
-      aiResults = JSON.parse(jsonMatch[0]);
+      resultsById = indexResultsById(parseAiResults(validation.text));
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', parseError);
-      console.error('AI response:', text);
+      console.error('AI response:', validation.text);
       return {
         status: 502,
         body: { error: 'Failed to parse AI validation response. Please try again.' }
       };
     }
 
-    const resultsById = new Map<string, CheckAnswerItem>();
-    aiResults.forEach(result => {
-      const { id, ...checkResult } = result;
-      resultsById.set(id, checkResult);
-    });
-
-    const allUserWords: string[] = [];
-    exercises.forEach(exercise => {
-      if (exercise.sentence.trim()) {
-        const words = exercise.sentence
-          .toLowerCase()
-          .replace(/[^\p{Letter}\p{Mark}\s]/gu, '')
-          .split(/\s+/)
-          .filter(word => word.length > 1);
-        allUserWords.push(...words);
-      }
-    });
-
-    if (allUserWords.length > 0) {
-      trackWordUsage(userId, allUserWords).catch(trackingErr => {
+    const userWords = extractUserWords(exercises);
+    if (userWords.length > 0) {
+      trackWordUsage(userId, userWords).catch(trackingErr => {
         console.error('Error tracking word usage:', trackingErr);
       });
     }
 
-    const fullResults: CheckAnswerItem[] = exercises.map(exercise => {
-      if (exercise.sentence.trim().length === 0) {
-        return { isCorrect: true, skipped: true };
-      }
-      const result = resultsById.get(exercise.id);
-      if (result) {
-        return result;
-      }
-      return { isCorrect: true };
-    });
-
-    return { status: 200, body: { success: true, data: fullResults } };
+    return { status: 200, body: { success: true, data: buildFullResults(exercises, resultsById) } };
   } catch (err) {
     console.error('Unexpected error in checkAnswers service:', err);
     return { status: 500, body: { error: 'Internal server error' } };

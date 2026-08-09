@@ -12,6 +12,13 @@
     "src/utils/languageRedirect.ts",
     "src/utils/crypto.ts",
     "src/services/translateService.ts",
+    "src/services/checkAnswersService.ts",
+    "src/utils/feedbackValidation.ts",
+    "src/utils/auth.ts",
+    "src/utils/jsonWrapper.ts",
+    "src/utils/NextResponseError.ts",
+    "src/utils/tokenService.ts",
+    "src/constants/aiModels.ts",
     "!src/**/*.test.ts",
     "!src/**/*.test.tsx",
     "!src/generated/**"
