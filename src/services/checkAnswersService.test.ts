@@ -26,7 +26,6 @@ vi.mock('src/services/userSettingsService', () => ({
 
 const {
   buildFullResults,
-  extractResponseText,
   extractUserWords,
   indexResultsById,
   parseAiResults,
@@ -41,24 +40,6 @@ beforeEach(() => {
   findByCode.mockResolvedValue({ name: 'Polish' });
   getAllWords.mockResolvedValue([]);
   generateText.mockResolvedValue('[{"id":"e1","isCorrect":true}]');
-});
-
-describe('extractResponseText', () => {
-  it('passes a plain string through', () => {
-    expect(extractResponseText('hello')).toBe('hello');
-  });
-
-  it('reads the text field of an object response', () => {
-    expect(extractResponseText({ text: 'hello' })).toBe('hello');
-  });
-
-  it('returns an empty string for an object without text', () => {
-    expect(extractResponseText({ other: 1 })).toBe('');
-  });
-
-  it.each([null, undefined, 42, true])('returns an empty string for %s', value => {
-    expect(extractResponseText(value)).toBe('');
-  });
 });
 
 describe('parseAiResults', () => {

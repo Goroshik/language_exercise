@@ -51,6 +51,12 @@ describe('TokenService.getToken', () => {
     expect(alertError).toHaveBeenCalledOnce();
   });
 
+  it('names the service in the alert', async () => {
+    findByUserAndService.mockRejectedValue(new Error('db down'));
+    await TokenService.getToken('u1', 'deepl');
+    expect(alertError).toHaveBeenCalledWith('Error fetching token for service deepl');
+  });
+
   it('distinguishes "not found" from "lookup failed"', async () => {
     findByUserAndService.mockResolvedValue(null);
     const missing = await TokenService.getToken('u1', 'deepl');
@@ -65,6 +71,13 @@ describe('TokenService.getToken', () => {
 describe('TokenService.getUserIdFromRequest', () => {
   it('returns the header value', () => {
     const request = { headers: { get: () => 'user-1' } } as unknown as Request;
+    expect(TokenService.getUserIdFromRequest(request)).toBe('user-1');
+  });
+
+  it('reads the x-user-id header the middleware sets', () => {
+    const request = {
+      headers: { get: (name: string) => (name === 'x-user-id' ? 'user-1' : null) }
+    } as unknown as Request;
     expect(TokenService.getUserIdFromRequest(request)).toBe('user-1');
   });
 

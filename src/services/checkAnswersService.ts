@@ -10,6 +10,7 @@ import { AIFactory } from 'src/services/aiFactory';
 import { ServiceResponse } from 'src/services/generateTextService';
 import { getUserSettingsService } from 'src/services/userSettingsService';
 import { CheckAnswerItem } from 'src/types';
+import { extractResponseText, isMissingTokenError } from 'src/utils/aiResponse';
 
 interface ExerciseAnswer {
   id: string;
@@ -34,15 +35,6 @@ const schema = Joi.object<CheckAnswersRequest>({
     .required(),
   languageName: Joi.string().optional()
 });
-
-/** AI providers return either a bare string or an object carrying `text`. */
-export function extractResponseText(rawResult: unknown): string {
-  if (typeof rawResult === 'string') return rawResult;
-  if (rawResult && typeof rawResult === 'object') {
-    return (rawResult as { text?: string }).text ?? '';
-  }
-  return '';
-}
 
 /**
  * Pulls the JSON array out of an AI response, which may be wrapped in prose or
@@ -114,7 +106,7 @@ async function requestValidation(
   try {
     return { text: extractResponseText(await aiService.generateText(prompt, userId)) };
   } catch (err) {
-    if (err instanceof Error && err.message.includes('No token found')) {
+    if (isMissingTokenError(err)) {
       return {
         failure: { status: 402, body: { error: 'AI service token not configured for user' } }
       };

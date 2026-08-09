@@ -13,6 +13,8 @@
     "src/utils/crypto.ts",
     "src/services/translateService.ts",
     "src/services/checkAnswersService.ts",
+    "src/services/generateTextService.ts",
+    "src/utils/aiResponse.ts",
     "src/utils/feedbackValidation.ts",
     "src/utils/auth.ts",
     "src/utils/jsonWrapper.ts",
