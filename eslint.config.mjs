@@ -126,6 +126,12 @@ export default [
       'react-hooks/rules-of-hooks': 'error', // Still enforce hooks rules
       'react-hooks/exhaustive-deps': 'off', // Allow manual control of dependencies
 
+      // React Compiler rules, new in eslint-plugin-react-hooks v6. They flag 56
+      // pre-existing spots; kept as warnings until those are addressed separately.
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/immutability': 'warn',
+      'react-hooks/incompatible-library': 'warn',
+
       // TypeScript rules
       '@typescript-eslint/no-unused-vars': [
         'warn',

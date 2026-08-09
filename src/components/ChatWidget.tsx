@@ -190,7 +190,9 @@ const ChatWidget: React.FC = () => {
             width: isMobile ? 'calc(100vw - 16px)' : `${size.width}px`,
             height: isMobile ? `calc(100vh - ${MOBILE_BOTTOM_OFFSET}px)` : `${size.height}px`,
             maxWidth: isMobile ? '100%' : 'calc(100vw - 48px)',
-            maxHeight: isMobile ? `calc(100vh - ${MOBILE_BOTTOM_OFFSET}px)` : `calc(100vh - ${DESKTOP_BOTTOM_OFFSET}px)`,
+            maxHeight: isMobile
+              ? `calc(100vh - ${MOBILE_BOTTOM_OFFSET}px)`
+              : `calc(100vh - ${DESKTOP_BOTTOM_OFFSET}px)`,
             zIndex: 1000,
             display: 'flex',
             flexDirection: 'column',
@@ -277,7 +279,12 @@ const ChatWidget: React.FC = () => {
                   height: '100%'
                 }}
               >
-                <Typography color="text.secondary" align="center">
+                <Typography
+                  align="center"
+                  sx={{
+                    color: 'text.secondary'
+                  }}
+                >
                   Начните диалог с AI помощником
                 </Typography>
               </Box>
@@ -290,7 +297,12 @@ const ChatWidget: React.FC = () => {
             {isLoading && (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                 <CircularProgress size={16} />
-                <Typography variant="body2" color="text.secondary">
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: 'text.secondary'
+                  }}
+                >
                   AI думает...
                 </Typography>
               </Box>

@@ -122,7 +122,13 @@ const AddWordModal: React.FC<AddWordModalProps> = ({
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>
-        <Box display="flex" alignItems="center" justifyContent="space-between">
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
           <Typography variant="h6">Добавить новое слово</Typography>
           <Chip
             icon={<LanguageIcon />}

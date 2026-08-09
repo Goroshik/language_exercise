@@ -8,6 +8,9 @@ type PasswordInputProps = Omit<TextFieldProps, 'type'>;
 const PasswordInput: React.FC<PasswordInputProps> = ({ ...props }) => {
   const [showPassword, setShowPassword] = useState(false);
 
+  const inputSlotProps =
+    typeof props.slotProps?.input === 'function' ? undefined : props.slotProps?.input;
+
   const handleTogglePassword = () => {
     setShowPassword(prev => !prev);
   };
@@ -16,20 +19,22 @@ const PasswordInput: React.FC<PasswordInputProps> = ({ ...props }) => {
     <TextField
       {...props}
       type={showPassword ? 'text' : 'password'}
-      InputProps={{
-        ...props.InputProps,
-        endAdornment: (
-          <InputAdornment position="end">
-            <IconButton
-              aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
-              onClick={handleTogglePassword}
-              edge="end"
-              size="small"
-            >
-              {showPassword ? <VisibilityOff /> : <Visibility />}
-            </IconButton>
-          </InputAdornment>
-        ),
+      slotProps={{
+        input: {
+          ...inputSlotProps,
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                onClick={handleTogglePassword}
+                edge="end"
+                size="small"
+              >
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          )
+        }
       }}
     />
   );

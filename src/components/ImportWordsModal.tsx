@@ -1,26 +1,26 @@
 'use client';
 
 import {
-    Close as CloseIcon,
-    Delete as DeleteIcon,
-    Language as LanguageIcon
+  Close as CloseIcon,
+  Delete as DeleteIcon,
+  Language as LanguageIcon
 } from '@mui/icons-material';
 import {
-    Box,
-    Button,
-    Chip,
-    CircularProgress,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    IconButton,
-    List,
-    ListItem,
-    TextField,
-    Typography,
-    useMediaQuery,
-    useTheme
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  List,
+  ListItem,
+  TextField,
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useSettingsStore } from 'src/store/settingsStore';
@@ -194,11 +194,14 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
     }
   };
 
-  const updateParsedWord = useCallback((index: number, field: 'word' | 'translate', value: string) => {
-    setParsedWords(prev =>
-      prev.map((word, i) => (i === index ? { ...word, [field]: value } : word))
-    );
-  }, []);
+  const updateParsedWord = useCallback(
+    (index: number, field: 'word' | 'translate', value: string) => {
+      setParsedWords(prev =>
+        prev.map((word, i) => (i === index ? { ...word, [field]: value } : word))
+      );
+    },
+    []
+  );
 
   const removeParsedWord = useCallback((index: number) => {
     setParsedWords(prev => prev.filter((_, i) => i !== index));
@@ -211,33 +214,45 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
       maxWidth="md"
       fullWidth
       fullScreen={isMobile}
-      PaperProps={{
-        sx: {
-          ...(isMobile ? {
-            margin: 0,
-            maxHeight: '100vh',
-            height: '100vh',
-            borderRadius: 0,
-            display: 'flex',
-            flexDirection: 'column'
-          } : {
-            height: '80vh',
-            maxHeight: '80vh',
-            display: 'flex',
-            flexDirection: 'column'
-          })
+      slotProps={{
+        paper: {
+          sx: {
+            ...(isMobile
+              ? {
+                  margin: 0,
+                  maxHeight: '100vh',
+                  height: '100vh',
+                  borderRadius: 0,
+                  display: 'flex',
+                  flexDirection: 'column'
+                }
+              : {
+                  height: '80vh',
+                  maxHeight: '80vh',
+                  display: 'flex',
+                  flexDirection: 'column'
+                })
+          }
         }
       }}
     >
-      <DialogTitle sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        flexShrink: 0,
-        px: isMobile ? 2 : 3,
-        pb: isMobile ? 1 : 2
-      }}>
-        <Box display="flex" alignItems="center" gap={2}>
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexShrink: 0,
+          px: isMobile ? 2 : 3,
+          pb: isMobile ? 1 : 2
+        }}
+      >
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2
+          }}
+        >
           <Typography variant="h6">
             {step === 'input' && 'Импорт слов из текста'}
             {step === 'parsing' && 'Обработка текста...'}
@@ -255,16 +270,23 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
         </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ 
-        display: 'flex', 
-        gap: 2, 
-        p: isMobile ? 1.5 : 2,
-        flex: 1,
-        overflowY: 'auto',
-        overflowX: 'hidden'
-      }}>
+      <DialogContent
+        sx={{
+          display: 'flex',
+          gap: 2,
+          p: isMobile ? 1.5 : 2,
+          flex: 1,
+          overflowY: 'auto',
+          overflowX: 'hidden'
+        }}
+      >
         {/* Main content area */}
-        <Box flex="1" sx={{ pr: 2 }}>
+        <Box
+          sx={{
+            flex: '1',
+            pr: 2
+          }}
+        >
           {step === 'input' && (
             <TextField
               fullWidth
@@ -286,11 +308,28 @@ cat - кот"
           )}
 
           {step === 'parsing' && (
-            <Box display="flex" justifyContent="center" alignItems="center" height="400px">
-              <Box textAlign="center">
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '400px'
+              }}
+            >
+              <Box
+                sx={{
+                  textAlign: 'center'
+                }}
+              >
                 <CircularProgress size={60} sx={{ mb: 2 }} />
                 <Typography variant="h6">Обработка текста...</Typography>
-                <Typography color="text.secondary">Пожалуйста, подождите</Typography>
+                <Typography
+                  sx={{
+                    color: 'text.secondary'
+                  }}
+                >
+                  Пожалуйста, подождите
+                </Typography>
               </Box>
             </Box>
           )}
@@ -302,8 +341,11 @@ cat - кот"
                 {parsedWords.some(w => w.isDuplicate) && (
                   <Typography
                     component="span"
-                    color="warning.main"
-                    sx={{ ml: 2, fontSize: '0.9rem' }}
+                    sx={{
+                      color: 'warning.main',
+                      ml: 2,
+                      fontSize: '0.9rem'
+                    }}
                   >
                     (дубликаты: {parsedWords.filter(w => w.isDuplicate).length})
                   </Typography>
@@ -324,8 +366,19 @@ cat - кот"
                       }
                     }}
                   >
-                    <Box width="100%">
-                      <Box display="flex" gap={2} mb={1} alignItems="center">
+                    <Box
+                      sx={{
+                        width: '100%'
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          gap: 2,
+                          mb: 1,
+                          alignItems: 'center'
+                        }}
+                      >
                         {word.isDuplicate && (
                           <Typography
                             variant="caption"
@@ -367,11 +420,13 @@ cat - кот"
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ 
-        p: isMobile ? 1.5 : 2, 
-        gap: 1,
-        flexShrink: 0
-      }}>
+      <DialogActions
+        sx={{
+          p: isMobile ? 1.5 : 2,
+          gap: 1,
+          flexShrink: 0
+        }}
+      >
         {step === 'input' && (
           <>
             <Button onClick={handleClose}>Отмена</Button>

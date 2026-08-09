@@ -64,7 +64,12 @@ const Page: React.FC = () => {
           ? 'Wybierz temat gramatyki polskiej do nauki:'
           : 'Выберите тему английской грамматики для изучения:'}
       </Typography>
-      <Stack direction="column" alignItems="center">
+      <Stack
+        direction="column"
+        sx={{
+          alignItems: 'center'
+        }}
+      >
         <List
           sx={{
             width: { xs: '100%', sm: '100%', md: '1000px' },
@@ -123,8 +128,10 @@ const Page: React.FC = () => {
                       >
                         <ListItemText
                           primary={topicValue}
-                          primaryTypographyProps={{
-                            fontSize: { xs: '0.875rem', sm: '1rem' }
+                          slotProps={{
+                            primary: {
+                              sx: { fontSize: { xs: '0.875rem', sm: '1rem' } }
+                            }
                           }}
                         />
                       </ListItemButton>

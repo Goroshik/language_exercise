@@ -5,8 +5,6 @@ const TOKEN_ENCRYPTION_KEY = process.env.TOKEN_SECRET as string;
 
 function encrypt(plaintext: string, key: string = TOKEN_ENCRYPTION_KEY): string {
   const iv = crypto.randomBytes(16);
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
   let encrypted = cipher.update(plaintext, 'utf8', 'base64');
   encrypted += cipher.final('base64');
@@ -17,8 +15,6 @@ function encrypt(plaintext: string, key: string = TOKEN_ENCRYPTION_KEY): string 
 function decrypt(cipherText: string, key: string = TOKEN_ENCRYPTION_KEY): string {
   const [ivBase64, encrypted] = cipherText.split(':');
   const iv = Buffer.from(ivBase64, 'base64');
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-expect-error
   const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
   let decrypted = decipher.update(encrypted, 'base64', 'utf8');
   decrypted += decipher.final('utf8');

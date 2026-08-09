@@ -44,8 +44,19 @@ function LoginForm() {
   };
 
   return (
-    <Box maxWidth={400} mx="auto" mt={8}>
-      <Typography variant="h5" mb={2}>
+    <Box
+      sx={{
+        maxWidth: 400,
+        mx: 'auto',
+        mt: 8
+      }}
+    >
+      <Typography
+        variant="h5"
+        sx={{
+          mb: 2
+        }}
+      >
         Вход
       </Typography>
       <form onSubmit={handleLogin}>
@@ -65,7 +76,12 @@ function LoginForm() {
           onChange={e => setPassword(e.target.value)}
         />
         {error && (
-          <Typography color="error" mt={1}>
+          <Typography
+            color="error"
+            sx={{
+              mt: 1
+            }}
+          >
             {error}
           </Typography>
         )}
@@ -90,7 +106,13 @@ export default function Login() {
   return (
     <Suspense
       fallback={
-        <Box maxWidth={400} mx="auto" mt={8}>
+        <Box
+          sx={{
+            maxWidth: 400,
+            mx: 'auto',
+            mt: 8
+          }}
+        >
           <Typography>Загрузка...</Typography>
         </Box>
       }

@@ -4,16 +4,16 @@ import CloseIcon from '@mui/icons-material/Close';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import SendIcon from '@mui/icons-material/Send';
 import {
-    Box,
-    CircularProgress,
-    Dialog,
-    DialogContent,
-    DialogTitle,
-    IconButton,
-    TextField,
-    Typography,
-    useMediaQuery,
-    useTheme
+  Box,
+  CircularProgress,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  TextField,
+  Typography,
+  useMediaQuery,
+  useTheme
 } from '@mui/material';
 import React, { useEffect, useRef, useState } from 'react';
 import { useChatStore } from 'src/store/chatStore';
@@ -95,51 +95,54 @@ const ChatModal: React.FC = () => {
         maxWidth="lg"
         fullWidth
         fullScreen={isMobile}
-        PaperProps={{
-          sx: {
-            ...(isMobile ? {
-              margin: 0,
-              maxHeight: '100vh',
-              height: '100vh',
-              borderRadius: 0,
-              display: 'flex',
-              flexDirection: 'column'
-            } : {
-              height: '80vh',
-              maxHeight: '800px',
-              display: 'flex',
-              flexDirection: 'column'
-            })
+        slotProps={{
+          paper: {
+            sx: {
+              ...(isMobile
+                ? {
+                    margin: 0,
+                    maxHeight: '100vh',
+                    height: '100vh',
+                    borderRadius: 0,
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }
+                : {
+                    height: '80vh',
+                    maxHeight: '800px',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  })
+            }
           }
         }}
       >
         <DialogTitle sx={{ pb: isMobile ? 1 : 2, px: isMobile ? 2 : 3, flexShrink: 0 }}>
-          <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
             <Typography variant="h6" sx={{ fontSize: isMobile ? '1rem' : '1.25rem' }}>
               AI Помощник
             </Typography>
             <Box>
-              <IconButton 
-                onClick={handleRefresh} 
-                size="small" 
-                sx={{ mr: 0.5 }}
-              >
+              <IconButton onClick={handleRefresh} size="small" sx={{ mr: 0.5 }}>
                 <RefreshIcon fontSize={isMobile ? 'small' : 'medium'} />
               </IconButton>
-              <IconButton 
-                onClick={() => setIsOpen(false)} 
-                size="small"
-              >
+              <IconButton onClick={() => setIsOpen(false)} size="small">
                 <CloseIcon fontSize={isMobile ? 'small' : 'medium'} />
               </IconButton>
             </Box>
           </Box>
         </DialogTitle>
-        <DialogContent 
-          sx={{ 
-            flex: 1, 
-            display: 'flex', 
-            flexDirection: 'column', 
+        <DialogContent
+          sx={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
             p: 0,
             overflow: 'hidden'
           }}
@@ -175,9 +178,11 @@ const ChatModal: React.FC = () => {
                     height: '100%'
                   }}
                 >
-                  <Typography 
-                    color="text.secondary"
-                    sx={{ fontSize: isMobile ? '0.875rem' : '1rem' }}
+                  <Typography
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: isMobile ? '0.875rem' : '1rem'
+                    }}
                   >
                     Начните диалог с AI помощником
                   </Typography>
@@ -191,10 +196,12 @@ const ChatModal: React.FC = () => {
               {isLoading && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
                   <CircularProgress size={isMobile ? 16 : 20} />
-                  <Typography 
-                    variant="body2" 
-                    color="text.secondary"
-                    sx={{ fontSize: isMobile ? '0.75rem' : '0.875rem' }}
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                      fontSize: isMobile ? '0.75rem' : '0.875rem'
+                    }}
                   >
                     AI думает...
                   </Typography>
