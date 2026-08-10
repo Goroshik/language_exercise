@@ -7,6 +7,80 @@ interface OpenAIError {
   message?: string;
 }
 
+const DEFAULT_MODEL = 'gpt-4o-mini';
+const RATE_LIMIT_MESSAGE =
+  'OpenAI rate limit exceeded. Please check your plan and billing details.';
+
+const OPENAI_MODELS = [
+  'gpt-5',
+  'gpt-4.1',
+  'gpt-4o',
+  'gpt-4o-mini',
+  'gpt-4-turbo',
+  'gpt-4-turbo-preview',
+  'gpt-4',
+  'gpt-3.5-turbo',
+  'gpt-3.5-turbo-16k'
+];
+
+// Module-level rather than private methods: istanbul reports class methods as
+// "(anonymous_N)", which leaves crap4ts unable to attribute their coverage.
+
+export function isOpenAIModel(modelName: string): boolean {
+  return OPENAI_MODELS.includes(modelName);
+}
+
+/** Rate limits get a message the user can act on; anything else passes through. */
+export function rethrowOpenAIError(error: unknown): never {
+  const openaiError = error as OpenAIError;
+  if (openaiError?.status === 429 || openaiError?.message?.includes('429')) {
+    throw new Error(RATE_LIMIT_MESSAGE);
+  }
+  throw error;
+}
+
+export function buildParsePrompt(text: string): string {
+  return `Parse the following text and extract English words or phrases with their Russian translations.
+Return ONLY a valid JSON array with format: [{"word": "english_word", "translate": "russian_translation"}].
+Do not include any other text, explanations, or formatting.
+If a line contains both English and Russian, extract them as word-translation pairs.
+If a line has only English, leave translate empty.
+Skip empty lines and non-word content.
+
+Text to parse:
+${text}`;
+}
+
+/** Strips a markdown fence, parses the array and drops entries with no word. */
+export function parseWordPairs(responseText: string): ParsedWord[] {
+  const cleaned = responseText.replace(/```json|```/g, '').trim();
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch {
+    throw new Error('Failed to parse OpenAI response as JSON');
+  }
+
+  if (!Array.isArray(parsed)) {
+    throw new Error('Invalid response format from OpenAI');
+  }
+
+  return (parsed as ParsedWord[]).filter(item => item.word && typeof item.word === 'string');
+}
+
+/** Yields only the non-empty content deltas of a chat completion stream. */
+export async function* streamContent(
+  stream: AsyncIterable<{ choices?: Array<{ delta?: { content?: string | null } }> }>
+): AsyncIterable<string> {
+  for await (const chunk of stream) {
+    const content = chunk.choices?.[0]?.delta?.content || '';
+    if (content) {
+      yield content;
+    }
+  }
+}
+
 export class OpenAIService extends BaseAIService {
   serviceName = 'openai';
 
@@ -17,63 +91,25 @@ export class OpenAIService extends BaseAIService {
    * @returns Promise with parsed words array
    */
   async parseWordsFromText(text: string, userId: string): Promise<ParsedWord[]> {
+    const client = await this.client(userId);
+
     try {
-      const token = await this.validateAndGetToken(userId);
-      const openai = new OpenAI({ apiKey: token });
-
-      // Get user's selected model from settings, default to gpt-4o-mini for parsing
-      const model = (await this.getUserModel(userId)) || 'gpt-4o-mini';
-
-      // Using OpenAI model ${model} for parsing words`);
-
-      const prompt = `Parse the following text and extract English words or phrases with their Russian translations. 
-Return ONLY a valid JSON array with format: [{"word": "english_word", "translate": "russian_translation"}].
-Do not include any other text, explanations, or formatting.
-If a line contains both English and Russian, extract them as word-translation pairs.
-If a line has only English, leave translate empty.
-Skip empty lines and non-word content.
-
-Text to parse:
-${text}`;
-
-      const response = await openai.chat.completions.create({
-        model: model,
+      const response = await client.openai.chat.completions.create({
+        model: client.model,
         messages: [
           {
             role: 'system',
             content:
               'You are a helpful assistant that parses text and extracts word-translation pairs. Always respond with valid JSON only.'
           },
-          {
-            role: 'user',
-            content: prompt
-          }
+          { role: 'user', content: buildParsePrompt(text) }
         ],
         temperature: 0.3
       });
 
-      const responseText = response.choices[0]?.message?.content || '';
-      // OpenAI response:, responseText);
-
-      // Clean response and extract JSON
-      const cleanedResponse = responseText.replace(/```json|```/g, '').trim();
-
-      try {
-        const parsedWords = JSON.parse(cleanedResponse);
-        if (Array.isArray(parsedWords)) {
-          return parsedWords.filter(item => item.word && typeof item.word === 'string');
-        }
-        throw new Error('Invalid response format from OpenAI');
-      } catch (_parseError) {
-        throw new Error('Failed to parse OpenAI response as JSON');
-      }
+      return parseWordPairs(response.choices[0]?.message?.content || '');
     } catch (error: unknown) {
-      const openaiError = error as OpenAIError;
-      // Handle rate limit errors specifically
-      if (openaiError?.status === 429 || openaiError?.message?.includes('429')) {
-        throw new Error('OpenAI rate limit exceeded. Please check your plan and billing details.');
-      }
-      throw error;
+      rethrowOpenAIError(error);
     }
   }
 
@@ -84,36 +120,18 @@ ${text}`;
    * @returns Promise with generated text or error
    */
   async generateText(prompt: string, userId: string): Promise<AIResponse> {
-    const token = await this.validateAndGetToken(userId);
-    const openai = new OpenAI({ apiKey: token });
-
-    // Get user's selected model from settings
-    const model = (await this.getUserModel(userId)) || 'gpt-4o-mini';
-
-    // Using OpenAI model ${model} for text generation`);
+    const client = await this.client(userId);
 
     try {
-      const response = await openai.chat.completions.create({
-        model: model,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
+      const response = await client.openai.chat.completions.create({
+        model: client.model,
+        messages: [{ role: 'user', content: prompt }],
         temperature: 0.7
       });
 
-      const text = response.choices[0]?.message?.content || '';
-
-      return { text };
+      return { text: response.choices[0]?.message?.content || '' };
     } catch (error: unknown) {
-      const openaiError = error as OpenAIError;
-      // Handle rate limit errors specifically
-      if (openaiError?.status === 429 || openaiError?.message?.includes('429')) {
-        throw new Error('OpenAI rate limit exceeded. Please check your plan and billing details.');
-      }
-      throw error;
+      rethrowOpenAIError(error);
     }
   }
 
@@ -124,45 +142,29 @@ ${text}`;
    * @returns Promise with generated text chunks
    */
   async generateTextStream(prompt: string, userId: string): Promise<AsyncIterable<string>> {
-    const token = await this.validateAndGetToken(userId);
-    const openai = new OpenAI({ apiKey: token });
-
-    // Get user's selected model from settings
-    const model = (await this.getUserModel(userId)) || 'gpt-4o-mini';
-
-    // Using OpenAI model ${model} for streaming text generation`);
+    const client = await this.client(userId);
 
     try {
-      const stream = await openai.chat.completions.create({
-        model: model,
-        messages: [
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
+      const stream = await client.openai.chat.completions.create({
+        model: client.model,
+        messages: [{ role: 'user', content: prompt }],
         temperature: 0.7,
         stream: true
       });
 
-      async function* textGenerator() {
-        for await (const chunk of stream) {
-          const content = chunk.choices[0]?.delta?.content || '';
-          if (content) {
-            yield content;
-          }
-        }
-      }
-
-      return textGenerator();
+      return streamContent(stream);
     } catch (error: unknown) {
-      const openaiError = error as OpenAIError;
-      // Handle rate limit errors specifically
-      if (openaiError?.status === 429 || openaiError?.message?.includes('429')) {
-        throw new Error('OpenAI rate limit exceeded. Please check your plan and billing details.');
-      }
-      throw error;
+      rethrowOpenAIError(error);
     }
+  }
+
+  /** Authenticated client plus the model the user picked, or the default. */
+  private async client(userId: string): Promise<{ openai: OpenAI; model: string }> {
+    const token = await this.validateAndGetToken(userId);
+    return {
+      openai: new OpenAI({ apiKey: token }),
+      model: (await this.getUserModel(userId)) || DEFAULT_MODEL
+    };
   }
 
   /**
@@ -174,36 +176,12 @@ ${text}`;
     try {
       const settings = await userSettingsRepository.findByUserId(userId);
 
-      // Only return the model if it's an OpenAI model
-      if (settings?.aiModel && this.isOpenAIModel(settings.aiModel)) {
-        return settings.aiModel;
-      }
-
-      return null;
+      // Only honour the setting when it names an OpenAI model.
+      return settings?.aiModel && isOpenAIModel(settings.aiModel) ? settings.aiModel : null;
     } catch (_error) {
-      // On error, return null to use default model
+      // On error, fall back to the default model.
       return null;
     }
-  }
-
-  /**
-   * Check if model name is an OpenAI model
-   * @param modelName - Model name to check
-   * @returns boolean
-   */
-  private isOpenAIModel(modelName: string): boolean {
-    const openaiModels = [
-      'gpt-5',
-      'gpt-4.1',
-      'gpt-4o',
-      'gpt-4o-mini',
-      'gpt-4-turbo',
-      'gpt-4-turbo-preview',
-      'gpt-4',
-      'gpt-3.5-turbo',
-      'gpt-3.5-turbo-16k'
-    ];
-    return openaiModels.includes(modelName);
   }
 }
 

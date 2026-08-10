@@ -1,6 +1,6 @@
 {
   "_comment": "Counts of pre-existing violations of the quality thresholds. These numbers may only go DOWN - see scripts/ratchet.mjs. Target is 0 for all three.",
-  "lintErrors": 75,
-  "crapViolations": 115,
-  "suppressions": 26
+  "lintErrors": 70,
+  "crapViolations": 107,
+  "suppressions": 21
 }
