@@ -15,6 +15,7 @@
     "src/services/checkAnswersService.ts",
     "src/services/generateTextService.ts",
     "src/utils/aiResponse.ts",
+    "src/store/exerciseBlocks.ts",
     "src/services/openAI.ts",
     "src/services/checkEssayService.ts",
     "src/services/trainingExercisesService.ts",
