@@ -16,6 +16,7 @@
     "coverage": "vitest run --coverage",
     "crap": "crap4ts --coverage coverage/coverage-final.json --src src --exclude \"**/*.test.ts\" \"**/*.test.tsx\" \"src/generated/**\" -t 8 --top 10",
     "mutation": "stryker run",
+    "mutation:changed": "node scripts/mutation-changed.mjs",
     "ratchet": "node scripts/ratchet.mjs",
     "ratchet:update": "node scripts/ratchet.mjs --update",
     "gate:fast": "npm run typecheck && node scripts/ratchet.mjs --lint-only",

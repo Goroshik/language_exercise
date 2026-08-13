@@ -61,8 +61,15 @@ npm run gate        # full gate: typecheck, lint, coverage, ratchet, mutation
 npm run test        # vitest
 npm run coverage    # vitest with coverage (writes coverage/coverage-final.json)
 npm run crap        # CRAP report, needs a fresh coverage run
-npm run mutation    # Stryker on src/utils/exerciseContent.ts
+npm run mutation    # Stryker on every configured module (~140s)
+npm run mutation:changed                    # only the modules you touched
+npm run mutation:changed -- origin/master   # ...or the whole branch
 ```
+
+`mutation:changed` intersects the changed files with the `mutate` list in
+`stryker.config.json`, prints what it skipped and exits 0 when nothing relevant
+changed. It is a local convenience, not a substitute — the `Stop` hook and CI
+still run the full `npm run gate`.
 
 `npm run crap` and `npm run ratchet` read the coverage report from disk — always
 run `npm run coverage` first or the numbers will be stale and wrong.
