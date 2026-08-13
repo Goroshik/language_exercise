@@ -23,20 +23,25 @@ import {
   useTheme
 } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react';
+import { DEFAULT_LANGUAGE_CODE, languageLabel } from 'src/constants/languages';
+import { addWords, isDuplicateWord, parseWordsFromText } from 'src/services/wordsClient';
 import { useSettingsStore } from 'src/store/settingsStore';
 import { showAlert } from 'src/utils/alert';
+import {
+  type ImportStep,
+  type ParsedWord,
+  describeFailure,
+  markDuplicate,
+  removeWordAt,
+  updateWordAt,
+  wordsToImport
+} from 'src/utils/wordImport';
 
 interface ImportWordsModalProps {
   open: boolean;
   onClose: () => void;
   preFilledWord?: string;
   preFilledTranslate?: string;
-}
-
-interface ParsedWord {
-  word: string;
-  translate: string;
-  isDuplicate?: boolean;
 }
 
 const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
@@ -47,89 +52,36 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [step, setStep] = useState<'input' | 'parsing' | 'review'>('input');
+  const [step, setStep] = useState<ImportStep>('input');
   const [inputText, setInputText] = useState('');
   const [parsedWords, setParsedWords] = useState<ParsedWord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const { settings } = useSettingsStore();
 
-  // Get display name for the learning language
-  const getLanguageDisplayName = () => {
-    const languageCode = settings?.learningLanguage || 'en';
-    const languageNames: Record<string, string> = {
-      en: 'Английский',
-      pl: 'Польский',
-      de: 'Немецкий',
-      fr: 'Французский',
-      es: 'Испанский',
-      it: 'Итальянский'
-    };
-    return languageNames[languageCode] || languageCode.toUpperCase();
-  };
+  const languageDisplayName = languageLabel(settings?.learningLanguage || DEFAULT_LANGUAGE_CODE);
+  const backToInput = () => setStep('input');
 
-  const addWords = async (words: ParsedWord[]) => {
-    const response = await fetch('/api/dictionary/words', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ words })
-    });
-
-    const data = await response.json();
-    if (!data.success) {
-      throw new Error(data.error || 'Failed to add words');
-    }
-
-    return data.word;
-  };
-
+  // Prefilled from the translation panel: review at once, flag afterwards.
   useEffect(() => {
-    if (open) {
-      // NOTE: Pre-fill the form if word and translation are provided
-      if (preFilledWord && preFilledTranslate) {
-        const preFilledParsedWord: ParsedWord = {
-          word: preFilledWord,
-          translate: preFilledTranslate
-        };
-        setParsedWords([preFilledParsedWord]);
-        // NOTE: Check for duplicates on server side
-        void checkPrefilledWordDuplicate(preFilledParsedWord);
-        setStep('review');
-      }
-    }
+    if (!open || !preFilledWord || !preFilledTranslate) return;
+
+    const entry: ParsedWord = { word: preFilledWord, translate: preFilledTranslate };
+    setParsedWords([entry]);
+    setStep('review');
+
+    isDuplicateWord(entry.word)
+      .then(duplicate => {
+        if (duplicate) setParsedWords(markDuplicate(entry, true));
+      })
+      .catch(error => console.error('Error checking duplicates:', describeFailure(error)));
   }, [open, preFilledWord, preFilledTranslate]);
 
-  const checkPrefilledWordDuplicate = async (word: ParsedWord) => {
-    try {
-      const response = await fetch('/api/dictionary/words/check-duplicates', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ words: [word.word] })
-      });
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      if (data.success && data.duplicates && data.duplicates[0]) {
-        setParsedWords([{ ...word, isDuplicate: true }]);
-      }
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Error checking duplicates:', message);
-    }
-  };
-
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setStep('input');
     setInputText('');
     setParsedWords([]);
     onClose();
-  };
+  }, [onClose]);
 
   const handleParseText = async () => {
     if (!inputText.trim()) return;
@@ -138,39 +90,10 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
     setStep('parsing');
 
     try {
-      // NOTE: Use API endpoint to parse text into words
-      const response = await fetch('/api/ai/parse-words', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ text: inputText })
-      });
-
-      if (!response.ok) {
-        throw new Error(`API request failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      // NOTE: Server returns { words: [...] } format with isDuplicate flags
-      if (data.words && data.words.length > 0) {
-        const parsed: ParsedWord[] = data.words.map((item: ParsedWord) => ({
-          word: item.word || '',
-          translate: item.translate || '',
-          isDuplicate: item.isDuplicate || false
-        }));
-        setParsedWords(parsed);
-        setStep('review');
-        return;
-      }
-
-      // NOTE: Fallback to manual parsing if AI returns no results
-      throw new Error('AI parsing returned no results');
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      showAlert.error(`Error parsing text with AI: ${message}`);
-      // NOTE: Fallback manual parsing for demo
+      setParsedWords(await parseWordsFromText(inputText));
+      setStep('review');
+    } catch (error) {
+      showAlert.error(`Error parsing text with AI: ${describeFailure(error)}`);
     } finally {
       setIsLoading(false);
     }
@@ -178,34 +101,27 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
 
   const handleImportWords = async () => {
     setIsLoading(true);
+
     try {
-      const wordsToAdd = parsedWords.filter(word => !word.isDuplicate);
-      if (wordsToAdd.length === 0) {
+      const toAdd = wordsToImport(parsedWords);
+      if (toAdd.length === 0) {
         showAlert.error('Все слова уже существуют в словаре');
         return;
       }
-      await addWords(wordsToAdd.map(({ word, translate }) => ({ word, translate })));
+
+      await addWords(toAdd);
       handleClose();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      showAlert.error(`Error importing words: ${message}`);
+    } catch (error) {
+      showAlert.error(`Error importing words: ${describeFailure(error)}`);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const updateParsedWord = useCallback(
-    (index: number, field: 'word' | 'translate', value: string) => {
-      setParsedWords(prev =>
-        prev.map((word, i) => (i === index ? { ...word, [field]: value } : word))
-      );
-    },
-    []
-  );
+  const updateParsedWord = (index: number, field: 'word' | 'translate', value: string) =>
+    setParsedWords(prev => updateWordAt(prev, index, field, value));
 
-  const removeParsedWord = useCallback((index: number) => {
-    setParsedWords(prev => prev.filter((_, i) => i !== index));
-  }, []);
+  const removeParsedWord = (index: number) => setParsedWords(prev => removeWordAt(prev, index));
 
   return (
     <Dialog
@@ -258,12 +174,7 @@ const ImportWordsModal: React.FC<ImportWordsModalProps> = ({
             {step === 'parsing' && 'Обработка текста...'}
             {step === 'review' && 'Проверка и редактирование'}
           </Typography>
-          <Chip
-            icon={<LanguageIcon />}
-            label={getLanguageDisplayName()}
-            color="primary"
-            size="small"
-          />
+          <Chip icon={<LanguageIcon />} label={languageDisplayName} color="primary" size="small" />
         </Box>
         <IconButton onClick={handleClose}>
           <CloseIcon />
@@ -442,7 +353,7 @@ cat - кот"
 
         {step === 'review' && (
           <>
-            <Button onClick={() => setStep('input')}>Назад</Button>
+            <Button onClick={backToInput}>Назад</Button>
             <Button onClick={handleClose}>Отмена</Button>
             <Button
               variant="contained"

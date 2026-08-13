@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { languageForm } from 'src/constants/languages';
 import { CHAT_PROMPTS } from 'src/prompts';
 import { chatMessageRepository, userSettingsRepository } from 'src/repository/client';
 import { AIFactory } from './aiFactory';
@@ -19,18 +20,9 @@ export interface SendMessageResponse {
   chatId: string;
 }
 
-// Readable names for the prompt; unknown codes fall through as-is.
-const LANGUAGE_NAMES: Record<string, string> = {
-  en: 'английский',
-  pl: 'польский',
-  de: 'немецкий',
-  fr: 'французский',
-  es: 'испанский',
-  it: 'итальянский'
-};
-
+/** Readable name for the prompt; unknown codes fall through as-is. */
 export function languageNameFor(code: string): string {
-  return LANGUAGE_NAMES[code] || code;
+  return languageForm(code, 'nominative');
 }
 
 /** The chat the user is continuing, creating one for the language if needed. */

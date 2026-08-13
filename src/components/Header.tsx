@@ -28,6 +28,7 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from 'src/store/appStore';
+import { DEFAULT_LANGUAGE_CODE, languageForm } from 'src/constants/languages';
 import { useSettingsStore } from 'src/store/settingsStore';
 import { resolveLanguageSwitchRedirect } from 'src/utils/languageRedirect';
 import AIModelSelector from './AIModelSelector';
@@ -53,19 +54,9 @@ const Header: React.FC = () => {
 
   const isLoading = state === 'loading-exercises' || state === 'loading-topics' || isNavigating;
 
-  // Get display name for the learning language
-  const getLanguageDisplayName = () => {
-    const languageCode = settings?.learningLanguage || 'en';
-    const languageNames: Record<string, string> = {
-      en: 'английского',
-      pl: 'польского',
-      de: 'немецкого',
-      fr: 'французского',
-      es: 'испанского',
-      it: 'итальянского'
-    };
-    return languageNames[languageCode] || languageCode;
-  };
+  // "Изучение английского языка" - the genitive form belongs in the title.
+  const getLanguageDisplayName = () =>
+    languageForm(settings?.learningLanguage || DEFAULT_LANGUAGE_CODE, 'genitive');
 
   useEffect(() => {
     void loadLastSelectedTopic();
