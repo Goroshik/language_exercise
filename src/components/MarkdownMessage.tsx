@@ -13,7 +13,6 @@ interface MarkdownMessageProps {
 }
 
 const MarkdownMessage: React.FC<MarkdownMessageProps> = ({ content, role }) => {
-
   return (
     <Box
       sx={{

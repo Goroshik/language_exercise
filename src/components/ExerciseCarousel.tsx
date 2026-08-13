@@ -42,12 +42,15 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
     onIndexChange?.(newIndex);
   }, [currentIndex, totalBlocks, externalIndex, onIndexChange]);
 
-  const goToBlock = useCallback((index: number) => {
-    if (externalIndex === undefined) {
-      setInternalIndex(index);
-    }
-    onIndexChange?.(index);
-  }, [externalIndex, onIndexChange]);
+  const goToBlock = useCallback(
+    (index: number) => {
+      if (externalIndex === undefined) {
+        setInternalIndex(index);
+      }
+      onIndexChange?.(index);
+    },
+    [externalIndex, onIndexChange]
+  );
 
   if (totalBlocks === 0) {
     return null;
@@ -107,9 +110,7 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
         </IconButton>
 
         {/* Current Block */}
-        <Box sx={{ padding: { xs: '0 20px', sm: '0 30px' } }}>
-          {children[currentIndex]}
-        </Box>
+        <Box sx={{ padding: { xs: '0 20px', sm: '0 30px' } }}>{children[currentIndex]}</Box>
       </Box>
 
       {/* Pagination Indicators */}
@@ -130,7 +131,7 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
           <Box
             key={index}
             onClick={() => goToBlock(index)}
-            onKeyDown={(e) => {
+            onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
                 goToBlock(index);
@@ -147,13 +148,18 @@ const ExerciseCarousel: React.FC<ExerciseCarouselProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: '50%',
-              backgroundColor: index === currentIndex ? theme.palette.primary.main : theme.palette.grey[300],
-              color: index === currentIndex ? theme.palette.primary.contrastText : theme.palette.text.secondary,
+              backgroundColor:
+                index === currentIndex ? theme.palette.primary.main : theme.palette.grey[300],
+              color:
+                index === currentIndex
+                  ? theme.palette.primary.contrastText
+                  : theme.palette.text.secondary,
               fontWeight: index === currentIndex ? 'bold' : 'normal',
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               '&:hover': {
-                backgroundColor: index === currentIndex ? theme.palette.primary.dark : theme.palette.grey[400],
+                backgroundColor:
+                  index === currentIndex ? theme.palette.primary.dark : theme.palette.grey[400],
                 transform: 'scale(1.1)'
               },
               '&:focus': {

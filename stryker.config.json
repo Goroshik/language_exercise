@@ -21,6 +21,8 @@
     "src/store/settingsStore.ts",
     "src/store/chatStore.ts",
     "src/services/chatService.ts",
+    "src/utils/aiModelSelection.ts",
+    "src/services/aiModelsClient.ts",
     "src/services/openAI.ts",
     "src/services/checkEssayService.ts",
     "src/services/trainingExercisesService.ts",
