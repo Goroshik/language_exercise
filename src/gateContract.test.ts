@@ -119,7 +119,7 @@ describe('the ratchet only moves down', () => {
   // Ceilings recorded when the gates were introduced. Lowering these is the
   // whole point; raising one means the debt grew and must not be accepted.
   it.each([
-    ['lintErrors', 63],
+    ['lintErrors', 52],
     ['crapViolations', 107],
     ['suppressions', 20]
   ])('%s never exceeds %i', (counter, ceiling) => {

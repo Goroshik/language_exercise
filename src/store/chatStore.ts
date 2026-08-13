@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 
 export const CHAT_STORAGE_KEY = 'chat-storage';
+const CHAT_ENDPOINT = '/api/chat/message';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -29,6 +30,89 @@ interface ChatStore {
   createNewChat: () => void;
 }
 
+type Set = {
+  (partial: Partial<ChatStore>): void;
+  (updater: (state: ChatStore) => Partial<ChatStore>): void;
+};
+type Get = () => ChatStore;
+
+/** The DB schema carries no timestamp, so history is stamped on arrival. */
+export function toChatMessages(
+  raw: Array<{ role: string; content: string }>,
+  now: number
+): ChatMessage[] {
+  return raw.map(msg => ({
+    role: msg.role as 'user' | 'assistant',
+    content: msg.content,
+    timestamp: now
+  }));
+}
+
+const EMPTY_CHAT = { messages: [], chatId: null };
+
+const setCurrentLanguage = (set: Set, get: Get) => (language: string) => {
+  const previousLanguage = get().currentLanguage;
+  set({ currentLanguage: language });
+
+  if (previousLanguage === language) return;
+
+  // A language switch starts a fresh conversation; the first initialisation just
+  // loads whatever the server has. Deferred so the new state is visible.
+  if (previousLanguage) {
+    set(EMPTY_CHAT);
+  }
+  setTimeout(() => void get().loadHistory(), 0);
+};
+
+const sendMessage = (set: Set, get: Get) => async (message: string) => {
+  const userMessage = message.trim();
+  if (!userMessage || get().isLoading) return;
+
+  get().addMessage({ role: 'user', content: userMessage, timestamp: Date.now() });
+  set({ isLoading: true });
+
+  try {
+    const response = await fetch(CHAT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: userMessage, chatId: get().chatId })
+    });
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to send message');
+    }
+
+    if (data.chatId) {
+      set({ chatId: data.chatId });
+    }
+    get().addMessage({ role: 'assistant', content: data.message.content, timestamp: Date.now() });
+  } catch (error) {
+    showAlert.error(error instanceof Error ? error.message : 'Ошибка при отправке сообщения');
+  } finally {
+    set({ isLoading: false });
+  }
+};
+
+const loadHistory = (set: Set) => async () => {
+  try {
+    const response = await fetch(CHAT_ENDPOINT);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || 'Failed to load chat history');
+    }
+
+    if (data.chatId) {
+      set({ chatId: data.chatId });
+    }
+    set({ messages: toChatMessages(data.messages || [], Date.now()) });
+  } catch (error) {
+    // Keep whatever is on screen; a failed history load is not worth an alert.
+    console.error('Failed to load chat history:', error);
+  }
+};
+
 export const useChatStore = create<ChatStore>()(
   devtools(
     persist(
@@ -39,157 +123,26 @@ export const useChatStore = create<ChatStore>()(
         isLoading: false,
         currentLanguage: null,
 
-        addMessage: (message: ChatMessage) => {
-          set(state => ({
-            messages: [...state.messages, message]
-          }));
-        },
+        addMessage: (message: ChatMessage) =>
+          set(state => ({ messages: [...state.messages, message] })),
+        setMessages: (messages: ChatMessage[]) => set({ messages }),
+        clearMessages: () => set({ messages: [] }),
+        setIsOpen: (isOpen: boolean) => set({ isOpen }),
+        setIsLoading: (isLoading: boolean) => set({ isLoading }),
+        setChatId: (chatId: string | null) => set({ chatId }),
+        createNewChat: () => set(EMPTY_CHAT),
 
-        setMessages: (messages: ChatMessage[]) => {
-          set({ messages });
-        },
-
-        clearMessages: () => {
-          set({ messages: [] });
-        },
-
-        setIsOpen: (isOpen: boolean) => {
-          set({ isOpen });
-        },
-
-        setIsLoading: (isLoading: boolean) => {
-          set({ isLoading });
-        },
-
-        setChatId: (chatId: string | null) => {
-          set({ chatId });
-        },
-
-        setCurrentLanguage: (language: string) => {
-          const previousLanguage = get().currentLanguage;
-          console.log('[ChatStore] setCurrentLanguage:', {
-            previousLanguage,
-            newLanguage: language
-          });
-
-          // Update language
-          set({ currentLanguage: language });
-
-          // If language changed (and it's not the first initialization), reload chat history
-          if (previousLanguage && previousLanguage !== language) {
-            console.log('[ChatStore] Language changed, clearing and reloading history');
-            set({ messages: [], chatId: null });
-            // Use setTimeout to ensure state is updated before loading
-            setTimeout(() => {
-              void get().loadHistory();
-            }, 0);
-          } else if (!previousLanguage) {
-            // First time initialization - load history for current language
-            console.log('[ChatStore] First initialization, loading history');
-            setTimeout(() => {
-              void get().loadHistory();
-            }, 0);
-          }
-        },
-
-        createNewChat: () => {
-          set({ messages: [], chatId: null });
-        },
-
-        sendMessage: async (message: string) => {
-          const userMessage = message.trim();
-          if (!userMessage || get().isLoading) return;
-
-          // Add user message to local store immediately
-          get().addMessage({
-            role: 'user',
-            content: userMessage,
-            timestamp: Date.now()
-          });
-
-          set({ isLoading: true });
-
-          try {
-            const response = await fetch('/api/chat/message', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                message: userMessage,
-                chatId: get().chatId
-              })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-              throw new Error(data.error || 'Failed to send message');
-            }
-
-            // Update chatId if it's a new chat
-            if (data.chatId && data.chatId !== get().chatId) {
-              set({ chatId: data.chatId });
-            }
-
-            // Add AI assistant's response to local store
-            get().addMessage({
-              role: 'assistant',
-              content: data.message.content,
-              timestamp: Date.now()
-            });
-          } catch (error) {
-            showAlert.error(
-              error instanceof Error ? error.message : 'Ошибка при отправке сообщения'
-            );
-          } finally {
-            set({ isLoading: false });
-          }
-        },
-
-        loadHistory: async () => {
-          console.log('[ChatStore] loadHistory called');
-          try {
-            const response = await fetch('/api/chat/message');
-            const data = await response.json();
-
-            console.log('[ChatStore] loadHistory response:', {
-              chatId: data.chatId,
-              messagesCount: data.messages?.length
-            });
-
-            if (!response.ok) {
-              throw new Error(data.error || 'Failed to load chat history');
-            }
-
-            // Set chatId from server response
-            if (data.chatId) {
-              set({ chatId: data.chatId });
-            }
-
-            // Convert DB messages to store format
-            const historyMessages: ChatMessage[] = (data.messages || []).map(
-              (msg: { role: string; content: string }) => ({
-                role: msg.role as 'user' | 'assistant',
-                content: msg.content,
-                timestamp: Date.now() // DB doesn't have timestamp in current schema
-              })
-            );
-
-            set({ messages: historyMessages });
-          } catch (error) {
-            console.error('Failed to load chat history:', error);
-            // Don't show error alert, just keep local messages
-          }
-        },
+        setCurrentLanguage: setCurrentLanguage(set, get),
+        sendMessage: sendMessage(set, get),
+        loadHistory: loadHistory(set),
 
         clearHistory: async () => {
-          // Simply start a new chat - old messages stay in DB
-          set({ messages: [], chatId: null });
+          // Simply start a new chat - old messages stay in the database.
+          set(EMPTY_CHAT);
           showAlert.success('Начат новый чат');
         }
       }),
-      {
-        name: CHAT_STORAGE_KEY
-      }
+      { name: CHAT_STORAGE_KEY }
     )
   )
 );

@@ -223,7 +223,9 @@ describe('loadTrainingExercises', () => {
 describe('handleCheckAnswers', () => {
   const withBlock = async () => {
     await useAppStore.getState().handleTopicSelect();
-    return useAppStore.getState().exerciseBlocks[0]!.id;
+    const block = useAppStore.getState().exerciseBlocks[0];
+    if (!block) throw new Error('expected a block to have been created');
+    return block.id;
   };
 
   it('stores the verdicts against the block', async () => {
