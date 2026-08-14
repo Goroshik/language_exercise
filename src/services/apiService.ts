@@ -1,14 +1,14 @@
 import { CheckAnswerItem, DictionaryWord } from 'src/types';
 
 interface GenerateTextRequest {
-  mode?: 'student' | 'teacher';
-  topic?: string;
-  languageId?: string;
-  level?: string;
-  selectedWords?: DictionaryWord[];
-  prompt?: string;
-  customTopic?: string;
-  sentenceCount?: number;
+  mode?: 'student' | 'teacher' | undefined;
+  topic?: string | undefined;
+  languageId?: string | undefined;
+  level?: string | undefined;
+  selectedWords?: DictionaryWord[] | undefined;
+  prompt?: string | undefined;
+  customTopic?: string | undefined;
+  sentenceCount?: number | undefined;
 }
 
 interface AddWordRequest {
@@ -32,7 +32,11 @@ export class ApiService {
     data: GenerateTextRequest
   ): Promise<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }> {
     console.log('ApiService.generateText called with:', data);
-    const result = await this.post<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }>('/api/ai/generate-text', data);
+    const result = await this.post<{
+      data: string[];
+      sentenceIds: string[];
+      hasAnswers?: Record<string, boolean>;
+    }>('/api/ai/generate-text', data);
     console.log('ApiService.generateText result:', result);
     return result;
   }
@@ -44,7 +48,11 @@ export class ApiService {
     limit?: number;
     currentSentenceIds?: string[];
   }): Promise<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }> {
-    return this.post<{ data: string[]; sentenceIds: string[]; hasAnswers?: Record<string, boolean> }>('/api/ai/training-exercises', data);
+    return this.post<{
+      data: string[];
+      sentenceIds: string[];
+      hasAnswers?: Record<string, boolean>;
+    }>('/api/ai/training-exercises', data);
   }
 
   static async checkHistoryAvailability(data: {

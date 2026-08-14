@@ -72,20 +72,20 @@ const initialState = {
 export const useEssayStore = create<EssayState>((set, get) => ({
   ...initialState,
 
-  setEssays: (essays) => set({ essays }),
-  setCurrentEssayId: (id) => set({ currentEssayId: id }),
-  setTitle: (title) => set({ title }),
-  setContent: (content) => set({ content }),
-  setAiResponse: (response) => set({ aiResponse: response }),
-  setDefaultTopics: (topics) => set({ defaultTopics: topics }),
-  setLoading: (loading) => set({ loading }),
-  setSaving: (saving) => set({ saving }),
-  setHoveredErrorIndex: (index) => set({ hoveredErrorIndex: index }),
-  setSelectedErrorIndex: (index) => set({ selectedErrorIndex: index }),
+  setEssays: essays => set({ essays }),
+  setCurrentEssayId: id => set({ currentEssayId: id }),
+  setTitle: title => set({ title }),
+  setContent: content => set({ content }),
+  setAiResponse: response => set({ aiResponse: response }),
+  setDefaultTopics: topics => set({ defaultTopics: topics }),
+  setLoading: loading => set({ loading }),
+  setSaving: saving => set({ saving }),
+  setHoveredErrorIndex: index => set({ hoveredErrorIndex: index }),
+  setSelectedErrorIndex: index => set({ selectedErrorIndex: index }),
 
   loadEssayByTitle: (selectedTitle: string) => {
     const { essays } = get();
-    const essay = essays.find((e) => e.title === selectedTitle);
+    const essay = essays.find(e => e.title === selectedTitle);
 
     if (essay) {
       let parsedResponse = null;

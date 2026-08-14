@@ -12,13 +12,12 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
     const originalWord = await wordRepository
       .getAllWords(userId)
       .then(words => words.find(w => w?.id === id));
-    const updatedWord = await updateWordService(
-      userId,
+    const updatedWord = await updateWordService(userId, {
       id,
       word,
       translate,
-      originalWord?.createdAt
-    );
+      createdAt: originalWord?.createdAt
+    });
     return NextResponse.json({ success: true, word: updatedWord });
   } catch (error) {
     return NextResponse.json(

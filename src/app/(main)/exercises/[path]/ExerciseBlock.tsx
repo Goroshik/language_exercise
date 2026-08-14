@@ -1,40 +1,27 @@
 import { Button, CircularProgress } from '@mui/material';
 import React from 'react';
 import {
-    CheckButtonBox,
-    ExerciseBlockCaption,
-    ExerciseBlockContainer,
-    ExerciseBlockInner,
-    ExerciseBlockTitle,
-    ExerciseContent,
-    ExerciseIndex,
-    ExerciseRow
+  CheckButtonBox,
+  ExerciseBlockCaption,
+  ExerciseBlockContainer,
+  ExerciseBlockInner,
+  ExerciseBlockTitle,
+  ExerciseContent,
+  ExerciseIndex,
+  ExerciseRow
 } from './ExerciseBlock.styled';
 
 import TextWithInputs from 'src/components/TextWithInputs';
+import type { ExerciseBlock as ExerciseBlockData, ValidationResult } from 'src/types';
 
 import LearnModeText from './LearnModeText';
 
-interface Exercise {
-  sentence: string;
-  correctAnswers: string[];
-  sentenceId?: string;
-  hasAnswer?: boolean;
-}
-
 interface ExerciseBlockProps {
-  block: {
-    id: string;
-    exercises: Exercise[];
-    createdAt: Date;
-    isChecking: boolean;
-  };
+  block: ExerciseBlockData;
   blockIndex: number;
-  validationResults: {
-    [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] };
-  };
+  validationResults: { [key: string]: ValidationResult };
   onCheckAnswers: (blockId: string, userAnswers: { [key: string]: string }) => void;
-  mode?: 'student' | 'teacher';
+  mode?: 'student' | 'teacher' | undefined;
 }
 
 const ExerciseBlock: React.FC<ExerciseBlockProps> = ({

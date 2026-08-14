@@ -2,18 +2,18 @@ import React, { useEffect, useState } from 'react';
 
 import DeleteIcon from '@mui/icons-material/Delete';
 import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogTitle,
-    IconButton,
-    List,
-    ListItem,
-    ListItemText,
-    MenuItem,
-    Select,
-    TextField
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  List,
+  ListItem,
+  ListItemText,
+  MenuItem,
+  Select,
+  TextField
 } from '@mui/material';
 
 const SERVICES = [
@@ -34,7 +34,7 @@ export const UserTokensSettings: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchTokens();
+    void fetchTokens();
   }, []);
 
   const handleAdd = async () => {
@@ -45,12 +45,12 @@ export const UserTokensSettings: React.FC = () => {
     });
     setToken('');
     setOpen(false);
-    fetchTokens();
+    void fetchTokens();
   };
 
   const handleDelete = async (id: string) => {
     await fetch(`/api/tokens/${id}`, { method: 'DELETE' });
-    fetchTokens();
+    void fetchTokens();
   };
 
   return (

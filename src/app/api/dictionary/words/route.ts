@@ -22,8 +22,14 @@ export async function GET(request: NextRequest) {
     const userSettings = await userSettingsRepository.findByUserId(userId);
     const languageCode = userSettings?.learningLanguage || undefined;
 
-    const result = await searchWordsService(userId, query, languageCode, limit, page, sortByUsage);
-      
+    const result = await searchWordsService(userId, {
+      query,
+      languageCode,
+      limit,
+      page,
+      sortByUsage
+    });
+
     return NextResponse.json({ success: true, ...result });
   } catch (_error) {
     console.log('Error in GET /api/dictionary/words:', _error);

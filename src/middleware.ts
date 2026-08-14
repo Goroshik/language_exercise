@@ -1,64 +1,42 @@
-import { jwtVerify } from 'jose';
 import { NextRequest, NextResponse } from 'next/server';
+import { decideRoute, jwtCookieName, userIdFromToken } from 'src/utils/authRouting';
 
-const publicRoutes = ['/auth/login', '/auth/reset'];
+function withUserHeader(request: NextRequest, userId: string): NextResponse {
+  const headers = new Headers(request.headers);
+  headers.set('x-user-id', userId);
+  return NextResponse.next({ request: { headers } });
+}
+
+function unauthorized(): NextResponse {
+  return new NextResponse(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+    status: 401,
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+
+function redirect(request: NextRequest, to: string, callbackUrl?: string): NextResponse {
+  const url = new URL(to, request.url);
+  if (callbackUrl) {
+    url.searchParams.set('callbackUrl', callbackUrl);
+  }
+  return NextResponse.redirect(url);
+}
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const rawToken = request.cookies.get(jwtCookieName())?.value;
+  const action = decideRoute(pathname, await userIdFromToken(rawToken));
 
-  if (pathname.startsWith('/api/auth')) {
-    return NextResponse.next();
+  switch (action.kind) {
+    case 'inject-user':
+      return withUserHeader(request, action.userId);
+    case 'unauthorized':
+      return unauthorized();
+    case 'redirect':
+      return redirect(request, action.to, action.callbackUrl);
+    default:
+      return NextResponse.next();
   }
-
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
-  const isApi = pathname.startsWith('/api');
-
-  const jwtCookieName = process.env.JWT_COOKIE_NAME || 'app_token';
-  const rawToken = request.cookies.get(jwtCookieName)?.value;
-
-  let userId: string | null = null;
-  if (rawToken) {
-    try {
-      const secret = new TextEncoder().encode(process.env.JWT_SECRET || '***REMOVED***');
-      const { payload } = await jwtVerify(rawToken, secret);
-      const id = (payload as { id?: unknown }).id;
-      userId = typeof id === 'string' ? id : null;
-    } catch {
-      userId = null;
-    }
-  }
-
-  if (userId) {
-    if (isPublicRoute) {
-      return NextResponse.redirect(new URL('/topics', request.url));
-    }
-
-    if (isApi) {
-      const requestHeaders = new Headers(request.headers);
-      requestHeaders.set('x-user-id', userId);
-      return NextResponse.next({
-        request: {
-          headers: requestHeaders
-        }
-      });
-    }
-
-    return NextResponse.next();
-  }
-
-  if (!isPublicRoute) {
-    if (isApi) {
-      return new NextResponse(JSON.stringify({ success: false, error: 'Unauthorized' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    const url = new URL('/auth/login', request.url);
-    url.searchParams.set('callbackUrl', pathname);
-    return NextResponse.redirect(url);
-  }
-
-  return NextResponse.next();
 }
 
 export const config = {

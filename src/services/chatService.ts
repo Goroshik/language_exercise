@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import { languageForm } from 'src/constants/languages';
 import { CHAT_PROMPTS } from 'src/prompts';
 import { chatMessageRepository, userSettingsRepository } from 'src/repository/client';
 import { AIFactory } from './aiFactory';
@@ -19,6 +20,27 @@ export interface SendMessageResponse {
   chatId: string;
 }
 
+/** Readable name for the prompt; unknown codes fall through as-is. */
+export function languageNameFor(code: string): string {
+  return languageForm(code, 'nominative');
+}
+
+/** The chat the user is continuing, creating one for the language if needed. */
+async function resolveChatId(
+  userId: string,
+  learningLanguage: string,
+  provided: string | undefined
+): Promise<string> {
+  if (provided) return provided;
+
+  const existing = await userSettingsRepository.getChatIdForLanguage(userId, learningLanguage);
+  if (existing) return existing;
+
+  const chatId = randomUUID();
+  await userSettingsRepository.setChatIdForLanguage(userId, learningLanguage, chatId);
+  return chatId;
+}
+
 export class ChatService {
   /**
    * Send a message to the AI chat assistant
@@ -26,63 +48,22 @@ export class ChatService {
    * @returns Response with assistant's reply and chatId
    */
   static async sendMessage(request: SendMessageRequest): Promise<SendMessageResponse> {
-    const { message, userId, chatId: providedChatId } = request;
+    const { message, userId } = request;
 
-    // Get user settings to get the learning language
     const userSettings = await userSettingsRepository.findByUserId(userId);
     const learningLanguage = userSettings?.learningLanguage || 'en';
+    const chatId = await resolveChatId(userId, learningLanguage, request.chatId);
 
-    // Get or create chatId for current language
-    let chatId = providedChatId;
-    if (!chatId) {
-      // Try to get existing chatId for this language
-      const existingChatId = await userSettingsRepository.getChatIdForLanguage(
-        userId,
-        learningLanguage
-      );
-      chatId = existingChatId || undefined;
+    await chatMessageRepository.addMessage({ userId, chatId, role: 'user', content: message });
 
-      // If no chatId exists for this language, generate a new one
-      if (!chatId) {
-        chatId = randomUUID();
-        await userSettingsRepository.setChatIdForLanguage(userId, learningLanguage, chatId);
-      }
-    }
-
-    // Save user message to database with chatId
-    await chatMessageRepository.addMessage({
-      userId,
-      chatId,
-      role: 'user',
-      content: message
-    });
-
-    // Map language codes to readable names for the prompt
-    const languageNames: Record<string, string> = {
-      en: 'английский',
-      pl: 'польский',
-      de: 'немецкий',
-      fr: 'французский',
-      es: 'испанский',
-      it: 'итальянский'
-    };
-    const languageName = languageNames[learningLanguage] || learningLanguage;
-
-    // Get AI service based on user settings
     const aiService = await AIFactory.getAIService(userId);
-
-    // Validate that the service supports text generation
     if (typeof aiService.generateText !== 'function') {
       throw new Error('Selected AI service does not support chat functionality');
     }
 
-    // Build the prompt using the chat prompt template with learning language
-    const prompt = CHAT_PROMPTS.systemPrompt(message, languageName);
-
-    // Generate AI response
+    const prompt = CHAT_PROMPTS.systemPrompt(message, languageNameFor(learningLanguage));
     const aiResponse = await aiService.generateText(prompt, userId);
 
-    // Save assistant response to database with chatId
     await chatMessageRepository.addMessage({
       userId,
       chatId,
@@ -90,13 +71,7 @@ export class ChatService {
       content: aiResponse.text
     });
 
-    return {
-      message: {
-        role: 'assistant',
-        content: aiResponse.text
-      },
-      chatId
-    };
+    return { message: { role: 'assistant', content: aiResponse.text }, chatId };
   }
 
   /**

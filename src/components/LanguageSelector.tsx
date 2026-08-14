@@ -14,7 +14,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onChange }) => {
 
   useEffect(() => {
     if (!settings) {
-      loadSettings();
+      void loadSettings();
     }
   }, [settings, loadSettings]);
 

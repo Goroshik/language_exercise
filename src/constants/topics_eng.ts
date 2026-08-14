@@ -32,7 +32,6 @@ export default {
     possessive_s: 'Possessive ’s (притяжательный падеж)'
   },
 
-
   /* ====================== A2 ====================== */
 
   'A2: Nouns and functions': {
@@ -63,7 +62,6 @@ export default {
     past_continuous_basic: 'Past Continuous — basics'
   },
 
-
   /* ====================== B1 ====================== */
 
   'B1: Nouns and forms': {
@@ -89,7 +87,6 @@ export default {
     relative_clauses_basic: 'Relative clauses — basic (относительные предложения)',
     modal_perfect: 'Modal Perfect (модальные глаголы + perfect)'
   },
-
 
   /* ====================== B2 ====================== */
 

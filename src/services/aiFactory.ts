@@ -19,7 +19,7 @@ export class AIFactory {
 
       const selectedModel = settings?.aiModel || 'gemini-2.5-flash';
 
-      console.log(selectedModel)
+      console.log(selectedModel);
 
       // Determine service based on model name
       if (this.getAvailableModels().gemini.some(model => model.value === selectedModel)) {
@@ -48,17 +48,17 @@ export class AIFactory {
         { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro', provider: 'gemini' },
         { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash', provider: 'gemini' },
         { value: 'gemini-2.0-flash-lite', label: 'Gemini 2.0 Flash-Lite', provider: 'gemini' },
-        { value: 'gemini-1.0-pro', label: 'Gemini 1.0 Pro', provider: 'gemini' },
+        { value: 'gemini-1.0-pro', label: 'Gemini 1.0 Pro', provider: 'gemini' }
       ],
       openai: [
         { value: 'gpt-5', label: 'GPT-5', provider: 'openai' },
-        { value: 'gpt-4.1', label: 'GPT-4.1', provider: 'openai' },
+        { value: 'gpt-4.1', label: 'GPT-4.1', provider: 'openai' }
       ],
       claude: [
         { value: 'claude-haiku-4.5', label: 'Claude Haiku 4.5', provider: 'anthropic' },
         { value: 'claude-opus-4.5', label: 'Claude Opus 4.5', provider: 'anthropic' },
         { value: 'claude-sonnet-4.5', label: 'Claude Sonnet 4.5', provider: 'anthropic' },
-        { value: 'claude-sonnet-3.5', label: 'Claude Sonnet 3.7', provider: 'anthropic' },
+        { value: 'claude-sonnet-3.5', label: 'Claude Sonnet 3.7', provider: 'anthropic' }
       ]
     };
   }

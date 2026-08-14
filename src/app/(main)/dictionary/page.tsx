@@ -64,18 +64,18 @@ const DictionaryPage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadSettings();
+    void loadSettings();
   }, [loadSettings]);
 
   useEffect(() => {
-    loadWords();
+    void loadWords();
   }, [debouncedSearchQuery, currentPage, settings?.learningLanguage]); // Reload when search, page, or language changes
 
   // Listen for language changes from header
   useEffect(() => {
     const handleLanguageChange = () => {
       setCurrentPage(1); // Reset to first page
-      loadWords();
+      void loadWords();
     };
 
     window.addEventListener('learningLanguageChanged', handleLanguageChange);

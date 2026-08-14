@@ -46,3 +46,9 @@ next-env.d.ts
 .eslintcache
 
 /src/generated/prisma
+
+# Quality gate artifacts
+/coverage
+/reports
+/.stryker-tmp
+.eslintcache

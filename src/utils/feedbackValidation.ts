@@ -33,14 +33,14 @@ export function validateTitle(title: unknown): FeedbackValidationResult {
       error: 'Title is required'
     };
   }
-  
+
   if (title.length > 200) {
     return {
       isValid: false,
       error: 'Title must be less than 200 characters'
     };
   }
-  
+
   return { isValid: true };
 }
 
@@ -54,7 +54,7 @@ export function validateDescription(description: unknown): FeedbackValidationRes
       error: 'Description is required'
     };
   }
-  
+
   return { isValid: true };
 }
 
@@ -65,25 +65,25 @@ export function validateImage(image: unknown): FeedbackValidationResult {
   if (!image) {
     return { isValid: true }; // Image is optional
   }
-  
+
   if (typeof image !== 'string') {
     return {
       isValid: false,
       error: 'Image must be a string'
     };
   }
-  
+
   // Check if it's a valid base64 string or URL
   const isBase64 = /^data:image\/(png|jpeg|jpg|gif|webp);base64,/.test(image);
   const isUrl = /^https?:\/\/.+/.test(image);
-  
+
   if (!isBase64 && !isUrl) {
     return {
       isValid: false,
       error: 'Image must be a valid base64 string or URL'
     };
   }
-  
+
   return { isValid: true };
 }
 
@@ -95,21 +95,21 @@ export function validateFeedback(input: FeedbackInput): FeedbackValidationResult
   if (!typeValidation.isValid) {
     return typeValidation;
   }
-  
+
   const titleValidation = validateTitle(input.title);
   if (!titleValidation.isValid) {
     return titleValidation;
   }
-  
+
   const descriptionValidation = validateDescription(input.description);
   if (!descriptionValidation.isValid) {
     return descriptionValidation;
   }
-  
+
   const imageValidation = validateImage(input.image);
   if (!imageValidation.isValid) {
     return imageValidation;
   }
-  
+
   return { isValid: true };
 }

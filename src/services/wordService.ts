@@ -1,18 +1,19 @@
 import { wordRepository } from 'src/repository/client';
 import { DictionaryWord } from 'src/types';
 
-export async function updateWordService(
-  userId: string,
-  id: string,
-  word: string,
-  translate: string,
-  createdAt?: Date
-) {
+export interface UpdateWordInput {
+  id: string;
+  word: string;
+  translate: string;
+  createdAt?: Date | undefined;
+}
+
+export async function updateWordService(userId: string, input: UpdateWordInput) {
   const updatedWord: DictionaryWord = {
-    id,
-    word: word.trim(),
-    translate: translate.trim(),
-    createdAt: createdAt || new Date()
+    id: input.id,
+    word: input.word.trim(),
+    translate: input.translate.trim(),
+    createdAt: input.createdAt || new Date()
   };
   await wordRepository.updateWord(userId, updatedWord);
   return updatedWord;

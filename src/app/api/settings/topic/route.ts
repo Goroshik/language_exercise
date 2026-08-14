@@ -31,10 +31,7 @@ export async function POST(request: NextRequest) {
     const { language, topic } = body;
 
     if (!language || !topic) {
-      return NextResponse.json(
-        { error: 'Language and topic are required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Language and topic are required' }, { status: 400 });
     }
 
     await userSettingsRepository.setTopicForLanguage(userId, language, topic);

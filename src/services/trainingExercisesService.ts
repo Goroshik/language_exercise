@@ -9,11 +9,9 @@ export interface TrainingExercisesRequest {
   currentSentenceIds?: string[]; // IDs of sentences already displayed on the page
 }
 
-// TODO: Fix types - properly type ServiceResponse body instead of using any
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type ServiceResponse = { status: number; body: any };
+export type ServiceResponse = { status: number; body: unknown };
 
-const schema = Joi.object({
+const exercisesSchema = Joi.object({
   topic: Joi.string().required(),
   languageId: Joi.string().required(),
   level: Joi.string().required(),
@@ -21,18 +19,32 @@ const schema = Joi.object({
   currentSentenceIds: Joi.array().items(Joi.string()).optional().default([])
 });
 
+const availabilitySchema = Joi.object({
+  topic: Joi.string().required(),
+  languageId: Joi.string().required(),
+  level: Joi.string().required(),
+  currentSentenceIds: Joi.array().items(Joi.string()).optional().default([])
+});
+
+/**
+ * Re-attaches hints to a stored sentence in the "(hint1, hint2)" form the
+ * exercise parser expects. Sentences without hints are returned unchanged.
+ */
+export function formatSentenceWithHints(sentence: string, hints: string[] | null): string {
+  return hints && hints.length > 0 ? `${sentence} (${hints.join(', ')})` : sentence;
+}
+
 export async function getTrainingExercisesService(
   rawBody: unknown,
   userId: string
 ): Promise<ServiceResponse> {
   try {
-    const validation = schema.validate(rawBody, { abortEarly: false, stripUnknown: true });
-    // TODO: Fix types - properly type Joi validation result instead of using any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error, value } = validation as { error?: any; value: any };
+    const { error, value } = exercisesSchema.validate(rawBody, {
+      abortEarly: false,
+      stripUnknown: true
+    });
     if (error) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const messages: string[] = (error.details || []).map((d: any) => String(d.message));
+      const messages = (error.details || []).map(detail => String(detail.message));
       return { status: 400, body: { error: messages.join('; ') } };
     }
 
@@ -63,25 +75,9 @@ export async function getTrainingExercisesService(
       sentenceIds
     });
 
-    // Format response similar to generateText service
-    const data = sentences.map(s => {
-      const hints = s.hints || [];
-      if (hints.length > 0) {
-        // Append hints in (hint1, hint2) format at the end of the sentence
-        return `${s.sentence} (${hints.join(', ')})`;
-      }
-      return s.sentence;
-    });
+    const data = sentences.map(s => formatSentenceWithHints(s.sentence, s.hints));
 
-    return {
-      status: 200,
-      body: {
-        success: true,
-        data,
-        sentenceIds,
-        hasAnswers
-      }
-    };
+    return { status: 200, body: { success: true, data, sentenceIds, hasAnswers } };
   } catch (err) {
     console.error('Error in getTrainingExercisesService:', err);
     return { status: 500, body: { error: 'Internal server error' } };
@@ -93,24 +89,16 @@ export async function checkHistoryAvailabilityService(
   userId: string
 ): Promise<ServiceResponse> {
   try {
-    const schema = Joi.object({
-      topic: Joi.string().required(),
-      languageId: Joi.string().required(),
-      level: Joi.string().required(),
-      currentSentenceIds: Joi.array().items(Joi.string()).optional().default([])
+    const { error, value } = availabilitySchema.validate(rawBody, {
+      abortEarly: false,
+      stripUnknown: true
     });
-
-    const validation = schema.validate(rawBody, { abortEarly: false, stripUnknown: true });
-    // TODO: Fix types - properly type Joi validation result instead of using any
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error, value } = validation as { error?: any; value: any };
     if (error) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const messages: string[] = (error.details || []).map((d: any) => String(d.message));
+      const messages = (error.details || []).map(detail => String(detail.message));
       return { status: 400, body: { error: messages.join('; ') } };
     }
 
-    const { topic, languageId, level, currentSentenceIds = [] } = value;
+    const { topic, languageId, level, currentSentenceIds = [] } = value as TrainingExercisesRequest;
 
     // Count available sentences, excluding already displayed ones
     const count = await sentenceHistoryRepository.countSentencesByTopicAndLevel({

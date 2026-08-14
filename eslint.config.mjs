@@ -14,6 +14,11 @@ export default [
       'dist',
       'build',
       'node_modules',
+      // Separate git worktrees checked out by tooling - not this project's sources.
+      '.claude/**',
+      // Stryker copies the whole project into its sandbox while mutating.
+      '.stryker-tmp/**',
+      'reports/**',
       '.react-router',
       '.next',
       'out',
@@ -48,7 +53,9 @@ export default [
         ecmaFeatures: {
           jsx: true
         },
-        project: null // Disable project-based linting for performance
+        // Type-aware linting: required by rules like no-floating-promises.
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname
       },
       globals: {
         // Browser globals
@@ -121,7 +128,7 @@ export default [
       'react/react-in-jsx-scope': 'off',
       'react/prop-types': 'off',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
-      
+
       // React Hooks rules - relaxed to allow manual dependency management
       'react-hooks/rules-of-hooks': 'error', // Still enforce hooks rules
       'react-hooks/exhaustive-deps': 'off', // Allow manual control of dependencies
@@ -134,27 +141,56 @@ export default [
 
       // TypeScript rules
       '@typescript-eslint/no-unused-vars': [
-        'warn',
+        'error',
         {
           argsIgnorePattern: '^_',
           varsIgnorePattern: '^_',
           caughtErrorsIgnorePattern: '^_'
         }
       ],
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
-      '@typescript-eslint/no-non-null-assertion': 'warn',
+      '@typescript-eslint/no-non-null-assertion': 'error',
+      // Type-aware: catches unawaited promises that silently swallow rejections.
+      '@typescript-eslint/no-floating-promises': 'error',
+
+      // Complexity budget - the quality gate proper.
+      complexity: ['error', 8],
+      'max-depth': ['error', 3],
+      'max-lines-per-function': ['error', { max: 50, skipBlankLines: true, skipComments: true }],
+      'max-params': ['error', 4],
 
       // General rules
       'no-console': 'off',
       'no-undef': 'error',
-      'prefer-const': 'warn',
+      'prefer-const': 'error',
       'no-var': 'error'
     },
     settings: {
       react: {
         version: 'detect'
       }
+    }
+  },
+  // Node scripts: same rules, but they run in Node rather than the browser.
+  {
+    files: ['scripts/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        process: 'readonly',
+        console: 'readonly',
+        URL: 'readonly'
+      }
+    }
+  },
+  // Test files keep every correctness rule. Only the function-size budget is
+  // lifted: a `describe` callback is a namespace holding many small cases, not
+  // a 200-line function, and counting it would punish adding test cases.
+  // Complexity, depth and param limits still apply.
+  {
+    files: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'max-lines-per-function': 'off'
     }
   }
 ];

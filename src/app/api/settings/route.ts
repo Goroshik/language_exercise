@@ -8,8 +8,6 @@ import {
 import { getUserIdFromRequest } from 'src/utils/auth';
 import { safeJson } from 'src/utils/jsonWrapper';
 
-
-
 // GET /api/settings - Get user settings
 export async function GET(request: NextRequest) {
   try {
@@ -33,7 +31,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to save user settings' }, { status: 500 });
   }
 }
-
 
 // DELETE /api/settings - Reset user settings to defaults
 export async function DELETE(request: NextRequest) {

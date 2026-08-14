@@ -3,7 +3,10 @@ export const ESSAY_PROMPTS = {
    * Check essay for grammar, punctuation, and complexity
    * Returns structured feedback with color-coded errors
    */
-  checkEssay: (essayText: string, languageName: string) => `You are helping a Russian speaker improve their ${languageName} writing. Analyze the following ${languageName} essay for:
+  checkEssay: (
+    essayText: string,
+    languageName: string
+  ) => `You are helping a Russian speaker improve their ${languageName} writing. Analyze the following ${languageName} essay for:
 1. Grammar errors
 2. Punctuation errors
 3. Text complexity

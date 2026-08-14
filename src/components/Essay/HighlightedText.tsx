@@ -39,7 +39,7 @@ export const HighlightedText: React.FC<HighlightedTextProps> = ({
       while (errorIndex !== -1) {
         const errorEnd = errorIndex + error.text.length;
         const hasOverlap = errorPositions.some(
-          (pos) =>
+          pos =>
             (errorIndex >= pos.start && errorIndex < pos.end) ||
             (errorEnd > pos.start && errorEnd <= pos.end) ||
             (errorIndex <= pos.start && errorEnd >= pos.end)
@@ -62,11 +62,14 @@ export const HighlightedText: React.FC<HighlightedTextProps> = ({
     const elements: React.ReactNode[] = [];
 
     errorPositions.forEach(({ start, end, index }) => {
+      const highlightedError = errors[index];
+      if (!highlightedError) {
+        return;
+      }
+
       // Add text before error
       if (start > lastIndex) {
-        elements.push(
-          <span key={`text-${index}`}>{content.substring(lastIndex, start)}</span>
-        );
+        elements.push(<span key={`text-${index}`}>{content.substring(lastIndex, start)}</span>);
       }
 
       // Add highlighted error
@@ -75,13 +78,11 @@ export const HighlightedText: React.FC<HighlightedTextProps> = ({
         <span
           key={`error-${index}`}
           style={{
-            backgroundColor: errors[index].color,
+            backgroundColor: highlightedError.color,
             cursor: 'pointer',
             padding: '2px 4px',
             borderRadius: '3px',
-            borderBottom: isActive
-              ? '2px solid rgba(0,0,0,0.5)'
-              : '1px solid rgba(0,0,0,0.15)',
+            borderBottom: isActive ? '2px solid rgba(0,0,0,0.5)' : '1px solid rgba(0,0,0,0.15)',
             fontWeight: isActive ? 'bold' : 'normal',
             transition: 'all 0.2s'
           }}
@@ -123,10 +124,7 @@ export const HighlightedText: React.FC<HighlightedTextProps> = ({
         }
       }}
     >
-      <Typography
-        variant="subtitle2"
-        sx={{ mb: 0.5, fontWeight: 'bold', color: 'text.secondary' }}
-      >
+      <Typography variant="subtitle2" sx={{ mb: 0.5, fontWeight: 'bold', color: 'text.secondary' }}>
         Текст с отмеченными ошибками:
       </Typography>
       {errors && errors.length > 0 && (

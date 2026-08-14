@@ -1,6 +1,7 @@
 import ClearIcon from '@mui/icons-material/Clear';
 import { Autocomplete, Box, IconButton, TextField, Tooltip, Typography } from '@mui/material';
 import React from 'react';
+import { languageForm } from 'src/constants/languages';
 
 interface EssayHeaderProps {
   languageCode: string;
@@ -20,7 +21,7 @@ export const EssayHeader: React.FC<EssayHeaderProps> = ({
   return (
     <>
       <Typography variant="h4" gutterBottom>
-        Написание текстов на {languageCode === 'en' ? 'английском' : 'польском'} языке
+        Написание текстов на {languageForm(languageCode, 'prepositional')} языке
       </Typography>
 
       <Typography

@@ -1,20 +1,14 @@
-export const GRAMMAR_PROMPTS = {
-  // For student mode - create exercises with blanks for students to fill (practice exercises)
-  generateStudentExercises: (
-    topic: string,
-    languageName: string,
-    selectedWords?: string[],
-    customTopic?: string,
-    sentenceCount?: number
-  ) => {
-    const count = sentenceCount || 5;
-    const topicContext = customTopic ? `\n\nAdditional Context: ${customTopic}\nGenerate sentences related to this context/situation while practicing the grammar topic.` : '';
-    
-    return `You are helping a Russian speaker learn ${languageName}. Generate ${count} ${languageName} sentences for practicing the topic: "${topic}".
+export interface ExercisePromptOptions {
+  topic: string;
+  languageName: string;
+  level?: string | undefined;
+  selectedWords?: string[] | undefined;
+  customTopic?: string | undefined;
+  sentenceCount?: number | undefined;
+}
 
-${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}${topicContext}
-
-IMPORTANT REQUIREMENTS:
+// The instruction block is identical for every request; only the header varies.
+const STUDENT_EXERCISE_RULES = `IMPORTANT REQUIREMENTS:
 1. Each sentence must be complete and grammatically correct
 2. ONE key word/phrase should be highlighted with **word** - this should include ALL words the student needs to write
 3. The highlighted text demonstrates the grammar topic being practiced
@@ -64,6 +58,26 @@ Example output for Polish cases:
 Widzę **kota** na ulicy. (kot)
 Idę do **sklepu** po zakupy. (sklep)
 **Dziewczyna** czyta książkę. (dziewczyna)`;
+
+export const GRAMMAR_PROMPTS = {
+  // For student mode - create exercises with blanks for students to fill (practice exercises)
+  generateStudentExercises: ({
+    topic,
+    languageName,
+    selectedWords,
+    customTopic,
+    sentenceCount
+  }: ExercisePromptOptions) => {
+    const count = sentenceCount || 5;
+    const topicContext = customTopic
+      ? `\n\nAdditional Context: ${customTopic}\nGenerate sentences related to this context/situation while practicing the grammar topic.`
+      : '';
+
+    return `You are helping a Russian speaker learn ${languageName}. Generate ${count} ${languageName} sentences for practicing the topic: "${topic}".
+
+${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}${topicContext}
+
+${STUDENT_EXERCISE_RULES}`;
   },
 
   validateAnswers: (
@@ -120,17 +134,19 @@ WAŻNE:
 - Przykład: Jeśli uczeń napisał "Potrzebuję pięciu jabłek" → translationErrors: ["Potrzebuję - Мне нужно", "pięciu - пять", "jabłek - яблок"]`,
 
   // For teacher mode - provide correct example sentences for learning/viewing
-  generateTeacherExamples: (
-    topic: string,
-    level: string,
-    languageName: string,
-    selectedWords?: string[],
-    customTopic?: string,
-    sentenceCount?: number
-  ) => {
+  generateTeacherExamples: ({
+    topic,
+    level,
+    languageName,
+    selectedWords,
+    customTopic,
+    sentenceCount
+  }: ExercisePromptOptions) => {
     const count = sentenceCount || 10;
-    const topicContext = customTopic ? `\n\nAdditional Context: ${customTopic}\nGenerate sentences related to this context/situation while demonstrating the grammar topic.` : '';
-    
+    const topicContext = customTopic
+      ? `\n\nAdditional Context: ${customTopic}\nGenerate sentences related to this context/situation while demonstrating the grammar topic.`
+      : '';
+
     return `You are helping create ${languageName} learning materials for Russian speakers. Generate ${count} complete ${languageName} sentences for students to learn the topic: "${topic}" at ${level} proficiency level.
 
 ${selectedWords && selectedWords.length > 0 ? `Focus on using these specific words/phrases: ${selectedWords.join(', ')}.` : ''}${topicContext}

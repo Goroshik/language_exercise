@@ -1,8 +1,8 @@
 export interface Exercise {
   sentence: string;
   correctAnswers: string[];
-  sentenceId?: string; // ID from SentenceHistory table
-  hasAnswer?: boolean;
+  sentenceId?: string | undefined; // ID from SentenceHistory table
+  hasAnswer?: boolean | undefined;
 }
 
 export interface ExerciseBlock {
@@ -22,8 +22,8 @@ export type AppState =
 
 export interface ValidationResult {
   isCorrect: boolean;
-  error?: string;
-  incorrectTranslations?: string[];
+  error?: string | undefined;
+  incorrectTranslations?: string[] | undefined;
 }
 
 export interface ValidationResults {
@@ -67,7 +67,8 @@ export interface AppStore {
   setState: (state: AppState) => void;
   lastSelectedTopicPath: string;
   loadLastSelectedTopic: () => Promise<string>;
-  handleTopicSelect: (data: {
+  // The options bag is optional: every implementation defaults it to {}.
+  handleTopicSelect: (data?: {
     languageId?: string;
     level?: string;
     selectedWords?: DictionaryWord[];
@@ -75,7 +76,7 @@ export interface AppStore {
     customTopic?: string;
     sentenceCount?: number;
   }) => Promise<void>;
-  generateMoreExercises: (data: {
+  generateMoreExercises: (data?: {
     languageId?: string;
     level?: string;
     selectedWords?: DictionaryWord[];
@@ -83,7 +84,7 @@ export interface AppStore {
     customTopic?: string;
     sentenceCount?: number;
   }) => Promise<void>;
-  loadTrainingExercises: (data: {
+  loadTrainingExercises: (data?: {
     languageId?: string;
     level?: string;
     mode?: 'student' | 'teacher';

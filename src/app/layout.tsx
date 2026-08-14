@@ -15,25 +15,28 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   const isAuthPage = pathname?.startsWith('/auth/');
 
   return (
-    <html 
-      lang="en" 
-      style={{ 
-        overflowX: 'hidden', 
-        width: '100vw', 
+    <html
+      lang="en"
+      style={{
+        overflowX: 'hidden',
+        width: '100vw',
         maxWidth: '100vw',
         margin: 0,
         padding: 0
       }}
     >
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"
+        />
       </head>
-      <body 
-        style={{ 
-          margin: 0, 
-          padding: 0, 
-          overflowX: 'hidden', 
-          width: '100vw', 
+      <body
+        style={{
+          margin: 0,
+          padding: 0,
+          overflowX: 'hidden',
+          width: '100vw',
           maxWidth: '100vw',
           position: 'relative'
         }}

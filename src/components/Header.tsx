@@ -28,7 +28,9 @@ import {
 import { usePathname, useRouter } from 'next/navigation';
 import React, { useEffect, useState } from 'react';
 import { useAppStore } from 'src/store/appStore';
+import { DEFAULT_LANGUAGE_CODE, languageForm } from 'src/constants/languages';
 import { useSettingsStore } from 'src/store/settingsStore';
+import { resolveLanguageSwitchRedirect } from 'src/utils/languageRedirect';
 import AIModelSelector from './AIModelSelector';
 import FeedbackModal from './FeedbackModal';
 import LanguageSelector from './LanguageSelector';
@@ -52,73 +54,42 @@ const Header: React.FC = () => {
 
   const isLoading = state === 'loading-exercises' || state === 'loading-topics' || isNavigating;
 
-  // Get display name for the learning language
-  const getLanguageDisplayName = () => {
-    const languageCode = settings?.learningLanguage || 'en';
-    const languageNames: Record<string, string> = {
-      en: 'английского',
-      pl: 'польского',
-      de: 'немецкого',
-      fr: 'французского',
-      es: 'испанского',
-      it: 'итальянского'
-    };
-    return languageNames[languageCode] || languageCode;
-  };
+  // "Изучение английского языка" - the genitive form belongs in the title.
+  const getLanguageDisplayName = () =>
+    languageForm(settings?.learningLanguage || DEFAULT_LANGUAGE_CODE, 'genitive');
 
   useEffect(() => {
-    loadLastSelectedTopic();
-    loadSettings();
+    void loadLastSelectedTopic();
+    void loadSettings();
   }, [loadLastSelectedTopic, loadSettings]);
 
   // Load last topic for current learning language and redirect if on exercises page
   useEffect(() => {
     const loadTopicForLanguage = async () => {
-      if (settings?.learningLanguage) {
-        try {
-          const response = await fetch(`/api/settings/topic?language=${settings.learningLanguage}`);
-          const data = await response.json();
-          const newTopic = data.topic || null;
-          setLastTopicForLanguage(newTopic);
+      const language = settings?.learningLanguage;
+      if (!language) return;
 
-          // Check if language actually changed (not initial load)
-          const languageChanged =
-            previousLanguage !== null && previousLanguage !== settings.learningLanguage;
+      try {
+        const response = await fetch(`/api/settings/topic?language=${language}`);
+        const data = await response.json();
+        const newTopic = data.topic || null;
+        setLastTopicForLanguage(newTopic);
 
-          if (languageChanged) {
-            // If we're on an exercises page, redirect to the topic for new language
-            if (pathname && pathname.startsWith('/exercises/')) {
-              const currentPath = pathname.split('/').pop();
-
-              // Don't redirect from history page
-              if (currentPath === 'generated-history') {
-                return;
-              }
-
-              if (newTopic) {
-                const newPath = newTopic.toLowerCase().replace(/ /g, '_');
-
-                // Only redirect if the topic is different
-                if (currentPath !== newPath) {
-                  route.push(`/exercises/${newPath}`);
-                }
-              } else {
-                // If there's no saved topic for this language, redirect to topics page
-                route.push('/topics');
-              }
-            }
-          }
-
-          // Update previous language
-          setPreviousLanguage(settings.learningLanguage);
-        } catch (error) {
-          console.error('Failed to load topic for language:', error);
-          setLastTopicForLanguage(null);
+        // Redirect only when the language actually changed (not on initial load)
+        const languageChanged = previousLanguage !== null && previousLanguage !== language;
+        const target = languageChanged ? resolveLanguageSwitchRedirect(pathname, newTopic) : null;
+        if (target !== null) {
+          route.push(target);
         }
+
+        setPreviousLanguage(language);
+      } catch (error) {
+        console.error('Failed to load topic for language:', error);
+        setLastTopicForLanguage(null);
       }
     };
 
-    loadTopicForLanguage();
+    void loadTopicForLanguage();
   }, [settings?.learningLanguage, pathname, route, previousLanguage]);
 
   const handleSettingsOpen = () => {

@@ -17,168 +17,34 @@ import {
   useMediaQuery,
   useTheme
 } from '@mui/material';
-import React, { useEffect, useState } from 'react';
-import { Controller, useForm } from 'react-hook-form';
-import {
-  AIModel,
-  PROVIDER_LABELS,
-  getModelsByProvider,
-  getProviderFromModel
-} from 'src/constants/aiModels';
-import { showAlert } from 'src/utils/alert';
+import React from 'react';
+import { Controller } from 'react-hook-form';
+import { PROVIDER_LABELS } from 'src/constants/aiModels';
+import { useAIModelSelector } from 'src/hooks/useAIModelSelector';
 
 interface AIModelSelectorProps {
   open: boolean;
   onClose: () => void;
 }
 
-interface AvailableModelsResponse {
-  providers: Array<'gemini' | 'openai' | 'anthropic'>;
-  models: AIModel[];
-  hasTokens: boolean;
-}
-
-interface FormData {
-  provider: 'gemini' | 'openai' | 'anthropic' | '';
-  model: string;
-}
-
 const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>('');
-  const [success, setSuccess] = useState<string>('');
-  const [availableData, setAvailableData] = useState<AvailableModelsResponse>({
-    providers: [],
-    models: [],
-    hasTokens: false
-  });
-  const [currentModel, setCurrentModel] = useState<string>('');
-
   const {
     control,
     handleSubmit,
-    watch,
-    setValue,
-    formState: { isSubmitting }
-  } = useForm<FormData>({
-    defaultValues: {
-      provider: '',
-      model: ''
-    }
-  });
-
-  const selectedProvider = watch('provider');
-  const selectedModel = watch('model');
-
-  // Load available models and current settings
-  useEffect(() => {
-    if (open) {
-      loadData();
-    }
-  }, [open]);
-
-  // Handle provider change - auto-select first model
-  useEffect(() => {
-    if (selectedProvider) {
-      const providerModels = getModelsByProvider(selectedProvider);
-      if (providerModels.length > 0 && !providerModels.find(m => m.value === selectedModel)) {
-        setValue('model', providerModels[0].value);
-      }
-    }
-  }, [selectedProvider, selectedModel, setValue]);
-
-  const loadData = async () => {
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      // Load available models and current settings in parallel
-      const [modelsResponse, settingsResponse] = await Promise.all([
-        fetch('/api/ai/available-models'),
-        fetch('/api/settings')
-      ]);
-
-      if (!modelsResponse.ok) {
-        throw new Error('Failed to fetch available models');
-      }
-
-      const modelsData: AvailableModelsResponse = await modelsResponse.json();
-      setAvailableData(modelsData);
-
-      if (settingsResponse.ok) {
-        const settings = await settingsResponse.json();
-        const currentAiModel = settings.aiModel || 'gemini-2.5-flash';
-        setCurrentModel(currentAiModel);
-
-        // Initialize form with current or default provider/model
-        const provider = getProviderFromModel(currentAiModel);
-        if (provider && modelsData.providers.includes(provider)) {
-          setValue('provider', provider);
-          setValue('model', currentAiModel);
-        } else if (modelsData.providers.length > 0) {
-          const defaultProvider = modelsData.providers[0];
-          setValue('provider', defaultProvider);
-          const providerModels = getModelsByProvider(defaultProvider);
-          if (providerModels.length > 0) {
-            setValue('model', providerModels[0].value);
-          }
-        }
-      }
-    } catch (_error) {
-      showAlert.error('Failed to load data');
-      setError('Не удалось загрузить данные');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onSubmit = async (data: FormData) => {
-    if (!data.model) {
-      setError('Пожалуйста, выберите модель');
-      return;
-    }
-
-    setError('');
-    setSuccess('');
-
-    try {
-      const response = await fetch('/api/settings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          aiModel: data.model
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to save settings');
-      }
-
-      setCurrentModel(data.model);
-      setSuccess('Модель успешно сохранена!');
-
-      setTimeout(() => {
-        onClose();
-      }, 1000);
-    } catch (_error) {
-      showAlert.error('Failed to save model');
-      setError('Не удалось сохранить модель');
-    }
-  };
-
-  const getFilteredModels = (): AIModel[] => {
-    if (!selectedProvider) return [];
-    return getModelsByProvider(selectedProvider);
-  };
-
-  const isProviderDisabled = availableData.providers.length === 1;
-  const isModelDisabled = !selectedProvider || getFilteredModels().length === 0;
-
+    onSubmit,
+    loading,
+    error,
+    success,
+    isSubmitting,
+    availableData,
+    currentModel,
+    selectedModel,
+    filteredModels,
+    isProviderDisabled,
+    isModelDisabled
+  } = useAIModelSelector(open, onClose);
   return (
     <Dialog
       open={open}
@@ -312,7 +178,7 @@ const AIModelSelector: React.FC<AIModelSelectorProps> = ({ open, onClose }) => {
                           }
                         }}
                       >
-                        {getFilteredModels().map(model => (
+                        {filteredModels.map(model => (
                           <MenuItem
                             key={model.value}
                             value={model.value}

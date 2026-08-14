@@ -6,135 +6,25 @@ import { useTextSelection } from 'src/hooks/useTextSelection';
 import { useAlertStore } from 'src/store/alertStore';
 import { useAppStore } from 'src/store/appStore';
 import type { TranslationPanelState } from 'src/types/translation';
+import { cleanWord, extractWordAtOffset, parseExerciseContent } from 'src/utils/exerciseContent';
 import TextSelectionPopover from './TextSelectionPopover';
 import WordTranslationPanel from './WordTranslationPanel';
 
 interface TextWithInputsProps {
   text: string;
-  exerciseIndex?: string | number;
-  sentenceId?: string;
-  hasAnswer?: boolean;
-  validationResults?: {
-    [key: string]: { isCorrect: boolean; error?: string; incorrectTranslations?: string[] };
-  };
-}
-
-interface ParsedExerciseContent {
-  displaySentence: string;
-  prefillSentence: string;
-  hints: string[];
-  translation: string | null;
-  additionalNotes: string[];
-}
-
-const PLACEHOLDER_REGEX = /\{\{input\}\}/gi;
-const BOLD_PATTERN = /\*\*([^*]+)\*\*/g;
-const WORD_CHAR = /[\p{L}\p{N}]/u;
-
-const EMPTY_PARSED_CONTENT: ParsedExerciseContent = {
-  displaySentence: '',
-  prefillSentence: '',
-  hints: [],
-  translation: null,
-  additionalNotes: []
-};
-
-const stripTranslationLabel = (value: string) =>
-  value.replace(/^(?:перевод|translation)\s*[:−-]?\s*/i, '').trim();
-
-const extractWordAtOffset = (text: string, offset: number): string => {
-  let start = offset;
-  let end = offset;
-  while (start > 0 && WORD_CHAR.test(text[start - 1])) {
-    start--;
-  }
-  while (end < text.length && WORD_CHAR.test(text[end])) {
-    end++;
-  }
-  return text.substring(start, end);
-};
-
-const cleanWord = (raw: string): string | null => {
-  const cleaned = raw.replace(/[^\p{L}\p{N}]/gu, '');
-  return cleaned && /^[\p{L}]+$/u.test(cleaned) ? cleaned.toLowerCase() : null;
-};
-
-const parseExerciseContent = (rawText: string): ParsedExerciseContent => {
-  if (!rawText) {
-    return EMPTY_PARSED_CONTENT;
-  }
-
-  const normalized = rawText.replace(/\r\n/g, '\n').trim();
-  if (!normalized) {
-    return EMPTY_PARSED_CONTENT;
-  }
-
-  const withoutNumbering = normalized.replace(/^(?:[\d]+[).\s]+|[-*]\s+)/, '').trim();
-  const lines = withoutNumbering
-    .split('\n')
-    .map(line => line.trim())
-    .filter(Boolean);
-
-  if (lines.length === 0) {
-    return EMPTY_PARSED_CONTENT;
-  }
-
-  let mainLine = lines[0];
-  const extraLines = lines.slice(1);
-
-  let hints: string[] = [];
-  const hintMatch = mainLine.match(/\s*\(([^)]+)\)\s*$/);
-  if (hintMatch) {
-    hints = hintMatch[1]
-      .split(/[,;]+/)
-      .map(part => part.trim().replace(/\*\*([^*]+)\*\*/g, '$1'))
-      .filter(Boolean);
-    mainLine = mainLine.replace(/\s*\([^)]+\)\s*$/, '').trim();
-  }
-
-  let translation: string | null = null;
-  const dashMatch = mainLine.match(/^(.*[.!?]\s*)[\s]*[-–—][\s]*(.+)$/);
-  if (dashMatch) {
-    mainLine = dashMatch[1].trim();
-    translation = stripTranslationLabel(dashMatch[2]);
-  }
-
-  BOLD_PATTERN.lastIndex = 0;
-  const hasBoldFormat = BOLD_PATTERN.test(mainLine);
-
-  if (hasBoldFormat) {
-    const displaySentence = mainLine.replace(BOLD_PATTERN, '_____');
-    return {
-      displaySentence,
-      prefillSentence: displaySentence,
-      hints,
-      translation: translation || null,
-      additionalNotes: extraLines
-    };
-  } else {
-    if (!translation) {
-      const translationIndex = extraLines.findIndex(line =>
-        /^(?:перевод|translation)\b/i.test(line)
-      );
-      if (translationIndex !== -1) {
-        translation = stripTranslationLabel(extraLines[translationIndex]);
-        extraLines.splice(translationIndex, 1);
-      } else if (extraLines.length > 0) {
-        translation = stripTranslationLabel(extraLines[0]);
-        extraLines.shift();
+  exerciseIndex?: string | number | undefined;
+  sentenceId?: string | undefined;
+  hasAnswer?: boolean | undefined;
+  validationResults?:
+    | {
+        [key: string]: {
+          isCorrect: boolean;
+          error?: string | undefined;
+          incorrectTranslations?: string[] | undefined;
+        };
       }
-    }
-
-    const displaySentence = mainLine.replace(PLACEHOLDER_REGEX, '_____');
-    return {
-      displaySentence,
-      prefillSentence: displaySentence,
-      hints,
-      translation: translation || null,
-      additionalNotes: extraLines
-    };
-  }
-};
+    | undefined;
+}
 
 const TextWithInputs: React.FC<TextWithInputsProps> = ({
   text,

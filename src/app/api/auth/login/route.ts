@@ -5,7 +5,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { userRepository } from 'src/repository/client';
 import { safeJson } from 'src/utils/jsonWrapper';
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET || '***REMOVED***');
+if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET environment variable is required');
+const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 const JWT_COOKIE_NAME = process.env.JWT_COOKIE_NAME || 'app_token';
 
@@ -20,17 +21,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log(process.env);
-
     const user = await userRepository.getUserByEmail(email);
-
-    console.log(user);
 
     if (!user) {
       return NextResponse.json({ success: false, error: 'Неверные данные' }, { status: 401 });
     }
-
-    console.log(email, bcrypt.hashSync(password, 10));
 
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) {

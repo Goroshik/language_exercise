@@ -49,7 +49,7 @@ const ChatModal: React.FC = () => {
   // Load history when modal opens
   useEffect(() => {
     if (isOpen) {
-      loadHistory();
+      void loadHistory();
     }
   }, [isOpen, loadHistory]);
 
@@ -70,7 +70,7 @@ const ChatModal: React.FC = () => {
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSendMessage();
+      void handleSendMessage();
     }
   };
 

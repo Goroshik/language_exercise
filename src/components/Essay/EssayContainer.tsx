@@ -47,7 +47,7 @@ export const EssayContainer: React.FC = () => {
   const wordCount = content?.trim() ? content.trim().split(/\s+/).length : 0;
   const charCount = content?.length || 0;
 
-  const essayTitles = essays.map((e) => e.title);
+  const essayTitles = essays.map(e => e.title);
   const allTopics = [...new Set([...defaultTopics, ...essayTitles])];
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export const EssayContainer: React.FC = () => {
         console.error('Failed to load default topics:', error);
       }
     };
-    loadDefaultTopics();
+    void loadDefaultTopics();
   }, [languageCode, setDefaultTopics]);
 
   useEffect(() => {
@@ -71,7 +71,7 @@ export const EssayContainer: React.FC = () => {
         console.error('Failed to load essays:', error);
       }
     };
-    loadEssays();
+    void loadEssays();
   }, [languageCode, currentEssayId, setEssays]);
 
   const saveEssay = useCallback(
@@ -116,7 +116,7 @@ export const EssayContainer: React.FC = () => {
     }
 
     saveTimeoutRef.current = setTimeout(() => {
-      saveEssay(false);
+      void saveEssay(false);
     }, 2000);
 
     return () => {
@@ -161,25 +161,49 @@ export const EssayContainer: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [content, currentEssayId, title, languageCode, setSaving, setCurrentEssayId, setLoading, setSelectedErrorIndex, setAiResponse]);
+  }, [
+    content,
+    currentEssayId,
+    title,
+    languageCode,
+    setSaving,
+    setCurrentEssayId,
+    setLoading,
+    setSelectedErrorIndex,
+    setAiResponse
+  ]);
 
-  const handleTitleChange = useCallback((newValue: string | null) => {
-    if (newValue) {
-      setTitle(newValue);
-      if (essayTitles.includes(newValue)) {
-        loadEssayByTitle(newValue);
-      } else {
-        setCurrentEssayId(null);
-        setContent('');
-        setAiResponse(null);
-        setSelectedErrorIndex(null);
+  const handleTitleChange = useCallback(
+    (newValue: string | null) => {
+      if (newValue) {
+        setTitle(newValue);
+        if (essayTitles.includes(newValue)) {
+          loadEssayByTitle(newValue);
+        } else {
+          setCurrentEssayId(null);
+          setContent('');
+          setAiResponse(null);
+          setSelectedErrorIndex(null);
+        }
       }
-    }
-  }, [essayTitles, loadEssayByTitle, setTitle, setCurrentEssayId, setContent, setAiResponse, setSelectedErrorIndex]);
+    },
+    [
+      essayTitles,
+      loadEssayByTitle,
+      setTitle,
+      setCurrentEssayId,
+      setContent,
+      setAiResponse,
+      setSelectedErrorIndex
+    ]
+  );
 
-  const handleContentChange = useCallback((newContent: string) => {
-    setContent(newContent);
-  }, [setContent]);
+  const handleContentChange = useCallback(
+    (newContent: string) => {
+      setContent(newContent);
+    },
+    [setContent]
+  );
 
   return (
     <Box sx={{ maxWidth: '1200px', margin: '0 auto', padding: 2 }}>

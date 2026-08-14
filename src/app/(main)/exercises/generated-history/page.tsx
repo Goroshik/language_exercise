@@ -65,9 +65,9 @@ export default function GeneratedHistoryPage() {
   };
 
   useEffect(() => {
-    fetchLanguages();
-    fetchLevels();
-    fetchHistory();
+    void fetchLanguages();
+    void fetchLevels();
+    void fetchHistory();
   }, []);
 
   return (
